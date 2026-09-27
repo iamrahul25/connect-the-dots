@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.expo/
+web-build/
+*.log
+.DS_Store
+coverage/
+apps/mobile/ios/
+apps/mobile/android/
+.vercel

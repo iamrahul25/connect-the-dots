@@ -1,0 +1,34 @@
+{
+  "name": "connect-the-dots",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "packages/*",
+    "tools/*",
+    "levels",
+    "apps/*"
+  ],
+  "scripts": {
+    "test": "npm run test -w @ctd/core",
+    "typecheck": "npm run typecheck -w @ctd/core && npm run typecheck -w @ctd/levelgen && npm run typecheck -w mobile",
+    "levelgen": "tsx tools/levelgen/src/cli.ts",
+    "levels:build": "tsx tools/levelgen/src/cli.ts build --config tools/levelgen/levels.config.json",
+    "levels:validate": "tsx tools/levelgen/src/cli.ts validate levels",
+    "audio:build": "tsx tools/levelgen/src/audiogen.ts",
+    "start": "npm run start -w mobile",
+    "web": "npm run web -w mobile",
+    "android": "npm run android -w mobile",
+    "ios": "npm run ios -w mobile",
+    "export:web": "npm run export:web -w mobile"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "~5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "allowScripts": {
+    "@shopify/react-native-skia@2.6.2": true,
+    "esbuild@0.28.2": true
+  }
+}

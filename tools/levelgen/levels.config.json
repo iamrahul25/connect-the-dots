@@ -1,0 +1,54 @@
+{
+  "generatorVersion": "1.0.0",
+  "packs": [
+    {
+      "id": 1,
+      "name": "Dawn",
+      "theme": "dawn",
+      "groups": [
+        { "range": [1, 3], "size": 5, "colors": [4, 4], "difficulty": [0, 10], "maxSolverTier": 1, "tutorial": true },
+        { "range": [4, 10], "size": 5, "colors": [4, 5], "difficulty": [5, 16] },
+        { "range": [11, 20], "size": 6, "colors": [5, 6], "difficulty": [12, 25] }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Lagoon",
+      "theme": "lagoon",
+      "groups": [
+        { "range": [21, 30], "size": 7, "colors": [6, 7], "difficulty": [20, 35] },
+        { "range": [31, 35], "size": 7, "colors": [5, 7], "walls": [1, 3], "difficulty": [25, 38], "introduces": "walls" },
+        { "range": [36, 40], "size": 8, "colors": [6, 8], "walls": [2, 4], "difficulty": [30, 42] }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Ember",
+      "theme": "ember",
+      "groups": [
+        { "range": [41, 50], "size": 8, "colors": [7, 8], "bridges": 1, "walls": [0, 2], "difficulty": [30, 45], "introduces": "bridges" },
+        { "range": [51, 60], "size": 9, "colors": [7, 9], "bridges": [1, 2], "walls": [0, 3], "difficulty": [38, 52] }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Aurora",
+      "theme": "aurora",
+      "groups": [
+        { "range": [61, 65], "size": 9, "colors": [7, 9], "warps": 1, "difficulty": [42, 55], "introduces": "warps" },
+        { "range": [66, 70], "size": 10, "colors": [8, 10], "warps": 1, "difficulty": [45, 58] },
+        { "range": [71, 80], "size": 10, "colors": [7, 10], "warps": [1, 2], "walls": [1, 3], "difficulty": [50, 65] }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Cosmos",
+      "theme": "cosmos",
+      "groups": [
+        { "range": [81, 90], "size": 11, "colors": [8, 11], "walls": [0, 3], "bridges": [0, 2], "warps": [0, 2], "difficulty": [55, 72] },
+        { "range": [91, 99], "size": 12, "colors": [9, 12], "walls": [1, 4], "bridges": [1, 2], "warps": [1, 2], "difficulty": [60, 85] },
+        { "range": [100, 100], "size": 12, "colors": [10, 12], "walls": [2, 4], "bridges": 2, "warps": 2, "difficulty": [65, 90], "showcase": true }
+      ]
+    }
+  ]
+}

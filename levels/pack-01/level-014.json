@@ -1,0 +1,83 @@
+{
+  "$schema": "../schema/level.schema.json",
+  "id": "p01-l014",
+  "pack": 1,
+  "index": 14,
+  "formatVersion": 1,
+  "size": {
+    "width": 6,
+    "height": 6
+  },
+  "dots": [
+    {
+      "color": 3,
+      "start": [0, 0],
+      "end": [1, 2]
+    },
+    {
+      "color": 1,
+      "start": [0, 4],
+      "end": [1, 1]
+    },
+    {
+      "color": 0,
+      "start": [0, 5],
+      "end": [3, 1]
+    },
+    {
+      "color": 2,
+      "start": [1, 3],
+      "end": [2, 4]
+    },
+    {
+      "color": 4,
+      "start": [2, 3],
+      "end": [3, 2]
+    },
+    {
+      "color": 5,
+      "start": [3, 4],
+      "end": [4, 1]
+    }
+  ],
+  "walls": [],
+  "bridges": [],
+  "warps": [],
+  "solution": {
+    "0": [[0, 0], [1, 0], [2, 0], [2, 1], [2, 2], [1, 2]],
+    "1": [[0, 4], [0, 3], [0, 2], [0, 1], [1, 1]],
+    "2": [[0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [5, 4], [5, 3], [5, 2], [5, 1], [5, 0], [4, 0], [3, 0], [3, 1]],
+    "3": [[1, 3], [1, 4], [2, 4]],
+    "4": [[2, 3], [3, 3], [3, 2]],
+    "5": [[3, 4], [4, 4], [4, 3], [4, 2], [4, 1]]
+  },
+  "difficulty": {
+    "score": 14.7,
+    "band": "relaxed",
+    "metrics": {
+      "cells": 36,
+      "colors": 6,
+      "avgPathLength": 6,
+      "turnDensity": 0.25,
+      "maxSolverTier": 2,
+      "tierCounts": [29, 1, 0, 0],
+      "searchNodes": 31,
+      "forcedMoveRatio": 0.967
+    }
+  },
+  "stars": {
+    "perfectMoves": 6,
+    "twoStarMoves": 9
+  },
+  "meta": {
+    "seed": 3908359690,
+    "generatorVersion": "1.0.0",
+    "params": {
+      "size": 6,
+      "colors": [5, 6],
+      "walls": 0,
+      "bridges": 0,
+      "warps": 0
+    }
+  }
+}

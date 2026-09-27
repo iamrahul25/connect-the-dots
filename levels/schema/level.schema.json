@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://connect-the-dots.app/schema/level.schema.json",
+  "title": "Connect the Dots level",
+  "type": "object",
+  "required": ["id", "pack", "index", "formatVersion", "size", "dots", "solution", "difficulty", "stars"],
+  "$defs": {
+    "cell": {
+      "type": "array",
+      "description": "[row, col], zero-based",
+      "items": { "type": "integer", "minimum": 0 },
+      "minItems": 2,
+      "maxItems": 2
+    }
+  },
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": { "type": "string", "pattern": "^(p\\d{2}-l\\d{3}|daily-\\d{4}-\\d{2}-\\d{2})$" },
+    "pack": { "type": "integer", "minimum": 0 },
+    "index": { "type": "integer", "minimum": 1 },
+    "formatVersion": { "const": 1 },
+    "size": {
+      "type": "object",
+      "required": ["width", "height"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 3, "maximum": 16 },
+        "height": { "type": "integer", "minimum": 3, "maximum": 16 }
+      }
+    },
+    "dots": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["color", "start", "end"],
+        "properties": {
+          "color": { "type": "integer", "minimum": 0, "maximum": 11 },
+          "start": { "$ref": "#/$defs/cell" },
+          "end": { "$ref": "#/$defs/cell" }
+        }
+      }
+    },
+    "walls": { "type": "array", "items": { "$ref": "#/$defs/cell" } },
+    "bridges": { "type": "array", "items": { "$ref": "#/$defs/cell" } },
+    "warps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["axis", "index"],
+        "properties": {
+          "axis": { "enum": ["row", "col"] },
+          "index": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "solution": {
+      "type": "object",
+      "description": "Dot index -> ordered cells from start to end",
+      "additionalProperties": { "type": "array", "items": { "$ref": "#/$defs/cell" }, "minItems": 2 }
+    },
+    "difficulty": {
+      "type": "object",
+      "required": ["score", "band"],
+      "properties": {
+        "score": { "type": "number", "minimum": 0, "maximum": 100 },
+        "band": { "enum": ["relaxed", "easy", "medium", "hard", "expert"] },
+        "metrics": { "type": "object" }
+      }
+    },
+    "stars": {
+      "type": "object",
+      "required": ["perfectMoves", "twoStarMoves"],
+      "properties": {
+        "perfectMoves": { "type": "integer", "minimum": 1 },
+        "twoStarMoves": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "meta": { "type": "object" }
+  }
+}

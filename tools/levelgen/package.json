@@ -1,0 +1,12 @@
+{
+  "name": "@ctd/levelgen",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@ctd/core": "*"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "Connect the Dots",
+    "slug": "connect-the-dots",
+    "version": "1.0.0",
+    "scheme": "connectthedots",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B0A1F",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.connectthedots.game"
+    },
+    "android": {
+      "package": "com.connectthedots.game",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0A1F",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png",
+      "name": "Connect the Dots",
+      "shortName": "Dots",
+      "themeColor": "#0B0A1F",
+      "backgroundColor": "#0B0A1F"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-audio",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B0A1F",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
