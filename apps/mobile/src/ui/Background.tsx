@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from 'react';
-import { useWindowDimensions } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { StyleSheet, useWindowDimensions, View, type LayoutChangeEvent } from 'react-native';
 import { BlurStyle, Canvas, createPicture, Picture, Skia, TileMode, useClock, vec } from '@shopify/react-native-skia';
 import { useDerivedValue, useSharedValue, withTiming } from 'react-native-reanimated';
-import { themeFor } from '../theme/themes';
+import { themeFor, type ThemeGlow } from '../theme/themes';
 import { useUi } from '../store/ui';
 import { useSettings } from '../store/settings';
 
@@ -14,32 +14,51 @@ const BOKEH = Array.from({ length: 18 }, (_, i) => {
   return [r(1), r(2), 18 + r(3) * 60, 0.03 + r(4) * 0.07, r(5) * Math.PI * 2, 0.4 + r(6)];
 });
 
+const packGlows = (glows: readonly ThemeGlow[]) => glows.flatMap((g) => [g.x, g.y, g.r]);
+
 /**
  * Full-screen animated gradient with drifting bokeh. Rendered once in the root
  * layout so every screen shares a single WebGL context on web.
  */
 export function Background() {
-  const { width, height } = useWindowDimensions();
+  // Android's window height excludes the navigation bar, but the app draws edge-to-edge
+  // beneath it, so size from our own layout rather than the window.
+  const win = useWindowDimensions();
+  const [size, setSize] = useState({ width: win.width, height: win.height });
+  const { width, height } = size;
+  const onLayout = (e: LayoutChangeEvent) => {
+    const { width: w, height: h } = e.nativeEvent.layout;
+    if (w !== width || h !== height) setSize({ width: w, height: h });
+  };
   const themeId = useUi((s) => s.theme);
   const reduceMotion = useSettings((s) => s.reduceMotion);
   const theme = themeFor(themeId);
 
-  const prevColors = useRef(theme.gradient);
+  const prevTheme = useRef(theme);
   const from = useSharedValue<string[]>([...theme.gradient]);
   const to = useSharedValue<string[]>([...theme.gradient]);
+  const glowsFrom = useSharedValue<number[]>(packGlows(theme.glows));
+  const glowsTo = useSharedValue<number[]>(packGlows(theme.glows));
+  const glowColorsFrom = useSharedValue<string[]>(theme.glows.map((g) => g.color));
+  const glowColorsTo = useSharedValue<string[]>(theme.glows.map((g) => g.color));
   const bokehFrom = useSharedValue(theme.bokeh);
   const bokehTo = useSharedValue(theme.bokeh);
   const blend = useSharedValue(1);
 
   useEffect(() => {
-    from.value = [...prevColors.current];
+    const prev = prevTheme.current;
+    from.value = [...prev.gradient];
     to.value = [...theme.gradient];
+    glowsFrom.value = packGlows(prev.glows);
+    glowsTo.value = packGlows(theme.glows);
+    glowColorsFrom.value = prev.glows.map((g) => g.color);
+    glowColorsTo.value = theme.glows.map((g) => g.color);
     bokehFrom.value = bokehTo.value;
     bokehTo.value = theme.bokeh;
     blend.value = 0;
     blend.value = withTiming(1, { duration: 900 });
-    prevColors.current = theme.gradient;
-  }, [theme, from, to, blend, bokehFrom, bokehTo]);
+    prevTheme.current = theme;
+  }, [theme, from, to, glowsFrom, glowsTo, glowColorsFrom, glowColorsTo, blend, bokehFrom, bokehTo]);
 
   const clock = useClock();
   const picture = useDerivedValue(() => {
@@ -52,14 +71,30 @@ export function Background() {
       const a = t * 0.05;
       const start = vec(w * (0.5 + 0.45 * Math.cos(a)), 0);
       const end = vec(w * (0.5 - 0.45 * Math.cos(a)), h);
-      const layers: [string[], number][] = k < 1 ? [[from.value, 1], [to.value, k]] : [[to.value, 1]];
-      for (const [cols, alpha] of layers) {
+      const layers: [string[], number[], string[], number][] =
+        k < 1
+          ? [[from.value, glowsFrom.value, glowColorsFrom.value, 1], [to.value, glowsTo.value, glowColorsTo.value, k]]
+          : [[to.value, glowsTo.value, glowColorsTo.value, 1]];
+      for (const [cols, glows, glowCols, alpha] of layers) {
         paint.setShader(
-          Skia.Shader.MakeLinearGradient(start, end, cols.map((c) => Skia.Color(c)), [0, 0.55, 1], TileMode.Clamp),
+          Skia.Shader.MakeLinearGradient(start, end, cols.map((c) => Skia.Color(c)), cols.map((_, i) => i / (cols.length - 1)), TileMode.Clamp),
         );
         paint.setAlphaf(alpha);
         canvas.drawRect(Skia.XYWHRect(0, 0, w, h), paint);
+        for (let i = 0; i < glowCols.length; i++) {
+          const drift = Math.sin(t * 0.07 + i * 2.1) * 0.04;
+          const cx = w * (glows[i * 3] + drift);
+          const cy = h * (glows[i * 3 + 1] - drift);
+          const r = Math.max(w, h) * glows[i * 3 + 2];
+          const c = Skia.Color(glowCols[i]);
+          const clear = Skia.Color(glowCols[i]);
+          clear[3] = 0;
+          paint.setShader(Skia.Shader.MakeRadialGradient(vec(cx, cy), r, [c, clear], [0, 1], TileMode.Clamp));
+          paint.setAlphaf(alpha * 0.85);
+          canvas.drawRect(Skia.XYWHRect(0, 0, w, h), paint);
+        }
       }
+      paint.setShader(null);
       const bp = Skia.Paint();
       bp.setAntiAlias(true);
       bp.setMaskFilter(Skia.MaskFilter.MakeBlur(BlurStyle.Normal, 14, true));
@@ -75,8 +110,14 @@ export function Background() {
   }, [width, height, reduceMotion]);
 
   return (
-    <Canvas style={{ position: 'absolute', left: 0, top: 0, width, height, pointerEvents: 'none' }}>
-      <Picture picture={picture} />
-    </Canvas>
+    <View style={styles.fill} onLayout={onLayout}>
+      <Canvas style={{ width, height }}>
+        <Picture picture={picture} />
+      </Canvas>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  fill: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, overflow: 'hidden', pointerEvents: 'none' },
+});

@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../ui/Screen';
 import { GlassButton } from '../ui/GlassButton';
 import { colors, fonts } from '../theme/tokens';
+import { withAlpha } from '../board/color';
 import { COLORBLIND_PALETTE, PALETTE, THEMES } from '../theme/themes';
 import { useSettings, type SettingsState } from '../store/settings';
 import { useProgress } from '../store/progress';
@@ -53,9 +54,9 @@ export default function Settings() {
               <Switch
                 value={settings[r.key]}
                 onValueChange={(v) => settings.set({ [r.key]: v })}
-                trackColor={{ false: 'rgba(255,255,255,0.15)', true: accent }}
-                thumbColor="#FFFFFF"
-                {...(Platform.OS === 'web' ? { activeThumbColor: '#FFFFFF' } : {})}
+                trackColor={{ false: colors.meter.track, true: accent }}
+                thumbColor={colors.textPure}
+                {...(Platform.OS === 'web' ? { activeThumbColor: colors.textPure } : {})}
               />
             </Pressable>
           ))}
@@ -79,7 +80,7 @@ export default function Settings() {
                   label="Reset"
                   size="sm"
                   variant="primary"
-                  accent="#FF6B6B"
+                  accent={colors.danger}
                   onPress={() => {
                     useProgress.getState().reset();
                     haptics.warning();
@@ -102,12 +103,12 @@ const styles = StyleSheet.create({
   group: { borderRadius: 22, backgroundColor: colors.glass, borderWidth: 1, borderColor: colors.glassBorder, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 14 },
   divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.glassBorder },
-  iconWrap: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,179,138,0.14)' },
+  iconWrap: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: withAlpha(accent, 0.14) },
   label: { fontFamily: fonts.title, fontSize: 17, color: colors.text },
   sub: { fontFamily: fonts.body, fontSize: 13, color: colors.textDim },
   section: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2, color: colors.textFaint, marginTop: 22, marginBottom: 8, textTransform: 'uppercase' },
   palette: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, padding: 16, justifyContent: 'center' },
   swatch: { width: 30, height: 30, borderRadius: 15, shadowOpacity: 0.6, shadowRadius: 8, shadowOffset: { width: 0, height: 0 } },
   buttons: { marginTop: 24, gap: 12, alignItems: 'center' },
-  confirm: { alignItems: 'center', padding: 14, borderRadius: 18, backgroundColor: 'rgba(255,107,107,0.1)' },
+  confirm: { alignItems: 'center', padding: 14, borderRadius: 18, backgroundColor: withAlpha(colors.danger, 0.1) },
 });

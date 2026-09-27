@@ -106,10 +106,10 @@ const styles = StyleSheet.create({
   packNo: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 3, color: colors.textDim },
   packName: { fontFamily: fonts.titleBold, fontSize: 36, color: colors.text },
   packSizes: { fontFamily: fonts.body, fontSize: 14, color: colors.textDim, marginTop: 4 },
-  progressTrack: { alignSelf: 'stretch', height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.12)', marginTop: 28, overflow: 'hidden' },
+  progressTrack: { alignSelf: 'stretch', height: 8, borderRadius: 4, backgroundColor: colors.meter.track, marginTop: 28, overflow: 'hidden' },
   progressFill: { height: 8, borderRadius: 4 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', alignSelf: 'stretch', marginTop: 10 },
   meta: { fontFamily: fonts.body, fontSize: 13, color: colors.textDim },
-  locked: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 28, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.3)' },
+  locked: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 28, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(11,9,46,0.45)' },
   hint: { fontFamily: fonts.body, fontSize: 13, color: colors.textFaint, textAlign: 'center', marginTop: 18 },
 });

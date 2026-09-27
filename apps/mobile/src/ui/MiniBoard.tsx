@@ -38,7 +38,7 @@ export const MiniBoard = memo(function MiniBoard({
               style={{
                 flex: 1,
                 borderRadius: cell * 0.25,
-                backgroundColor: color ? (endpoints.has(key) ? color : withAlpha(color, 0.55)) : 'rgba(0,0,0,0.3)',
+                backgroundColor: color ? (endpoints.has(key) ? color : withAlpha(color, 0.55)) : 'rgba(11,9,46,0.45)',
               }}
             />
           </View>

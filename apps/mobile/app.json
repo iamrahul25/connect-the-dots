@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0B0A1F",
+    "backgroundColor": "#18154D",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.connectthedots.game"
@@ -15,7 +15,7 @@
     "android": {
       "package": "com.connectthedots.game",
       "adaptiveIcon": {
-        "backgroundColor": "#0B0A1F",
+        "backgroundColor": "#18154D",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -28,8 +28,8 @@
       "favicon": "./assets/favicon.png",
       "name": "Connect the Dots",
       "shortName": "Dots",
-      "themeColor": "#0B0A1F",
-      "backgroundColor": "#0B0A1F"
+      "themeColor": "#18154D",
+      "backgroundColor": "#18154D"
     },
     "plugins": [
       "expo-router",
@@ -38,7 +38,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0B0A1F",
+          "backgroundColor": "#18154D",
           "image": "./assets/splash-icon.png",
           "imageWidth": 160
         }

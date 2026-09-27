@@ -7,7 +7,7 @@ export function Stars({ count, size = 14, max = 3 }: { count: number; size?: num
   return (
     <View style={{ flexDirection: 'row', gap: 2 }}>
       {Array.from({ length: max }, (_, i) => (
-        <Ionicons key={i} name={i < count ? 'star' : 'star-outline'} size={size} color={i < count ? colors.star : 'rgba(255,255,255,0.3)'} />
+        <Ionicons key={i} name={i < count ? 'star' : 'star-outline'} size={size} color={i < count ? colors.star : colors.starEmpty} />
       ))}
     </View>
   );

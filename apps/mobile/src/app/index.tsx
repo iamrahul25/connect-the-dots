@@ -85,7 +85,7 @@ export default function Home() {
               <Text style={styles.chipText}>{hints}</Text>
             </View>
             <View style={styles.chip}>
-              <Ionicons name="flame" size={16} color="#FF9F43" />
+              <Ionicons name="flame" size={16} color={colors.orangeGlow} />
               <Text style={styles.chipText}>{daily.streak}</Text>
             </View>
           </View>
@@ -158,9 +158,9 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 16,
     borderRadius: 22,
-    backgroundColor: 'rgba(255,200,87,0.10)',
+    backgroundColor: 'rgba(255,202,40,0.10)',
     borderWidth: 1,
-    borderColor: 'rgba(255,200,87,0.35)',
+    borderColor: 'rgba(255,202,40,0.35)',
   },
   dailyIcon: {
     width: 48,
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,200,87,0.15)',
+    backgroundColor: 'rgba(255,202,40,0.16)',
   },
   dailyTitle: { fontFamily: fonts.title, fontSize: 19, color: colors.text },
   dailySub: { fontFamily: fonts.body, fontSize: 13, color: colors.textDim },

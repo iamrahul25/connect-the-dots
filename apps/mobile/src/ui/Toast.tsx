@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: 'rgba(20,16,44,0.92)',
+    backgroundColor: 'rgba(20,21,75,0.94)',
     borderWidth: 1,
     borderColor: colors.glassBorder,
   },

@@ -54,7 +54,7 @@ function Star({ index, earned, reduceMotion }: { index: number; earned: boolean;
   const style = useAnimatedStyle(() => ({ transform: [{ scale: s.value }, { rotate: `${rot.value}deg` }] }));
   return (
     <Animated.View style={[style, index === 1 && { marginTop: -14 }]}>
-      <Ionicons name={earned ? 'star' : 'star-outline'} size={index === 1 ? 58 : 46} color={earned ? colors.star : 'rgba(255,255,255,0.25)'} />
+      <Ionicons name={earned ? 'star' : 'star-outline'} size={index === 1 ? 58 : 46} color={earned ? colors.star : colors.starEmpty} />
     </Animated.View>
   );
 }
@@ -90,7 +90,7 @@ export function ResultModal({ result, accent, nextLabel, onNext, onReplay, onLev
           </View>
           {result.usedHint && <Text style={styles.note}>Hint used · replay without hints for ★★★</Text>}
           {result.streak !== undefined && result.streak > 0 && (
-            <Text style={[styles.reward, { color: '#FF9F43' }]}>🔥 {result.streak}-day streak</Text>
+            <Text style={[styles.reward, { color: colors.orangeGlow }]}>🔥 {result.streak}-day streak</Text>
           )}
           {result.packCompleted && <Text style={[styles.reward, { color: accent }]}>Pack complete! 🎉</Text>}
           {result.hintsEarned > 0 && <Text style={styles.reward}>+{result.hintsEarned} hint{result.hintsEarned > 1 ? 's' : ''} 💡</Text>}
@@ -115,7 +115,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { backgroundColor: 'rgba(5,4,18,0.55)' },
+  backdrop: { backgroundColor: colors.overlay },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
   card: {
     width: '100%',
@@ -123,10 +123,10 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     padding: 24,
     alignItems: 'center',
-    backgroundColor: 'rgba(30,24,64,0.88)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.glassBorder,
-    shadowColor: '#000',
+    shadowColor: colors.board.shadow,
     shadowOpacity: 0.5,
     shadowRadius: 30,
     shadowOffset: { width: 0, height: 16 },

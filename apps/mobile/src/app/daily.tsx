@@ -46,9 +46,9 @@ export default function Daily() {
     <Screen title="Daily Puzzle" subtitle="A fresh puzzle every day" back>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.streakRow}>
-          <Stat icon="flame" color="#FF9F43" value={daily.streak} label="Streak" />
+          <Stat icon="flame" color={colors.orangeGlow} value={daily.streak} label="Streak" />
           <Stat icon="trophy" color={accent} value={daily.bestStreak} label="Best" />
-          <Stat icon="checkmark-done" color="#7CFFB2" value={Object.keys(daily.completed).length} label="Solved" />
+          <Stat icon="checkmark-done" color={colors.success} value={Object.keys(daily.completed).length} label="Solved" />
         </View>
 
         <View style={styles.todayCard}>
@@ -142,9 +142,9 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 24,
     alignItems: 'center',
-    backgroundColor: 'rgba(255,200,87,0.10)',
+    backgroundColor: 'rgba(255,202,40,0.10)',
     borderWidth: 1,
-    borderColor: 'rgba(255,200,87,0.35)',
+    borderColor: 'rgba(255,202,40,0.35)',
     gap: 4,
   },
   todayLabel: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2, color: colors.textDim },
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'transparent',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: colors.glassHighlight,
   },
   dayText: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.text },
   check: { position: 'absolute', bottom: 3 },
