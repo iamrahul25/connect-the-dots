@@ -42,7 +42,8 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 160
         }
-      ]
+      ],
+      "./plugins/withAndroidReleaseSigning.js"
     ],
     "experiments": {
       "typedRoutes": false

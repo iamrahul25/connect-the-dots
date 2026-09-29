@@ -1,3 +1,9 @@
 Features to add: 
 ---------------
 - Add obstacle like -> Anywhere door & Tunnel (Only one direction line can move)
+- For increasing the different: 
+ a) Once we cross lines -> intersecting it should clear previous lines completely
+ b) Remove the residue of other line when crossing
+ c) Faded lines should also not be visible
+- Making 2 grids side by side -> Prince Idea -> Difficult (PRO Max) -> 
+one grid at a time should be visible. 

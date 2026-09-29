@@ -19,12 +19,15 @@
     "web": "npm run web -w mobile",
     "android": "npm run android -w mobile",
     "ios": "npm run ios -w mobile",
-    "export:web": "npm run export:web -w mobile"
+    "export:web": "npm run export:web -w mobile",
+    "release-apk": "npm run release-apk -w mobile",
+    "preflight-apk": "npm run preflight-apk -w mobile",
+    "test-apk": "npm run test-apk -w mobile"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
     "tsx": "^4.19.2",
-    "typescript": "~5.9.2",
+    "typescript": "~6.0.3",
     "vitest": "^3.2.4"
   },
   "allowScripts": {
