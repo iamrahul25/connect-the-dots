@@ -36,6 +36,10 @@ export interface GameScreenProps {
 }
 
 const IDLE_MS = 45_000;
+/** How far (in cells) the pointer must pass a warp edge before wrapping, so jitter on the edge can't bounce. */
+const WARP_MARGIN = 0.35;
+
+const sameCellPair = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
 
 export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, onNext, onLevels, dailyKey }: GameScreenProps) {
   const theme = themeFor(themeId);
@@ -213,6 +217,7 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
   }, []);
 
   const lastTarget = useRef<Cell | null>(null);
+  const wrapShift = useRef<[number, number]>([0, 0]);
 
   const onDown = useCallback(
     (x: number, y: number) => {
@@ -221,6 +226,7 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
       const [r, c] = cellAtRaw(gg, x, y);
       if (r < 0 || c < 0 || r >= gg.H || c >= gg.W) return;
       lastTarget.current = [r, c];
+      wrapShift.current = [0, 0];
       const ev = gm.beginDrag([r, c]);
       if (ev.length) {
         process(ev);
@@ -240,27 +246,55 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
         const n = p[p.length - 1];
         return [g.nodeRow[n], g.nodeCol[n]] as Cell;
       };
-      const raw = cellAtRaw(gg, x, y);
+      const spanX = gg.W * gg.cell;
+      const spanY = gg.H * gg.cell;
+      const inside = (px: number, py: number) => px >= gg.ox && px < gg.ox + spanX && py >= gg.oy && py < gg.oy + spanY;
+      // After a warp the finger is on the far side of the board from the head, so the pointer is shifted
+      // by one board span; otherwise the unshifted pointer maps straight back and the path bounces.
+      let vx = x + wrapShift.current[0];
+      let vy = y + wrapShift.current[1];
       const [hr, hc] = headOf();
 
       // Dragging off a warp edge re-enters from the opposite side.
+      const m = gg.cell * WARP_MARGIN;
       let wrap: Cell | null = null;
-      if (raw[1] < 0 && hc === 0 && g.warpRows[hr]) wrap = [hr, gg.W - 1];
-      else if (raw[1] >= gg.W && hc === gg.W - 1 && g.warpRows[hr]) wrap = [hr, 0];
-      else if (raw[0] < 0 && hr === 0 && g.warpCols[hc]) wrap = [gg.H - 1, hc];
-      else if (raw[0] >= gg.H && hr === gg.H - 1 && g.warpCols[hc]) wrap = [0, hc];
+      let shift: [number, number] = [0, 0];
+      if (vx < gg.ox - m && hc === 0 && g.warpRows[hr]) {
+        wrap = [hr, gg.W - 1];
+        shift = [spanX, 0];
+      } else if (vx >= gg.ox + spanX + m && hc === gg.W - 1 && g.warpRows[hr]) {
+        wrap = [hr, 0];
+        shift = [-spanX, 0];
+      } else if (vy < gg.oy - m && hr === 0 && g.warpCols[hc]) {
+        wrap = [gg.H - 1, hc];
+        shift = [0, spanY];
+      } else if (vy >= gg.oy + spanY + m && hr === gg.H - 1 && g.warpCols[hc]) {
+        wrap = [0, hc];
+        shift = [0, -spanY];
+      }
       if (wrap) {
+        if (lastTarget.current && sameCellPair(lastTarget.current, wrap)) return;
+        lastTarget.current = wrap;
         const ev = gm.dragTo(wrap);
+        if (ev.length && ev[0].type !== 'invalid') {
+          wrapShift.current = [wrapShift.current[0] + shift[0], wrapShift.current[1] + shift[1]];
+        }
         if (ev.length) {
-          lastTarget.current = wrap;
           process(ev);
           bump();
         }
         return;
       }
 
-      const target = clampCell(gg, raw);
-      if (lastTarget.current && lastTarget.current[0] === target[0] && lastTarget.current[1] === target[1]) return;
+      // Finger came back onto the board somewhere the shifted mapping can't reach: follow the finger again.
+      if ((wrapShift.current[0] || wrapShift.current[1]) && inside(x, y) && !inside(vx, vy)) {
+        wrapShift.current = [0, 0];
+        vx = x;
+        vy = y;
+      }
+
+      const target = clampCell(gg, cellAtRaw(gg, vx, vy));
+      if (lastTarget.current && sameCellPair(lastTarget.current, target)) return;
       lastTarget.current = target;
 
       const events: GameEvent[] = [];
@@ -297,6 +331,7 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
   const onUp = useCallback(() => {
     const { game: gm, geom: gg } = ref.current;
     lastTarget.current = null;
+    wrapShift.current = [0, 0];
     if (gm.dragging < 0) return;
     const ev = gm.endDrag();
     bump();

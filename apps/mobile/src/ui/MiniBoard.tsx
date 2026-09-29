@@ -1,7 +1,6 @@
 import React, { memo } from 'react';
 import { View } from 'react-native';
 import type { Level } from '@ctd/core';
-import { withAlpha } from '../board/color';
 import { colors } from '../theme/tokens';
 
 const EMPTY = 0;
@@ -58,17 +57,11 @@ export const MiniBoard = memo(function MiniBoard({
               style={{
                 flex: 1,
                 borderRadius: cell * 0.25,
-                backgroundColor: k === WALL ? 'rgba(11,9,46,0.75)' : withAlpha(colors.cell.base, 0.85),
+                backgroundColor: dot[i] ?? (k === WALL ? 'rgba(11,9,46,0.75)' : 'rgba(255,255,255,0.16)'),
                 borderWidth: k === BRIDGE ? Math.max(0.75, cell * 0.1) : 0,
                 borderColor: colors.board.borderHighlight,
-                alignItems: 'center',
-                justifyContent: 'center',
               }}
-            >
-              {dot[i] && (
-                <View style={{ width: cell * 0.7, height: cell * 0.7, borderRadius: cell, backgroundColor: dot[i]! }} />
-              )}
-            </View>
+            />
           </View>
         ))}
       </View>

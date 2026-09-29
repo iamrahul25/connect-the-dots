@@ -1,0 +1,3 @@
+Features to add: 
+---------------
+- Add obstacle like -> Anywhere door & Tunnel (Only one direction line can move)
