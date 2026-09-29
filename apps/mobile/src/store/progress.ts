@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import { dateKey, parseDateKey } from '@ctd/core';
 import { persistStorage } from '../services/storage';
 import { getPack, manifest, PACK_STAR_REQUIREMENTS } from '../data/levels';
-import { unlockAllActive } from './settings';
+import { unlimitedHintsActive, unlockAllActive } from './settings';
 
 export interface LevelRecord {
   stars: number;
@@ -116,6 +116,7 @@ export const useProgress = create<ProgressState>()(
       },
 
       spendHint: () => {
+        if (unlimitedHintsActive()) return true;
         if (get().hints <= 0) return false;
         set({ hints: get().hints - 1 });
         return true;

@@ -44,6 +44,7 @@ function Rise({ delay, children }: { delay: number; children: React.ReactNode })
 export default function Home() {
   const levels = useProgress((s) => s.levels);
   const hints = useProgress((s) => s.hints);
+  const unlimitedHints = useSettings((s) => __DEV__ && s.unlimitedHints);
   const daily = useProgress((s) => s.daily);
   const reduceMotion = useSettings((s) => s.reduceMotion);
   const countdown = useCountdown();
@@ -82,7 +83,7 @@ export default function Home() {
             </View>
             <View style={styles.chip}>
               <Ionicons name="bulb" size={16} color={colors.gold} />
-              <Text style={styles.chipText}>{hints}</Text>
+              <Text style={styles.chipText}>{unlimitedHints ? '∞' : hints}</Text>
             </View>
             <View style={styles.chip}>
               <Ionicons name="flame" size={16} color={colors.orangeGlow} />

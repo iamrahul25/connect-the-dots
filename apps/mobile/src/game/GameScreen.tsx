@@ -47,6 +47,7 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
   const { width, height } = useWindowDimensions();
   const { colorblind, reduceMotion, idleHints } = useSettings();
   const hints = useProgress((s) => s.hints);
+  const unlimitedHints = useSettings((s) => __DEV__ && s.unlimitedHints);
   const palette = colorblind ? COLORBLIND_PALETTE : PALETTE;
   const toast = useToast();
 
@@ -491,7 +492,7 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
 
       <View style={styles.controls}>
         <GlassButton icon="arrow-undo" iconColor={colors.icon.undo} label="Undo" onPress={onUndo} disabled={!game.canUndo()} />
-        <GlassButton icon="bulb" iconColor={colors.icon.hint} label="Hint" onPress={onHint} badge={hints} />
+        <GlassButton icon="bulb" iconColor={colors.icon.hint} label="Hint" onPress={onHint} badge={unlimitedHints ? '∞' : hints} />
         {hasObstacles && (
           <GlassButton icon="information-circle" iconColor={colors.warp} onPress={() => setInfoOpen(true)} accessibilityLabel="Obstacle info" />
         )}

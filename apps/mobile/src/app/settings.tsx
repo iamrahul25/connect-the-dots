@@ -26,6 +26,7 @@ const ROWS: Row[] = [
 
 const DEV_ROWS: Row[] = [
   { key: 'unlockAll', icon: 'lock-open', label: 'Unlock all levels', sub: 'Play any pack or level without earning it' },
+  { key: 'unlimitedHints', icon: 'bulb', label: 'Unlimited hints', sub: 'Use hints without spending them' },
 ];
 
 const accent = THEMES.dawn.accent;

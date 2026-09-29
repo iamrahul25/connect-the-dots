@@ -10,6 +10,7 @@ export interface SettingsState {
   reduceMotion: boolean;
   idleHints: boolean;
   unlockAll: boolean;
+  unlimitedHints: boolean;
   set: (patch: Partial<Omit<SettingsState, 'set'>>) => void;
 }
 
@@ -23,6 +24,7 @@ export const useSettings = create<SettingsState>()(
       reduceMotion: false,
       idleHints: true,
       unlockAll: false,
+      unlimitedHints: false,
       set: (patch) => set(patch),
     }),
     { name: 'settings.v1', storage: persistStorage, version: 1 },
@@ -32,4 +34,9 @@ export const useSettings = create<SettingsState>()(
 /** Developer override that bypasses pack/level locks. Ignored in production builds. */
 export function unlockAllActive(): boolean {
   return __DEV__ && useSettings.getState().unlockAll;
+}
+
+/** Developer override that makes hints free. Ignored in production builds. */
+export function unlimitedHintsActive(): boolean {
+  return __DEV__ && useSettings.getState().unlimitedHints;
 }
