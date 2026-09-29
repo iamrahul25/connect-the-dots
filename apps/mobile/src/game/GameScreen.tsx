@@ -12,6 +12,7 @@ import type { Effect, EffectInput } from '../board/effects';
 import { GlassButton } from '../ui/GlassButton';
 import { useToast } from '../ui/Toast';
 import { ResultModal, type ResultInfo } from './ResultModal';
+import { ObstacleInfo, obstaclesIn } from './ObstacleInfo';
 import { colors, fonts, tokens } from '../theme/tokens';
 import { COLORBLIND_PALETTE, flowStyle, PALETTE, themeFor } from '../theme/themes';
 import { withAlpha } from '../board/color';
@@ -54,6 +55,8 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
   const [version, setVersion] = useState(0);
   const bump = useCallback(() => setVersion((v) => v + 1), []);
   const [result, setResult] = useState<ResultInfo | null>(null);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const hasObstacles = obstaclesIn(level).length > 0;
   const wonRef = useRef(false);
 
   const boardSize = Math.floor(
@@ -375,14 +378,19 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
     const onKey = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
+      if (infoOpen) {
+        if (k === 'escape' || k === 'i') setInfoOpen(false);
+        return;
+      }
       if (k === 'z') onUndo();
       else if (k === 'r' && !e.ctrlKey && !e.metaKey) onRestart();
       else if (k === 'h') onHint();
+      else if (k === 'i' && hasObstacles) setInfoOpen(true);
       else if (k === 'escape') onLevels();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onUndo, onRestart, onHint, onLevels]);
+  }, [onUndo, onRestart, onHint, onLevels, infoOpen, hasObstacles]);
 
   const view = game.view();
   const connected = game.connectedCount(view);
@@ -449,9 +457,13 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
       <View style={styles.controls}>
         <GlassButton icon="arrow-undo" iconColor={colors.icon.undo} label="Undo" onPress={onUndo} disabled={!game.canUndo()} />
         <GlassButton icon="bulb" iconColor={colors.icon.hint} label="Hint" onPress={onHint} badge={hints} />
+        {hasObstacles && (
+          <GlassButton icon="information-circle" iconColor={colors.warp} onPress={() => setInfoOpen(true)} accessibilityLabel="Obstacle info" />
+        )}
       </View>
 
       {toast.node}
+      {infoOpen && <ObstacleInfo puzzle={level} palette={palette} onClose={() => setInfoOpen(false)} />}
       {result && (
         <ResultModal
           result={result}
@@ -555,5 +567,5 @@ const styles = StyleSheet.create({
   },
   meterFill: { height: '100%', borderRadius: 4, overflow: 'hidden' },
   boardWrap: { flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' },
-  controls: { flexDirection: 'row', gap: 14, justifyContent: 'center' },
+  controls: { flexDirection: 'row', gap: 14, justifyContent: 'center', alignItems: 'center' },
 });
