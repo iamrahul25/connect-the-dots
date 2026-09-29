@@ -61,11 +61,14 @@ export function drawEffects(canvas: SkCanvas, list: Effect[], now: number): void
       const y = f.pts[i * 2 + 1] + (f.pts[i * 2 + 3] - f.pts[i * 2 + 1]) * k;
       const fade = t < 0.85 ? 1 : (1 - t) / 0.15;
       const glow = Skia.Paint();
+      const blur = Skia.MaskFilter.MakeBlur(BlurStyle.Normal, f.size * 0.6, true);
       glow.setAntiAlias(true);
       glow.setColor(Skia.Color(f.color));
-      glow.setMaskFilter(Skia.MaskFilter.MakeBlur(BlurStyle.Normal, f.size * 0.6, true));
+      glow.setMaskFilter(blur);
       glow.setAlphaf(0.9 * fade);
       canvas.drawCircle(x, y, f.size, glow);
+      glow.dispose();
+      blur.dispose();
       paint.setColor(Skia.Color('#FFFFFF'));
       paint.setAlphaf(fade);
       canvas.drawCircle(x, y, f.size * 0.45, paint);
@@ -109,4 +112,5 @@ export function drawEffects(canvas: SkCanvas, list: Effect[], now: number): void
       canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(f.x, f.y, f.w, f.h), f.radius, f.radius), paint);
     }
   }
+  paint.dispose();
 }

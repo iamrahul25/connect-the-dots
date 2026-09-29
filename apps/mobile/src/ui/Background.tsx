@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, useWindowDimensions, View, type LayoutChangeEvent } from 'react-native';
-import { BlurStyle, Canvas, createPicture, Picture, Skia, TileMode, useClock, vec } from '@shopify/react-native-skia';
+import { BlurStyle, Canvas, Picture, Skia, TileMode, useClock, vec, type SkPicture } from '@shopify/react-native-skia';
 import { useDerivedValue, useSharedValue, withTiming } from 'react-native-reanimated';
 import { themeFor, type ThemeGlow } from '../theme/themes';
 import { useUi } from '../store/ui';
 import { useSettings } from '../store/settings';
+import { recordPicture } from './skiaMemory';
 
 const BOKEH = Array.from({ length: 18 }, (_, i) => {
   const r = (n: number) => {
@@ -61,12 +62,13 @@ export function Background() {
   }, [theme, from, to, glowsFrom, glowsTo, glowColorsFrom, glowColorsTo, blend, bokehFrom, bokehTo]);
 
   const clock = useClock();
+  const prevPicture = useSharedValue<SkPicture | null>(null);
   const picture = useDerivedValue(() => {
     const t = reduceMotion ? 0 : clock.value / 1000;
     const w = width;
     const h = height;
     const k = blend.value;
-    return createPicture((canvas) => {
+    return recordPicture(prevPicture, (canvas) => {
       const paint = Skia.Paint();
       const a = t * 0.05;
       const start = vec(w * (0.5 + 0.45 * Math.cos(a)), 0);
@@ -76,11 +78,11 @@ export function Background() {
           ? [[from.value, glowsFrom.value, glowColorsFrom.value, 1], [to.value, glowsTo.value, glowColorsTo.value, k]]
           : [[to.value, glowsTo.value, glowColorsTo.value, 1]];
       for (const [cols, glows, glowCols, alpha] of layers) {
-        paint.setShader(
-          Skia.Shader.MakeLinearGradient(start, end, cols.map((c) => Skia.Color(c)), cols.map((_, i) => i / (cols.length - 1)), TileMode.Clamp),
-        );
+        const linear = Skia.Shader.MakeLinearGradient(start, end, cols.map((c) => Skia.Color(c)), cols.map((_, i) => i / (cols.length - 1)), TileMode.Clamp);
+        paint.setShader(linear);
         paint.setAlphaf(alpha);
         canvas.drawRect(Skia.XYWHRect(0, 0, w, h), paint);
+        linear.dispose();
         for (let i = 0; i < glowCols.length; i++) {
           const drift = Math.sin(t * 0.07 + i * 2.1) * 0.04;
           const cx = w * (glows[i * 3] + drift);
@@ -89,15 +91,18 @@ export function Background() {
           const c = Skia.Color(glowCols[i]);
           const clear = Skia.Color(glowCols[i]);
           clear[3] = 0;
-          paint.setShader(Skia.Shader.MakeRadialGradient(vec(cx, cy), r, [c, clear], [0, 1], TileMode.Clamp));
+          const radial = Skia.Shader.MakeRadialGradient(vec(cx, cy), r, [c, clear], [0, 1], TileMode.Clamp);
+          paint.setShader(radial);
           paint.setAlphaf(alpha * 0.85);
           canvas.drawRect(Skia.XYWHRect(0, 0, w, h), paint);
+          radial.dispose();
         }
       }
-      paint.setShader(null);
+      paint.dispose();
       const bp = Skia.Paint();
       bp.setAntiAlias(true);
-      bp.setMaskFilter(Skia.MaskFilter.MakeBlur(BlurStyle.Normal, 14, true));
+      const blur = Skia.MaskFilter.MakeBlur(BlurStyle.Normal, 14, true);
+      bp.setMaskFilter(blur);
       for (let i = 0; i < BOKEH.length; i++) {
         const [bx, by, r, alpha, phase, speed] = BOKEH[i];
         const x = ((bx * w + Math.sin(t * 0.13 * speed + phase) * 40) % (w + 80)) - 40;
@@ -106,6 +111,8 @@ export function Background() {
         bp.setAlphaf(alpha * (0.7 + 0.3 * Math.sin(t * 0.6 * speed + phase)));
         canvas.drawCircle(x, y, r, bp);
       }
+      bp.dispose();
+      blur.dispose();
     });
   }, [width, height, reduceMotion]);
 

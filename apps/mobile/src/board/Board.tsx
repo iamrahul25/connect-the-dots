@@ -4,7 +4,6 @@ import {
   BlurMask,
   Canvas,
   Circle,
-  createPicture,
   DashPathEffect,
   Group,
   LinearGradient,
@@ -19,6 +18,7 @@ import {
   useClock,
   vec,
   type SkPath,
+  type SkPicture,
 } from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useDerivedValue, useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
@@ -27,6 +27,7 @@ import { cellCenter, type BoardGeom } from './geometry';
 import { drawEffects, type Effect } from './effects';
 import { withAlpha } from './color';
 import { symbolPath } from './symbols';
+import { recordPicture } from '../ui/skiaMemory';
 import { colors, tokens } from '../theme/tokens';
 import { flowStyle } from '../theme/themes';
 
@@ -89,11 +90,12 @@ export function Board(props: Props) {
     return { cells, warps, bridges };
   }, [geom, g, cell, game.puzzle]);
 
+  const prevCells = useSharedValue<SkPicture | null>(null);
   const cellsPicture = useDerivedValue(() => {
     const k = intro.value;
     const data = staticData.cells;
     const radius = cell * 0.2;
-    return createPicture((canvas) => {
+    return recordPicture(prevCells, (canvas) => {
       const paint = Skia.Paint();
       paint.setAntiAlias(true);
       for (let i = 0; i < data.length; i += 5) {
@@ -115,11 +117,11 @@ export function Board(props: Props) {
           paint.setColor(Skia.Color(CELL.shadow));
           paint.setAlphaf(appear);
           canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(x, y + 1.5, s, s), radius, radius), paint);
-          paint.setShader(
-            Skia.Shader.MakeLinearGradient(vec(x, y), vec(x, y + s), [Skia.Color(CELL.highlight), Skia.Color(CELL.base)], [0, 0.55], TileMode.Clamp),
-          );
+          const shade = Skia.Shader.MakeLinearGradient(vec(x, y), vec(x, y + s), [Skia.Color(CELL.highlight), Skia.Color(CELL.base)], [0, 0.55], TileMode.Clamp);
+          paint.setShader(shade);
           canvas.drawRRect(rr, paint);
           paint.setShader(null);
+          shade.dispose();
           paint.setStyle(PaintStyle.Stroke);
           paint.setStrokeWidth(1);
           paint.setColor(Skia.Color(CELL.border));
@@ -128,6 +130,7 @@ export function Board(props: Props) {
           paint.setStyle(PaintStyle.Fill);
         }
       }
+      paint.dispose();
     });
   }, [staticData, cell]);
 
@@ -227,11 +230,12 @@ export function Board(props: Props) {
     () => (reduceMotion ? dotR : dotR * (1 + 0.05 * Math.sin(clock.value / 380))),
     [dotR, reduceMotion],
   );
+  const prevFx = useSharedValue<SkPicture | null>(null);
   const fxPicture = useDerivedValue(() => {
     clock.value;
     const list = fx.value;
     const now = Date.now();
-    return createPicture((canvas) => drawEffects(canvas, list, now));
+    return recordPicture(prevFx, (canvas) => drawEffects(canvas, list, now));
   });
 
   const headX = useSharedValue(0);
