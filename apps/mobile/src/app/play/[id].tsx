@@ -7,6 +7,7 @@ import { Screen } from '../../ui/Screen';
 import { colors, fonts } from '../../theme/tokens';
 import { dailyFromBank, generateDaily, getLevel, globalNumber, nextLevelId, packOfLevel } from '../../data/levels';
 import { isLevelUnlocked, useProgress } from '../../store/progress';
+import { useSettings } from '../../store/settings';
 
 const DAILY_PREFIX = 'daily-';
 
@@ -19,6 +20,7 @@ export default function PlayRoute() {
 function PackPlay({ id }: { id: string }) {
   const level = getLevel(id);
   const pack = packOfLevel(id);
+  useSettings((s) => s.unlockAll);
   const unlocked = useProgress((s) => isLevelUnlocked(s.levels, id));
 
   useEffect(() => {

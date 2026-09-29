@@ -19,6 +19,7 @@ export default function PackScreen() {
   const levels = useProgress((s) => s.levels);
   const inProgress = useProgress((s) => s.inProgress);
   const colorblind = useSettings((s) => s.colorblind);
+  useSettings((s) => s.unlockAll);
   const { width } = useWindowDimensions();
   const theme = themeFor(pack?.theme);
 

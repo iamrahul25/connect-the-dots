@@ -13,7 +13,9 @@ import { haptics } from '../services/haptics';
 
 type Key = Exclude<keyof SettingsState, 'set'>;
 
-const ROWS: { key: Key; icon: keyof typeof Ionicons.glyphMap; label: string; sub: string; native?: boolean }[] = [
+type Row = { key: Key; icon: keyof typeof Ionicons.glyphMap; label: string; sub: string; native?: boolean };
+
+const ROWS: Row[] = [
   { key: 'music', icon: 'musical-notes', label: 'Music', sub: 'Ambient soundtrack per pack' },
   { key: 'sfx', icon: 'volume-high', label: 'Sound effects', sub: 'Notes, chimes and pops' },
   { key: 'haptics', icon: 'phone-portrait', label: 'Haptics', sub: 'Vibration feedback', native: true },
@@ -22,45 +24,67 @@ const ROWS: { key: Key; icon: keyof typeof Ionicons.glyphMap; label: string; sub
   { key: 'idleHints', icon: 'sparkles', label: 'Idle nudges', sub: 'Gentle shimmer when you pause' },
 ];
 
+const DEV_ROWS: Row[] = [
+  { key: 'unlockAll', icon: 'lock-open', label: 'Unlock all levels', sub: 'Play any pack or level without earning it' },
+];
+
 const accent = THEMES.dawn.accent;
 
+function ToggleRow({ row, divider }: { row: Row; divider: boolean }) {
+  const value = useSettings((s) => s[row.key]);
+  const set = useSettings((s) => s.set);
+  return (
+    <Pressable
+      onPress={() => {
+        set({ [row.key]: !value });
+        haptics.selection();
+      }}
+      style={[styles.row, divider && styles.divider]}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value }}
+    >
+      <View style={styles.iconWrap}>
+        <Ionicons name={row.icon} size={20} color={accent} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.label}>{row.label}</Text>
+        <Text style={styles.sub}>{row.sub}</Text>
+      </View>
+      <Switch
+        value={value}
+        onValueChange={(v) => set({ [row.key]: v })}
+        trackColor={{ false: colors.meter.track, true: accent }}
+        thumbColor={colors.textPure}
+        {...(Platform.OS === 'web' ? { activeThumbColor: colors.textPure } : {})}
+      />
+    </Pressable>
+  );
+}
+
 export default function Settings() {
-  const settings = useSettings();
+  const colorblind = useSettings((s) => s.colorblind);
   const [confirm, setConfirm] = useState(false);
-  const palette = settings.colorblind ? COLORBLIND_PALETTE : PALETTE;
+  const palette = colorblind ? COLORBLIND_PALETTE : PALETTE;
 
   return (
     <Screen title="Settings" back>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.group}>
           {ROWS.filter((r) => !r.native || Platform.OS !== 'web').map((r, i) => (
-            <Pressable
-              key={r.key}
-              onPress={() => {
-                settings.set({ [r.key]: !settings[r.key] });
-                haptics.selection();
-              }}
-              style={[styles.row, i > 0 && styles.divider]}
-              accessibilityRole="switch"
-              accessibilityState={{ checked: settings[r.key] }}
-            >
-              <View style={styles.iconWrap}>
-                <Ionicons name={r.icon} size={20} color={accent} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.label}>{r.label}</Text>
-                <Text style={styles.sub}>{r.sub}</Text>
-              </View>
-              <Switch
-                value={settings[r.key]}
-                onValueChange={(v) => settings.set({ [r.key]: v })}
-                trackColor={{ false: colors.meter.track, true: accent }}
-                thumbColor={colors.textPure}
-                {...(Platform.OS === 'web' ? { activeThumbColor: colors.textPure } : {})}
-              />
-            </Pressable>
+            <ToggleRow key={r.key} row={r} divider={i > 0} />
           ))}
         </View>
+
+        {__DEV__ && (
+          <>
+            <Text style={styles.section}>Developer</Text>
+            <View style={styles.group}>
+              {DEV_ROWS.map((r, i) => (
+                <ToggleRow key={r.key} row={r} divider={i > 0} />
+              ))}
+            </View>
+          </>
+        )}
 
         <Text style={styles.section}>Palette preview</Text>
         <View style={[styles.group, styles.palette]}>

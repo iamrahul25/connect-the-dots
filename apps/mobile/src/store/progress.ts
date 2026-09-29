@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { dateKey, parseDateKey } from '@ctd/core';
 import { persistStorage } from '../services/storage';
 import { getPack, manifest, PACK_STAR_REQUIREMENTS } from '../data/levels';
+import { unlockAllActive } from './settings';
 
 export interface LevelRecord {
   stars: number;
@@ -150,7 +151,7 @@ export function packSolved(levels: Record<string, LevelRecord>, packId: number):
 }
 
 export function isPackUnlocked(levels: Record<string, LevelRecord>, packId: number): boolean {
-  if (packId <= 1) return true;
+  if (packId <= 1 || unlockAllActive()) return true;
   const prev = getPack(packId - 1);
   if (prev && prev.levels.every((id) => levels[id])) return true;
   return totalStars(levels) >= (PACK_STAR_REQUIREMENTS[packId] ?? Infinity);
@@ -159,6 +160,7 @@ export function isPackUnlocked(levels: Record<string, LevelRecord>, packId: numb
 export function isLevelUnlocked(levels: Record<string, LevelRecord>, id: string): boolean {
   const pack = manifest.packs.find((p) => p.levels.includes(id));
   if (!pack || !isPackUnlocked(levels, pack.id)) return false;
+  if (unlockAllActive()) return true;
   const i = pack.levels.indexOf(id);
   return i === 0 || !!levels[pack.levels[i - 1]] || !!levels[id];
 }

@@ -9,6 +9,7 @@ import { colors, fonts } from '../theme/tokens';
 import { PACK_ICONS, themeFor } from '../theme/themes';
 import { manifest, maxStars, PACK_STAR_REQUIREMENTS } from '../data/levels';
 import { isPackUnlocked, packSolved, packStars, totalStars, useProgress } from '../store/progress';
+import { useSettings } from '../store/settings';
 import { useUi } from '../store/ui';
 import { audio } from '../services/audio';
 
@@ -16,6 +17,7 @@ const SIZES: Record<number, string> = { 1: '5×5 – 6×6', 2: '7×7 – 8×8 ·
 
 export default function Packs() {
   const levels = useProgress((s) => s.levels);
+  useSettings((s) => s.unlockAll);
   const { width } = useWindowDimensions();
   const cardW = Math.min(340, width - 72);
   const stars = totalStars(levels);
