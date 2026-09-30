@@ -68,7 +68,8 @@ export function drawEffects(canvas: SkCanvas, list: Effect[], now: number): void
       glow.setAlphaf(0.9 * fade);
       canvas.drawCircle(x, y, f.size, glow);
       glow.dispose();
-      blur.dispose();
+      // Native Skia mask filters have no dispose(); only CanvasKit on web needs it.
+      blur.dispose?.();
       paint.setColor(Skia.Color('#FFFFFF'));
       paint.setAlphaf(fade);
       canvas.drawCircle(x, y, f.size * 0.45, paint);

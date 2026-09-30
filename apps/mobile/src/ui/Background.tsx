@@ -112,7 +112,8 @@ export function Background() {
         canvas.drawCircle(x, y, r, bp);
       }
       bp.dispose();
-      blur.dispose();
+      // Native Skia mask filters have no dispose(); only CanvasKit on web needs it.
+      blur.dispose?.();
     });
   }, [width, height, reduceMotion]);
 
