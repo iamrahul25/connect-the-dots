@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,8 +7,9 @@ import { dateKey, WEEKDAY_NAMES } from '@ctd/core';
 import { Screen } from '../ui/Screen';
 import { Logo } from '../ui/Logo';
 import { GlassButton } from '../ui/GlassButton';
-import { colors, fonts, tokens } from '../theme/tokens';
-import { THEMES } from '../theme/themes';
+import { fonts, tokens } from '../theme/tokens';
+import { makeStyles, useTheme } from '../theme/useTheme';
+import { withAlpha } from '../board/color';
 import { globalNumber, maxStars } from '../data/levels';
 import { nextToPlay, totalStars, useProgress } from '../store/progress';
 import { useSettings } from '../store/settings';
@@ -42,6 +43,9 @@ function Rise({ delay, children }: { delay: number; children: React.ReactNode })
 }
 
 export default function Home() {
+  const theme = useTheme();
+  const dailyTheme = useTheme('daily');
+  const styles = useStyles();
   const levels = useProgress((s) => s.levels);
   const hints = useProgress((s) => s.hints);
   const unlimitedHints = useSettings((s) => __DEV__ && s.unlimitedHints);
@@ -56,7 +60,7 @@ export default function Home() {
 
   useFocusEffect(
     React.useCallback(() => {
-      useUi.getState().setTheme('dawn');
+      useUi.getState().setPack('dawn');
       audio.playMusic('dawn');
     }, []),
   );
@@ -75,18 +79,18 @@ export default function Home() {
         <Rise delay={120}>
           <View style={styles.statsRow}>
             <View style={styles.chip}>
-              <Ionicons name="star" size={16} color={colors.star} />
+              <Ionicons name="star" size={16} color={theme.icon.star} />
               <Text style={styles.chipText}>
                 {stars}
                 <Text style={styles.chipDim}> / {maxStars()}</Text>
               </Text>
             </View>
             <View style={styles.chip}>
-              <Ionicons name="bulb" size={16} color={colors.gold} />
+              <Ionicons name="bulb" size={16} color={theme.icon.hint} />
               <Text style={styles.chipText}>{unlimitedHints ? '∞' : hints}</Text>
             </View>
             <View style={styles.chip}>
-              <Ionicons name="flame" size={16} color={colors.orangeGlow} />
+              <Ionicons name="flame" size={16} color={theme.icon.streak} />
               <Text style={styles.chipText}>{daily.streak}</Text>
             </View>
           </View>
@@ -98,7 +102,6 @@ export default function Home() {
             sublabel={`Level ${globalNumber(next)}`}
             icon="play"
             variant="primary"
-            accent={THEMES.dawn.accent}
             size="lg"
             onPress={() => router.push(`/play/${next}`)}
             style={styles.play}
@@ -106,9 +109,12 @@ export default function Home() {
         </Rise>
 
         <Rise delay={320}>
-          <Pressable onPress={() => router.push('/daily')} style={({ pressed }) => [styles.dailyCard, pressed && { transform: [{ scale: 0.98 }] }]}>
-            <View style={styles.dailyIcon}>
-              <Ionicons name={dailyDone ? 'checkmark-circle' : 'calendar'} size={28} color={colors.gold} />
+          <Pressable
+            onPress={() => router.push('/daily')}
+            style={({ pressed }) => [styles.dailyCard, { borderColor: withAlpha(dailyTheme.accent.color, 0.45) }, pressed && { transform: [{ scale: 0.98 }] }]}
+          >
+            <View style={[styles.dailyIcon, { backgroundColor: withAlpha(dailyTheme.accent.color, 0.18) }]}>
+              <Ionicons name={dailyDone ? 'checkmark-circle' : 'calendar'} size={28} color={dailyTheme.icon.hint} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.dailyTitle}>Daily Puzzle</Text>
@@ -132,11 +138,11 @@ export default function Home() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   scroll: { alignItems: 'stretch', paddingBottom: 24, width: '100%', maxWidth: 460, alignSelf: 'center' },
   hero: { alignItems: 'center', marginTop: 8, marginBottom: 18 },
-  title: { fontFamily: fonts.titleBold, fontSize: 40, color: colors.text, marginTop: 16, letterSpacing: 0.5, textAlign: 'center' },
-  tagline: { fontFamily: fonts.body, fontSize: 15, color: colors.textDim, marginTop: 4 },
+  title: { fontFamily: fonts.titleBold, fontSize: 40, color: t.text.primary, marginTop: 16, letterSpacing: 0.5, textAlign: 'center' },
+  tagline: { fontFamily: fonts.body, fontSize: 15, color: t.text.secondary, marginTop: 4 },
   statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 22 },
   chip: {
     flexDirection: 'row',
@@ -145,12 +151,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     height: 36,
     borderRadius: tokens.radius.pill,
-    backgroundColor: colors.glass,
+    backgroundColor: t.box.background,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
+    borderColor: t.box.border,
   },
-  chipText: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text },
-  chipDim: { color: colors.textFaint, fontFamily: fonts.body },
+  chipText: { fontFamily: fonts.bodyBold, fontSize: 15, color: t.text.primary },
+  chipDim: { color: t.text.muted, fontFamily: fonts.body },
   play: { alignSelf: 'stretch' },
   dailyCard: {
     marginTop: 14,
@@ -159,20 +165,16 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 16,
     borderRadius: 22,
-    backgroundColor: 'rgba(255,202,40,0.10)',
+    backgroundColor: t.box.background,
     borderWidth: 1,
-    borderColor: 'rgba(255,202,40,0.35)',
+    shadowColor: t.box.shadow,
+    shadowOpacity: 1,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 4 },
   },
-  dailyIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,202,40,0.16)',
-  },
-  dailyTitle: { fontFamily: fonts.title, fontSize: 19, color: colors.text },
-  dailySub: { fontFamily: fonts.body, fontSize: 13, color: colors.textDim },
-  dailyTimerLabel: { fontFamily: fonts.body, fontSize: 11, color: colors.textFaint, textTransform: 'uppercase', letterSpacing: 1 },
-  dailyTimer: { fontFamily: fonts.title, fontSize: 16, color: colors.gold },
-});
+  dailyIcon: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  dailyTitle: { fontFamily: fonts.title, fontSize: 19, color: t.text.primary },
+  dailySub: { fontFamily: fonts.body, fontSize: 13, color: t.text.secondary },
+  dailyTimerLabel: { fontFamily: fonts.body, fontSize: 11, color: t.text.muted, textTransform: 'uppercase', letterSpacing: 1 },
+  dailyTimer: { fontFamily: fonts.title, fontSize: 16, color: t.text.primary },
+}));

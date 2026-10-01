@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 
 interface UiState {
-  theme: string;
-  setTheme: (theme: string) => void;
+  pack: string;
+  setPack: (pack: string) => void;
 }
 
-/** Active background theme; the root layout renders it behind every screen. */
+/** Pack whose color overrides are applied on top of the player's theme. */
 export const useUi = create<UiState>((set) => ({
-  theme: 'dawn',
-  setTheme: (theme) => set({ theme }),
+  pack: 'dawn',
+  setPack: (pack) => set({ pack }),
 }));

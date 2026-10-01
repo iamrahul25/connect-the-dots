@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { parseDateKey, WEEKDAY_NAMES, type Level } from '@ctd/core';
 import { GameScreen, goBackOr } from '../../game/GameScreen';
 import { Screen } from '../../ui/Screen';
-import { colors, fonts } from '../../theme/tokens';
+import { fonts } from '../../theme/tokens';
+import { makeStyles, useTheme } from '../../theme/useTheme';
 import { dailyFromBank, generateDaily, getLevel, globalNumber, nextLevelId, packOfLevel } from '../../data/levels';
 import { isLevelUnlocked, useProgress } from '../../store/progress';
 import { useSettings } from '../../store/settings';
@@ -18,6 +19,7 @@ export default function PlayRoute() {
 }
 
 function PackPlay({ id }: { id: string }) {
+  const styles = useStyles();
   const level = getLevel(id);
   const pack = packOfLevel(id);
   useSettings((s) => s.unlockAll);
@@ -58,6 +60,8 @@ function PackPlay({ id }: { id: string }) {
 }
 
 function DailyPlay({ dateKey }: { dateKey: string }) {
+  const theme = useTheme('daily');
+  const styles = useStyles();
   const [level, setLevel] = useState<Level | null | undefined>(() => dailyFromBank(dateKey));
 
   useEffect(() => {
@@ -78,7 +82,7 @@ function DailyPlay({ dateKey }: { dateKey: string }) {
     return (
       <Screen title="Daily" back>
         <View style={styles.center}>
-          <ActivityIndicator color={colors.gold} size="large" />
+          <ActivityIndicator color={theme.accent.color} size="large" />
           <Text style={styles.msg}>Crafting today’s puzzle…</Text>
         </View>
       </Screen>
@@ -109,7 +113,7 @@ function DailyPlay({ dateKey }: { dateKey: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  msg: { fontFamily: fonts.body, fontSize: 15, color: colors.textDim, textAlign: 'center', marginTop: 24 },
-});
+  msg: { fontFamily: fonts.body, fontSize: 15, color: t.text.secondary, textAlign: 'center', marginTop: 24 },
+}));

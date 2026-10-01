@@ -3,9 +3,9 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import type { Puzzle } from '@ctd/core';
 import { GlassButton } from '../ui/GlassButton';
-import { colors, fonts, tokens } from '../theme/tokens';
-import { flowStyle } from '../theme/themes';
-import { withAlpha } from '../board/color';
+import { fonts, tokens } from '../theme/tokens';
+import type { DotStyle, Palette } from '../theme/config';
+import { makeStyles, useTheme } from '../theme/useTheme';
 
 export type ObstacleKind = 'walls' | 'bridges' | 'warps';
 
@@ -14,17 +14,17 @@ const KINDS: ObstacleKind[] = ['walls', 'bridges', 'warps'];
 const INFO: Record<ObstacleKind, { name: string; looks: string; rule: string }> = {
   walls: {
     name: 'Walls',
-    looks: 'Dark, sunken tiles with no glass surface.',
+    looks: 'Solid, darker tiles.',
     rule: 'Flows can’t pass through them, so route around. Walls don’t need filling.',
   },
   bridges: {
     name: 'Bridges',
-    looks: 'Raised glass tiles with a bright outline.',
+    looks: 'Raised tiles with an outline.',
     rule: 'Two flows cross here: one straight across, one straight over. No turning on a bridge, and both lanes must be filled.',
   },
   warps: {
     name: 'Warps',
-    looks: 'Glowing cyan bars on opposite edges of a row or column.',
+    looks: 'Colored bars on opposite edges of a row or column.',
     rule: 'Drag a flow off one bar and it re-enters from the matching bar on the other side.',
   },
 };
@@ -35,12 +35,13 @@ export function obstaclesIn(puzzle: Puzzle): ObstacleKind[] {
 
 interface Props {
   puzzle: Puzzle;
-  palette: readonly string[];
+  palette: Palette;
   onClose: () => void;
 }
 
 /** Explains the level's obstacles, each with a mini board showing how it is drawn. */
 export function ObstacleInfo({ puzzle, palette, onClose }: Props) {
+  const styles = useStyles();
   const backdrop = useSharedValue(0);
   const card = useSharedValue(0);
   useEffect(() => {
@@ -96,6 +97,7 @@ const PAD = 12;
 type Pt = [row: number, col: number];
 
 function Plate({ rows, cols, children }: { rows: number; cols: number; children: React.ReactNode }) {
+  const styles = useStyles();
   return (
     <View style={[styles.plate, { width: cols * C + PAD * 2, height: rows * C + PAD * 2 }]}>
       <View style={{ position: 'absolute', left: PAD, top: PAD, width: cols * C, height: rows * C }}>{children}</View>
@@ -104,27 +106,25 @@ function Plate({ rows, cols, children }: { rows: number; cols: number; children:
 }
 
 function Tiles({ rows, cols, walls = [] }: { rows: number; cols: number; walls?: Pt[] }) {
+  const styles = useStyles();
   const out: React.ReactNode[] = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const wall = walls.some(([wr, wc]) => wr === r && wc === c);
-      out.push(
-        <View key={`${r}-${c}`} style={[styles.tile, { left: c * C + 1.5, top: r * C + 1.5 }, wall && styles.wall]}>
-          {wall && <View style={styles.wallInner} />}
-        </View>,
-      );
+      out.push(<View key={`${r}-${c}`} style={[styles.tile, { left: c * C + 1.5, top: r * C + 1.5 }, wall && styles.wall]} />);
     }
   }
   return <>{out}</>;
 }
 
-function Pipe({ from, to, color }: { from: Pt; to: Pt; color: string }) {
-  const f = flowStyle(color);
+function Pipe({ from, to, color }: { from: Pt; to: Pt; color: DotStyle }) {
+  const { board } = useTheme();
+  const w = C * tokens.pathWidthRatio;
   const x1 = (Math.min(from[1], to[1]) + 0.5) * C;
   const x2 = (Math.max(from[1], to[1]) + 0.5) * C;
   const y1 = (Math.min(from[0], to[0]) + 0.5) * C;
   const y2 = (Math.max(from[0], to[0]) + 0.5) * C;
-  const layer = (w: number, bg: string, opacity = 1) => (
+  return (
     <View
       style={{
         position: 'absolute',
@@ -133,37 +133,31 @@ function Pipe({ from, to, color }: { from: Pt; to: Pt; color: string }) {
         width: x2 - x1 + w,
         height: y2 - y1 + w,
         borderRadius: w / 2,
-        backgroundColor: bg,
-        opacity,
+        backgroundColor: color.line,
+        opacity: board.lineOpacity,
       }}
     />
   );
-  const w = C * tokens.pathWidthRatio;
-  return (
-    <>
-      {layer(w, f.pipeShadow)}
-      {layer(w * 0.76, f.pipe)}
-      {layer(w * 0.22, f.pipeHighlight, 0.6)}
-    </>
-  );
 }
 
-function Dot({ at, color }: { at: Pt; color: string }) {
-  const f = flowStyle(color);
+function Dot({ at, color }: { at: Pt; color: DotStyle }) {
   const d = C * tokens.dotRatio;
   return (
     <View
-      style={[
-        styles.dot,
-        { left: (at[1] + 0.5) * C - d / 2, top: (at[0] + 0.5) * C - d / 2, width: d, height: d, backgroundColor: f.base, borderColor: f.bright, shadowColor: f.glow },
-      ]}
-    >
-      <View style={styles.dotShine} />
-    </View>
+      style={{
+        position: 'absolute',
+        left: (at[1] + 0.5) * C - d / 2,
+        top: (at[0] + 0.5) * C - d / 2,
+        width: d,
+        height: d,
+        borderRadius: d / 2,
+        backgroundColor: color.dot,
+      }}
+    />
   );
 }
 
-function WallPreview({ color }: { color: string }) {
+function WallPreview({ color }: { color: DotStyle }) {
   return (
     <Plate rows={3} cols={3}>
       <Tiles rows={3} cols={3} walls={[[1, 1]]} />
@@ -176,7 +170,8 @@ function WallPreview({ color }: { color: string }) {
   );
 }
 
-function BridgePreview({ across, over }: { across: string; over: string }) {
+function BridgePreview({ across, over }: { across: DotStyle; over: DotStyle }) {
+  const styles = useStyles();
   return (
     <Plate rows={3} cols={3}>
       <Tiles rows={3} cols={3} />
@@ -191,7 +186,8 @@ function BridgePreview({ across, over }: { across: string; over: string }) {
   );
 }
 
-function WarpPreview({ color }: { color: string }) {
+function WarpPreview({ color }: { color: DotStyle }) {
+  const styles = useStyles();
   const bar = { top: C * 0.18, height: C * 0.64 };
   return (
     <Plate rows={1} cols={4}>
@@ -206,8 +202,8 @@ function WarpPreview({ color }: { color: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: { backgroundColor: colors.overlay },
+const useStyles = makeStyles((t) => ({
+  backdrop: { backgroundColor: t.box.overlay },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
   card: {
     width: '100%',
@@ -216,49 +212,41 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     padding: 22,
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: t.box.surface,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
-    shadowColor: colors.board.shadow,
-    shadowOpacity: 0.5,
+    borderColor: t.box.border,
+    shadowColor: t.box.shadow,
+    shadowOpacity: 1,
     shadowRadius: 30,
     shadowOffset: { width: 0, height: 16 },
     elevation: 12,
   },
-  title: { fontFamily: fonts.titleBold, fontSize: 28, color: colors.text },
-  subtitle: { fontFamily: fonts.body, fontSize: 13, color: colors.textDim, marginBottom: 16, textAlign: 'center' },
+  title: { fontFamily: fonts.titleBold, fontSize: 28, color: t.text.primary },
+  subtitle: { fontFamily: fonts.body, fontSize: 13, color: t.text.secondary, marginBottom: 16, textAlign: 'center' },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
     padding: 12,
     borderRadius: 18,
-    backgroundColor: colors.glass,
+    backgroundColor: t.box.background,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
+    borderColor: t.box.border,
   },
   nameRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-  name: { fontFamily: fonts.title, fontSize: 18, color: colors.text },
-  count: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.textDim },
-  looks: { fontFamily: fonts.bodyBold, fontSize: 13, color: colors.warp, marginTop: 2 },
-  rule: { fontFamily: fonts.body, fontSize: 13, color: colors.textDim, marginTop: 2 },
-  plate: {
-    borderRadius: 12,
-    backgroundColor: colors.board.bg,
-    borderWidth: 1.5,
-    borderColor: colors.board.border,
-  },
+  name: { fontFamily: fonts.title, fontSize: 18, color: t.text.primary },
+  count: { fontFamily: fonts.bodyBold, fontSize: 13, color: t.text.secondary },
+  looks: { fontFamily: fonts.bodyBold, fontSize: 13, color: t.board.warp, marginTop: 2 },
+  rule: { fontFamily: fonts.body, fontSize: 13, color: t.text.secondary, marginTop: 2 },
+  plate: { borderRadius: 12, backgroundColor: t.background.color },
   tile: {
     position: 'absolute',
     width: C - 3,
     height: C - 3,
-    borderRadius: C * 0.2,
-    backgroundColor: colors.cell.base,
-    borderWidth: 1,
-    borderColor: colors.cell.border,
+    borderRadius: C * 0.22,
+    backgroundColor: t.board.cellEmpty,
   },
-  wall: { backgroundColor: withAlpha(colors.board.shadow, 0.85), borderWidth: 0, alignItems: 'center', justifyContent: 'center' },
-  wallInner: { width: '76%', height: '76%', borderRadius: C * 0.14, backgroundColor: withAlpha(colors.cell.border, 0.25) },
+  wall: { backgroundColor: t.board.cellWall },
   bridge: {
     position: 'absolute',
     left: C + C * 0.14,
@@ -266,27 +254,9 @@ const styles = StyleSheet.create({
     width: C * 0.72,
     height: C * 0.72,
     borderRadius: C * 0.16,
-    backgroundColor: withAlpha(colors.board.bg, 0.72),
-    borderWidth: 1.2,
-    borderColor: colors.board.borderHighlight,
+    backgroundColor: t.board.bridgeBox,
+    borderWidth: 1.5,
+    borderColor: t.board.bridgeBorder,
   },
-  warp: {
-    position: 'absolute',
-    width: 6,
-    borderRadius: 3,
-    backgroundColor: colors.warp,
-    shadowColor: colors.warp,
-    shadowOpacity: 0.9,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  dot: {
-    position: 'absolute',
-    borderRadius: 999,
-    borderWidth: 1,
-    shadowOpacity: 0.8,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  dotShine: { position: 'absolute', left: '22%', top: '18%', width: '26%', height: '26%', borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.6)' },
-});
+  warp: { position: 'absolute', width: 6, borderRadius: 3, backgroundColor: t.board.warp },
+}));

@@ -3,7 +3,6 @@ import { Platform, StyleSheet, Text, useWindowDimensions, View } from 'react-nat
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Game, sameCell, type Cell, type GameEvent, type Level } from '@ctd/core';
 import { Board } from '../board/Board';
@@ -11,10 +10,12 @@ import { cellAtRaw, cellCenter, clampCell, makeGeom } from '../board/geometry';
 import type { Effect, EffectInput } from '../board/effects';
 import { GlassButton } from '../ui/GlassButton';
 import { useToast } from '../ui/Toast';
+import { LANDSCAPE_H } from '../ui/Background';
 import { ResultModal, type ResultInfo } from './ResultModal';
 import { ObstacleInfo, obstaclesIn } from './ObstacleInfo';
-import { colors, fonts, tokens } from '../theme/tokens';
-import { COLORBLIND_PALETTE, flowStyle, PALETTE, themeFor } from '../theme/themes';
+import { fonts, tokens } from '../theme/tokens';
+import { musicFor } from '../theme/packs';
+import { makeStyles, usePalette, useTheme } from '../theme/useTheme';
 import { withAlpha } from '../board/color';
 import { useSettings } from '../store/settings';
 import { starsFor, useProgress } from '../store/progress';
@@ -36,19 +37,22 @@ export interface GameScreenProps {
 }
 
 const IDLE_MS = 45_000;
+/** Keeps the bottom controls above the tallest trees of the background landscape. */
+const CONTROLS_LIFT = Math.round(LANDSCAPE_H * 0.6);
 /** How far (in cells) the pointer must pass a warp edge before wrapping, so jitter on the edge can't bounce. */
 const WARP_MARGIN = 0.35;
 
 const sameCellPair = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
 
 export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, onNext, onLevels, dailyKey }: GameScreenProps) {
-  const theme = themeFor(themeId);
+  const theme = useTheme(themeId);
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const { colorblind, reduceMotion, idleHints } = useSettings();
   const hints = useProgress((s) => s.hints);
   const unlimitedHints = useSettings((s) => __DEV__ && s.unlimitedHints);
-  const palette = colorblind ? COLORBLIND_PALETTE : PALETTE;
+  const palette = usePalette(themeId);
   const toast = useToast();
 
   const game = useMemo(() => {
@@ -65,7 +69,7 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
   const wonRef = useRef(false);
 
   const boardSize = Math.floor(
-    Math.max(240, Math.min(width - 24, height - insets.top - insets.bottom - 230, tokens.maxBoardWidth)),
+    Math.max(240, Math.min(width - 24, height - insets.top - insets.bottom - 230 - CONTROLS_LIFT, tokens.maxBoardWidth)),
   );
   const geom = useMemo(() => makeGeom(level.size.width, level.size.height, boardSize), [level, boardSize]);
 
@@ -74,10 +78,10 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
   const shake = useSharedValue(0);
 
   useEffect(() => {
-    useUi.getState().setTheme(themeId);
-    audio.playMusic(theme.music);
+    useUi.getState().setPack(themeId);
+    audio.playMusic(musicFor(themeId));
     useProgress.getState().setLastPlayed(level.id);
-  }, [themeId, theme.music, level.id]);
+  }, [themeId, level.id]);
 
   useEffect(() => {
     wonRef.current = false;
@@ -88,8 +92,8 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
   }, [level.id]);
 
   // Refs keep gesture callbacks stable across renders.
-  const ref = useRef({ game, geom, level, palette, reduceMotion });
-  ref.current = { game, geom, level, palette, reduceMotion };
+  const ref = useRef({ game, geom, level, palette, reduceMotion, theme });
+  ref.current = { game, geom, level, palette, reduceMotion, theme };
 
   const emit = useCallback(
     (e: EffectInput) => {
@@ -100,7 +104,7 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
     [fx],
   );
 
-  const glowOf = (pair: number) => flowStyle(ref.current.palette[ref.current.level.dots[pair].color % ref.current.palette.length]).glow;
+  const lineOf = (pair: number) => ref.current.palette[ref.current.level.dots[pair].color % ref.current.palette.length].line;
   const centerOfNode = (n: number) => {
     const { game: gm, geom: gg } = ref.current;
     return cellCenter(gg, gm.g.nodeRow[n], gm.g.nodeCol[n]);
@@ -116,8 +120,8 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
     const cells: number[] = [];
     for (let r = 0; r < gg.H; r++) for (let c = 0; c < gg.W; c++) cells.push(gg.ox + c * gg.cell + 1.5, gg.oy + r * gg.cell + 1.5, gg.cell - 3, r + c);
     emit({ kind: 'sweep', dur: 1300, cells, maxOrder: gg.W + gg.H, radius: gg.cell * 0.2 });
-    emit({ kind: 'flash', dur: 900, x: 4, y: 4, w: gg.size - 8, h: gg.size - 8, radius: tokens.radius.lg, color: colors.textPure });
-    emit({ kind: 'confetti', dur: 2600, colors: lv.dots.map((d) => ref.current.palette[d.color % ref.current.palette.length]), count: 70, w: gg.size, h: gg.size, seed: Date.now() % 1000 });
+    emit({ kind: 'flash', dur: 900, x: 4, y: 4, w: gg.size - 8, h: gg.size - 8, radius: tokens.radius.lg, color: ref.current.theme.accent.color });
+    emit({ kind: 'confetti', dur: 2600, colors: lv.dots.map((d) => ref.current.palette[d.color % ref.current.palette.length].dot), count: 70, w: gg.size, h: gg.size, seed: Date.now() % 1000 });
 
     const usedHint = gm.hinted.size > 0;
     const stars = starsFor(gm.moves, lv.stars.perfectMoves, lv.stars.twoStarMoves, usedHint);
@@ -154,7 +158,7 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
             const p = gm.view()[e.pair];
             if (p.length) {
               const [x, y] = centerOfNode(p[p.length - 1]);
-              emit({ kind: 'ring', dur: 450, x, y, color: glowOf(e.pair), r0: gg.cell * 0.3, r1: gg.cell * 0.8, width: 3 });
+              emit({ kind: 'ring', dur: 450, x, y, color: lineOf(e.pair), r0: gg.cell * 0.3, r1: gg.cell * 0.8, width: 3 });
             }
             break;
           }
@@ -166,7 +170,7 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
             audio.play('retract', { volume: 0.25 });
             break;
           case 'connect': {
-            const color = glowOf(e.pair);
+            const color = lineOf(e.pair);
             audio.note(ref.current.level.dots[e.pair].color);
             haptics.light();
             const nodes = gm.view()[e.pair];
@@ -198,7 +202,7 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
             audio.play('warp', { volume: 0.6 });
             for (const n of [e.from, e.to]) {
               const [x, y] = centerOfNode(n);
-              emit({ kind: 'ring', dur: 500, x, y, color: colors.warp, r0: gg.cell * 0.2, r1: gg.cell * 0.9, width: 3 });
+              emit({ kind: 'ring', dur: 500, x, y, color: ref.current.theme.board.warp, r0: gg.cell * 0.2, r1: gg.cell * 0.9, width: 3 });
             }
             break;
           }
@@ -344,7 +348,7 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
       for (let v = 0; v < gm.g.nodeCount; v++) {
         if (owner[v] !== -1 || gm.endpointPair[v] !== -1) continue;
         const [x, y] = cellCenter(gg, gm.g.nodeRow[v], gm.g.nodeCol[v]);
-        emit({ kind: 'flash', dur: 900, x: x - gg.cell / 2 + 2, y: y - gg.cell / 2 + 2, w: gg.cell - 4, h: gg.cell - 4, radius: gg.cell * 0.2, color: colors.textPure });
+        emit({ kind: 'flash', dur: 900, x: x - gg.cell / 2 + 2, y: y - gg.cell / 2 + 2, w: gg.cell - 4, h: gg.cell - 4, radius: gg.cell * 0.2, color: ref.current.theme.accent.color });
       }
     }
   }, [bump, process, save, emit, toast]);
@@ -380,10 +384,10 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
     audio.play('hint');
     const nodes = game.view()[pair];
     const pts = nodes.flatMap((n) => centerOfNode(n));
-    emit({ kind: 'wave', dur: 700, color: glowOf(pair), pts, size: geom.cell * 0.4 });
+    emit({ kind: 'wave', dur: 700, color: lineOf(pair), pts, size: geom.cell * 0.4 });
     for (const n of [nodes[0], nodes[nodes.length - 1]]) {
       const [x, y] = centerOfNode(n);
-      emit({ kind: 'ring', dur: 700, x, y, color: colors.textPure, r0: geom.cell * 0.3, r1: geom.cell * 1.2, width: 3 });
+      emit({ kind: 'ring', dur: 700, x, y, color: theme.text.primary, r0: geom.cell * 0.3, r1: geom.cell * 1.2, width: 3 });
     }
     audio.note(level.dots[pair].color, 0.6);
     bump();
@@ -402,7 +406,7 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
       if (pair < 0) return;
       for (const n of game.endpoints[pair]) {
         const [x, y] = centerOfNode(n);
-        emit({ kind: 'ring', dur: 1100, x, y, color: glowOf(pair), r0: geom.cell * 0.3, r1: geom.cell * 1.3, width: 4 });
+        emit({ kind: 'ring', dur: 1100, x, y, color: lineOf(pair), r0: geom.cell * 0.3, r1: geom.cell * 1.3, width: 4 });
       }
     }, IDLE_MS);
     return () => clearTimeout(t);
@@ -442,33 +446,33 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
   const fillStyle = useAnimatedStyle(() => ({ width: `${Math.round(fillAnim.value * 100)}%` }));
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 12 }]}>
+    <View style={[styles.root, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 12 + CONTROLS_LIFT }]}>
       <View style={styles.header}>
-        <GlassButton icon="chevron-back" iconColor={colors.icon.back} size="sm" onPress={onLevels} accessibilityLabel="Back to levels" />
+        <GlassButton icon="chevron-back" size="sm" onPress={onLevels} accessibilityLabel="Back to levels" />
         <View style={styles.titleWrap}>
-          <View style={styles.titlePill}>
-            <Text style={styles.title}>{title}</Text>
-            {subtitle && <Text style={[styles.subtitle, { color: theme.accent }]}>{subtitle}</Text>}
-          </View>
+          <Text style={styles.title}>{title}</Text>
+          {subtitle && (
+            <View style={styles.titlePill}>
+              <Text style={styles.subtitle}>{subtitle}</Text>
+            </View>
+          )}
         </View>
-        <GlassButton icon="refresh" iconColor={colors.icon.settings} size="sm" onPress={onRestart} accessibilityLabel="Restart level" />
+        <GlassButton icon="refresh" size="sm" onPress={onRestart} accessibilityLabel="Restart level" />
       </View>
 
       <View style={styles.boardWrap}>
         <View style={styles.hud}>
-          <Hud icon="swap-horizontal" iconColor={colors.icon.moves} label="Moves" value={`${game.moves}`} sub={best !== undefined ? `best ${best}` : `perfect ${level.stars.perfectMoves}`} />
+          <Hud icon="swap-horizontal" iconColor={theme.icon.moves} label="Moves" value={`${game.moves}`} sub={best !== undefined ? `best ${best}` : `perfect ${level.stars.perfectMoves}`} />
           <View style={styles.hudDivider} />
-          <Hud icon="git-network" iconColor={colors.icon.flow} label="Flows" value={`${connected}/${game.pairCount}`} />
+          <Hud icon="git-network" iconColor={theme.icon.flows} label="Flows" value={`${connected}/${game.pairCount}`} />
           <View style={styles.hudDivider} />
           <View style={[styles.hudItem, { flex: 1.3 }]}>
-            <HudIcon icon="water" color={colors.icon.fill} />
+            <HudIcon icon="water" color={theme.icon.fill} />
             <View style={{ flex: 1 }}>
               <Text style={styles.hudLabel}>Fill</Text>
               <Text style={styles.hudValueSm}>{Math.round(fill * 100)}%</Text>
               <View style={styles.meter}>
-                <Animated.View style={[styles.meterFill, fillStyle]}>
-                  <LinearGradient colors={theme.accentRamp} start={{ x: 0, y: 1 }} end={{ x: 0, y: 0 }} style={StyleSheet.absoluteFill} />
-                </Animated.View>
+                <Animated.View style={[styles.meterFill, fillStyle]} />
               </View>
             </View>
           </View>
@@ -491,10 +495,10 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
       </View>
 
       <View style={styles.controls}>
-        <GlassButton icon="arrow-undo" iconColor={colors.icon.undo} label="Undo" onPress={onUndo} disabled={!game.canUndo()} />
-        <GlassButton icon="bulb" iconColor={colors.icon.hint} label="Hint" onPress={onHint} badge={unlimitedHints ? '∞' : hints} />
+        <GlassButton icon="arrow-undo" label="Undo" onPress={onUndo} disabled={!game.canUndo()} />
+        <GlassButton icon="bulb" label="Hint" variant="primary" onPress={onHint} badge={unlimitedHints ? '∞' : hints} />
         {hasObstacles && (
-          <GlassButton icon="information-circle" iconColor={colors.warp} onPress={() => setInfoOpen(true)} accessibilityLabel="Obstacle info" />
+          <GlassButton icon="information-circle" iconColor={theme.icon.info} onPress={() => setInfoOpen(true)} accessibilityLabel="Obstacle info" />
         )}
       </View>
 
@@ -503,7 +507,6 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
       {result && (
         <ResultModal
           result={result}
-          accent={theme.accent}
           nextLabel={nextLabel}
           onNext={onNext}
           onReplay={() => {
@@ -526,14 +529,16 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
 type IconName = keyof typeof Ionicons.glyphMap;
 
 function HudIcon({ icon, color }: { icon: IconName; color: string }) {
+  const styles = useStyles();
   return (
-    <View style={[styles.hudIcon, { backgroundColor: withAlpha(color, 0.18), borderColor: withAlpha(color, 0.35) }]}>
+    <View style={[styles.hudIcon, { backgroundColor: withAlpha(color, 0.15) }]}>
       <Ionicons name={icon} size={16} color={color} />
     </View>
   );
 }
 
 function Hud({ icon, iconColor, label, value, sub }: { icon: IconName; iconColor: string; label: string; value: string; sub?: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.hudItem}>
       <HudIcon icon={icon} color={iconColor} />
@@ -542,7 +547,7 @@ function Hud({ icon, iconColor, label, value, sub }: { icon: IconName; iconColor
         <Text style={styles.hudValue}>{value}</Text>
         {sub ? (
           <Text style={styles.hudSub} numberOfLines={1}>
-            <Text style={{ color: colors.star }}>★ </Text>
+            <Text style={styles.hudStar}>★ </Text>
             {sub}
           </Text>
         ) : null}
@@ -556,52 +561,41 @@ export function goBackOr(path: string) {
   else router.replace(path as never);
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   root: { flex: 1, paddingHorizontal: 12, alignItems: 'center' },
-  header: { flexDirection: 'row', alignItems: 'center', width: '100%', maxWidth: tokens.maxBoardWidth, height: 52 },
+  header: { flexDirection: 'row', alignItems: 'center', width: '100%', maxWidth: tokens.maxBoardWidth, height: 60 },
   titleWrap: { flex: 1, alignItems: 'center' },
-  titlePill: {
-    alignItems: 'center',
-    paddingHorizontal: 26,
-    paddingVertical: 3,
-    borderRadius: tokens.radius.pill,
-    backgroundColor: colors.glassStrong,
-    borderWidth: 1,
-    borderColor: colors.glassBorder,
-  },
-  title: { fontFamily: fonts.title, fontSize: 22, color: colors.textPure, letterSpacing: 0.5 },
-  subtitle: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', marginTop: -2 },
+  title: { fontFamily: fonts.titleBold, fontSize: 24, color: t.text.primary, letterSpacing: 0.3 },
+  titlePill: { marginTop: 2, paddingHorizontal: 12, paddingVertical: 1, borderRadius: tokens.radius.pill, backgroundColor: t.box.pill },
+  subtitle: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, color: t.box.pillText },
   hud: {
     flexDirection: 'row',
     gap: 10,
     width: '100%',
     maxWidth: tokens.maxBoardWidth,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     marginBottom: 16,
     borderRadius: 18,
-    backgroundColor: colors.glass,
+    backgroundColor: t.box.background,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
+    borderColor: t.box.border,
+    shadowColor: t.box.shadow,
+    shadowOpacity: 1,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 4 },
     alignItems: 'center',
   },
   hudItem: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  hudIcon: { width: 30, height: 30, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  hudDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: colors.glassBorder },
-  hudLabel: { fontFamily: fonts.body, fontSize: 10, color: colors.textDim, textTransform: 'uppercase', letterSpacing: 1 },
-  hudValue: { fontFamily: fonts.title, fontSize: 20, lineHeight: 22, color: colors.text },
-  hudValueSm: { fontFamily: fonts.title, fontSize: 14, lineHeight: 16, color: colors.text },
-  hudSub: { fontFamily: fonts.body, fontSize: 10, color: colors.textDim },
-  meter: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.meter.track,
-    borderTopWidth: 1,
-    borderTopColor: colors.meter.trackHighlight,
-    overflow: 'hidden',
-    marginTop: 4,
-  },
-  meterFill: { height: '100%', borderRadius: 4, overflow: 'hidden' },
+  hudIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  hudDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: t.box.border },
+  hudLabel: { fontFamily: fonts.body, fontSize: 10, color: t.text.secondary, textTransform: 'uppercase', letterSpacing: 1 },
+  hudValue: { fontFamily: fonts.title, fontSize: 20, lineHeight: 22, color: t.text.primary },
+  hudValueSm: { fontFamily: fonts.title, fontSize: 14, lineHeight: 16, color: t.text.primary },
+  hudSub: { fontFamily: fonts.body, fontSize: 10, color: t.text.secondary },
+  hudStar: { color: t.star.filled },
+  meter: { height: 8, borderRadius: 4, backgroundColor: t.progress.track, overflow: 'hidden', marginTop: 4 },
+  meterFill: { height: '100%', borderRadius: 4, backgroundColor: t.progress.fill },
   boardWrap: { flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' },
   controls: { flexDirection: 'row', gap: 14, justifyContent: 'center', alignItems: 'center' },
-});
+}));

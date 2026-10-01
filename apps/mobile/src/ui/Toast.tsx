@@ -1,10 +1,12 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { Text } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from 'react-native-reanimated';
-import { colors, fonts } from '../theme/tokens';
+import { fonts } from '../theme/tokens';
+import { makeStyles } from '../theme/useTheme';
 
 /** Small floating message; `show(text)` fades it in and out. */
 export function useToast() {
+  const styles = useStyles();
   const [text, setText] = useState('');
   const o = useSharedValue(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -25,7 +27,7 @@ export function useToast() {
   return { show, node };
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   toast: {
     position: 'absolute',
     alignSelf: 'center',
@@ -33,9 +35,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: 'rgba(20,21,75,0.94)',
-    borderWidth: 1,
-    borderColor: colors.glassBorder,
+    backgroundColor: t.box.toast,
   },
-  text: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.text },
-});
+  text: { fontFamily: fonts.bodyBold, fontSize: 15, color: t.box.toastText },
+}));

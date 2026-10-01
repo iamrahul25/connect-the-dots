@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
+import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -9,26 +9,28 @@ import { useFonts, Fredoka_600SemiBold, Fredoka_700Bold } from '@expo-google-fon
 import { Nunito_600SemiBold, Nunito_800ExtraBold } from '@expo-google-fonts/nunito';
 import { Background } from '../ui/Background';
 import { audio } from '../services/audio';
-import { colors } from '../theme/tokens';
+import { useTheme } from '../theme/useTheme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const navTheme = {
-  ...DarkTheme,
-  colors: { ...DarkTheme.colors, background: 'transparent', card: 'transparent' },
+  ...DefaultTheme,
+  colors: { ...DefaultTheme.colors, background: 'transparent', card: 'transparent' },
 };
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({ Fredoka_600SemiBold, Fredoka_700Bold, Nunito_600SemiBold, Nunito_800ExtraBold });
+  const theme = useTheme();
+  const rootBg = { backgroundColor: theme.background.color };
 
   useEffect(() => {
     if (loaded || error) SplashScreen.hideAsync().catch(() => {});
   }, [loaded, error]);
 
-  if (!loaded && !error) return <View style={styles.root} />;
+  if (!loaded && !error) return <View style={[styles.root, rootBg]} />;
 
   return (
-    <GestureHandlerRootView style={styles.root}>
+    <GestureHandlerRootView style={[styles.root, rootBg]}>
       <SafeAreaProvider>
         <ThemeProvider value={navTheme}>
           {/* Any first touch unlocks audio (browsers block playback before a gesture). */}
@@ -48,7 +50,7 @@ export default function RootLayout() {
               }}
             />
           </View>
-          <StatusBar style="light" />
+          <StatusBar style={theme.statusBar === 'light' ? 'light' : 'dark'} />
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
@@ -56,5 +58,5 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.base },
+  root: { flex: 1 },
 });

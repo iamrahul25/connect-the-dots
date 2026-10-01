@@ -1,7 +1,8 @@
 import React, { memo } from 'react';
 import { View } from 'react-native';
 import type { Level } from '@ctd/core';
-import { colors } from '../theme/tokens';
+import type { Palette } from '../theme/config';
+import { useTheme } from '../theme/useTheme';
 
 const EMPTY = 0;
 const WALL = 1;
@@ -18,8 +19,9 @@ export const MiniBoard = memo(function MiniBoard({
 }: {
   level: Level;
   size: number;
-  palette: readonly string[];
+  palette: Palette;
 }) {
+  const { board } = useTheme();
   const { width: W, height: H } = level.size;
   const pad = Math.max(3, Math.round(size * 0.05));
   const cell = (size - pad * 2) / Math.max(W, H);
@@ -30,7 +32,7 @@ export const MiniBoard = memo(function MiniBoard({
   for (const [r, c] of level.bridges) kind[r * W + c] = BRIDGE;
   const dot = new Array<string | null>(W * H).fill(null);
   for (const d of level.dots) {
-    const color = palette[d.color % palette.length];
+    const color = palette[d.color % palette.length].dot;
     for (const [r, c] of [d.start, d.end]) dot[r * W + c] = color;
   }
 
@@ -57,16 +59,16 @@ export const MiniBoard = memo(function MiniBoard({
               style={{
                 flex: 1,
                 borderRadius: cell * 0.25,
-                backgroundColor: dot[i] ?? (k === WALL ? 'rgba(11,9,46,0.75)' : 'rgba(255,255,255,0.16)'),
+                backgroundColor: dot[i] ?? (k === WALL ? board.cellWall : board.cellEmpty),
                 borderWidth: k === BRIDGE ? Math.max(0.75, cell * 0.1) : 0,
-                borderColor: colors.board.borderHighlight,
+                borderColor: board.bridgeBorder,
               }}
             />
           </View>
         ))}
       </View>
       {warpBars.map((b, i) => (
-        <View key={`w${i}`} style={{ position: 'absolute', ...b, borderRadius: bar, backgroundColor: colors.warp }} />
+        <View key={`w${i}`} style={{ position: 'absolute', ...b, borderRadius: bar, backgroundColor: board.warp }} />
       ))}
     </View>
   );

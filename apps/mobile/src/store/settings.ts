@@ -1,8 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { persistStorage } from '../services/storage';
+import { DEFAULT_THEME } from '../theme/config';
 
 export interface SettingsState {
+  /** Key into `themes` in theme/ui-config.json. */
+  theme: string;
   music: boolean;
   sfx: boolean;
   haptics: boolean;
@@ -17,6 +20,7 @@ export interface SettingsState {
 export const useSettings = create<SettingsState>()(
   persist(
     (set) => ({
+      theme: DEFAULT_THEME,
       music: true,
       sfx: true,
       haptics: true,

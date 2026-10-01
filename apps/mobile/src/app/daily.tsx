@@ -1,22 +1,25 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { dateKey, WEEKDAY_NAMES } from '@ctd/core';
 import { Screen } from '../ui/Screen';
 import { GlassButton } from '../ui/GlassButton';
 import { Stars } from '../ui/Stars';
-import { colors, fonts } from '../theme/tokens';
-import { THEMES } from '../theme/themes';
+import { fonts } from '../theme/tokens';
+import { musicFor } from '../theme/packs';
+import { makeStyles, useTheme } from '../theme/useTheme';
+import { withAlpha } from '../board/color';
 import { useProgress } from '../store/progress';
 import { useUi } from '../store/ui';
 import { audio } from '../services/audio';
 
 const DOW = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const DIFFICULTY = ['10×10 · Expert', '6×6 · Easy', '7×7 · Easy+', '7×7 · Medium', '8×8 · Medium+', '8×8 · Hard', '9×9 · Hard+'];
-const accent = THEMES.daily.accent;
 
 export default function Daily() {
+  const theme = useTheme('daily');
+  const styles = useStyles();
   const daily = useProgress((s) => s.daily);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -25,8 +28,8 @@ export default function Daily() {
 
   useFocusEffect(
     React.useCallback(() => {
-      useUi.getState().setTheme('daily');
-      audio.playMusic(THEMES.daily.music);
+      useUi.getState().setPack('daily');
+      audio.playMusic(musicFor('daily'));
     }, []),
   );
 
@@ -41,17 +44,18 @@ export default function Daily() {
   const canNext = month.getFullYear() < today.getFullYear() || month.getMonth() < today.getMonth();
   const shift = (n: number) => setMonth(new Date(month.getFullYear(), month.getMonth() + n, 1));
   const todayDone = !!daily.completed[todayKey];
+  const cal = theme.calendar;
 
   return (
     <Screen title="Daily Puzzle" subtitle="A fresh puzzle every day" back>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.streakRow}>
-          <Stat icon="flame" color={colors.orangeGlow} value={daily.streak} label="Streak" />
-          <Stat icon="trophy" color={accent} value={daily.bestStreak} label="Best" />
-          <Stat icon="checkmark-done" color={colors.success} value={Object.keys(daily.completed).length} label="Solved" />
+          <Stat icon="flame" color={theme.icon.streak} value={daily.streak} label="Streak" />
+          <Stat icon="trophy" color={theme.icon.hint} value={daily.bestStreak} label="Best" />
+          <Stat icon="checkmark-done" color={theme.icon.success} value={Object.keys(daily.completed).length} label="Solved" />
         </View>
 
-        <View style={styles.todayCard}>
+        <View style={[styles.todayCard, { borderColor: withAlpha(theme.accent.color, 0.45) }]}>
           <Text style={styles.todayLabel}>TODAY · {WEEKDAY_NAMES[today.getDay()].toUpperCase()}</Text>
           <Text style={styles.todayDiff}>{DIFFICULTY[today.getDay()]}</Text>
           {todayDone && <Stars count={daily.completed[todayKey].stars} size={20} />}
@@ -59,7 +63,6 @@ export default function Daily() {
             label={todayDone ? 'Play again' : 'Play today'}
             icon="play"
             variant="primary"
-            accent={accent}
             size="lg"
             onPress={() => router.push(`/play/daily-${todayKey}`)}
             style={{ marginTop: 16, alignSelf: 'stretch' }}
@@ -94,14 +97,13 @@ export default function Daily() {
                     accessibilityLabel={`${key}${done ? ', solved' : ''}`}
                     style={({ pressed }) => [
                       styles.dayInner,
-                      done && { backgroundColor: `${accent}33`, borderColor: `${accent}88` },
-                      isToday && { borderColor: accent, borderWidth: 2 },
-                      future && { opacity: 0.25 },
+                      done && { backgroundColor: cal.solved },
+                      isToday && { borderColor: cal.today, borderWidth: 2 },
                       pressed && { transform: [{ scale: 0.92 }] },
                     ]}
                   >
-                    <Text style={[styles.dayText, done && { color: accent }]}>{d.getDate()}</Text>
-                    {done && <Ionicons name="checkmark" size={10} color={accent} style={styles.check} />}
+                    <Text style={[styles.dayText, done && { color: cal.solvedText }, future && { color: cal.future }]}>{d.getDate()}</Text>
+                    {done && <Ionicons name="checkmark" size={10} color={cal.solvedText} style={styles.check} />}
                   </Pressable>
                 </View>
               );
@@ -114,6 +116,7 @@ export default function Daily() {
 }
 
 function Stat({ icon, color, value, label }: { icon: keyof typeof Ionicons.glyphMap; color: string; value: number; label: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.stat}>
       <Ionicons name={icon} size={22} color={color} />
@@ -123,7 +126,7 @@ function Stat({ icon, color, value, label }: { icon: keyof typeof Ionicons.glyph
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   scroll: { width: '100%', maxWidth: 460, alignSelf: 'center', paddingBottom: 24 },
   streakRow: { flexDirection: 'row', gap: 10 },
   stat: {
@@ -131,29 +134,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderRadius: 18,
-    backgroundColor: colors.glass,
+    backgroundColor: t.box.background,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
+    borderColor: t.box.border,
   },
-  statValue: { fontFamily: fonts.titleBold, fontSize: 24, color: colors.text, marginTop: 2 },
-  statLabel: { fontFamily: fonts.body, fontSize: 11, color: colors.textDim, textTransform: 'uppercase', letterSpacing: 1 },
+  statValue: { fontFamily: fonts.titleBold, fontSize: 24, color: t.text.primary, marginTop: 2 },
+  statLabel: { fontFamily: fonts.body, fontSize: 11, color: t.text.secondary, textTransform: 'uppercase', letterSpacing: 1 },
   todayCard: {
     marginTop: 14,
     padding: 20,
     borderRadius: 24,
     alignItems: 'center',
-    backgroundColor: 'rgba(255,202,40,0.10)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,202,40,0.35)',
+    backgroundColor: t.box.background,
+    borderWidth: 1.5,
     gap: 4,
   },
-  todayLabel: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2, color: colors.textDim },
-  todayDiff: { fontFamily: fonts.titleBold, fontSize: 26, color: colors.text },
-  calendar: { marginTop: 14, padding: 12, borderRadius: 24, backgroundColor: colors.glass, borderWidth: 1, borderColor: colors.glassBorder },
+  todayLabel: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2, color: t.text.secondary },
+  todayDiff: { fontFamily: fonts.titleBold, fontSize: 26, color: t.text.primary },
+  calendar: { marginTop: 14, padding: 12, borderRadius: 24, backgroundColor: t.box.surface, borderWidth: 1, borderColor: t.box.border },
   monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  month: { fontFamily: fonts.title, fontSize: 18, color: colors.text },
+  month: { fontFamily: fonts.title, fontSize: 18, color: t.text.primary },
   week: { flexDirection: 'row', marginTop: 6 },
-  dow: { width: `${100 / 7}%`, textAlign: 'center', fontFamily: fonts.bodyBold, fontSize: 12, color: colors.textFaint },
+  dow: { width: `${100 / 7}%`, textAlign: 'center', fontFamily: fonts.bodyBold, fontSize: 12, color: t.text.muted },
   days: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 },
   day: { width: `${100 / 7}%`, aspectRatio: 1, padding: 3 },
   dayInner: {
@@ -163,8 +165,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'transparent',
-    backgroundColor: colors.glassHighlight,
+    backgroundColor: t.calendar.day,
   },
-  dayText: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.text },
+  dayText: { fontFamily: fonts.bodyBold, fontSize: 14, color: t.calendar.dayText },
   check: { position: 'absolute', bottom: 3 },
-});
+}));

@@ -1,13 +1,16 @@
 import React from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../ui/Screen';
 import { Logo } from '../ui/Logo';
-import { colors, fonts } from '../theme/tokens';
+import { fonts } from '../theme/tokens';
+import { makeStyles, useTheme } from '../theme/useTheme';
 import { useSettings } from '../store/settings';
 import licenses from '../../assets/LICENSES.json';
 
 export default function Credits() {
+  const theme = useTheme();
+  const styles = useStyles();
   const reduceMotion = useSettings((s) => s.reduceMotion);
   return (
     <Screen title="Credits" back>
@@ -24,7 +27,7 @@ export default function Credits() {
               <Text style={styles.sub}>{a.author}</Text>
               <Text style={styles.license}>{a.license}</Text>
             </View>
-            <Ionicons name="open-outline" size={18} color={colors.textFaint} />
+            <Ionicons name="open-outline" size={18} color={theme.text.muted} />
           </Pressable>
         ))}
       </ScrollView>
@@ -32,19 +35,19 @@ export default function Credits() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   scroll: { width: '100%', maxWidth: 520, alignSelf: 'center', paddingBottom: 24, gap: 10 },
-  title: { fontFamily: fonts.titleBold, fontSize: 28, color: colors.text, marginTop: 12 },
+  title: { fontFamily: fonts.titleBold, fontSize: 28, color: t.text.primary, marginTop: 12 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     borderRadius: 18,
-    backgroundColor: colors.glass,
+    backgroundColor: t.box.background,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
+    borderColor: t.box.border,
   },
-  name: { fontFamily: fonts.title, fontSize: 16, color: colors.text },
-  sub: { fontFamily: fonts.body, fontSize: 13, color: colors.textDim, textAlign: 'left' },
-  license: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.gold, marginTop: 4 },
-});
+  name: { fontFamily: fonts.title, fontSize: 16, color: t.text.primary },
+  sub: { fontFamily: fonts.body, fontSize: 13, color: t.text.secondary, textAlign: 'left' },
+  license: { fontFamily: fonts.bodyBold, fontSize: 12, color: t.icon.hint, marginTop: 4 },
+}));

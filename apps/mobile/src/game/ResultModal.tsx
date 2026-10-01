@@ -10,7 +10,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { GlassButton } from '../ui/GlassButton';
-import { colors, fonts, tokens } from '../theme/tokens';
+import { fonts, tokens } from '../theme/tokens';
+import { makeStyles, useTheme } from '../theme/useTheme';
 import { audio } from '../services/audio';
 import { haptics } from '../services/haptics';
 
@@ -27,7 +28,6 @@ export interface ResultInfo {
 
 interface Props {
   result: ResultInfo;
-  accent: string;
   nextLabel: string;
   onNext: () => void;
   onReplay: () => void;
@@ -38,6 +38,7 @@ interface Props {
 const TITLES = ['Solved', 'Solved!', 'Brilliant!', 'Perfect!'];
 
 function Star({ index, earned, reduceMotion }: { index: number; earned: boolean; reduceMotion: boolean }) {
+  const { star } = useTheme();
   const s = useSharedValue(earned ? 0 : 1);
   const rot = useSharedValue(earned && !reduceMotion ? -40 : 0);
   useEffect(() => {
@@ -54,12 +55,13 @@ function Star({ index, earned, reduceMotion }: { index: number; earned: boolean;
   const style = useAnimatedStyle(() => ({ transform: [{ scale: s.value }, { rotate: `${rot.value}deg` }] }));
   return (
     <Animated.View style={[style, index === 1 && { marginTop: -14 }]}>
-      <Ionicons name={earned ? 'star' : 'star-outline'} size={index === 1 ? 58 : 46} color={earned ? colors.star : colors.starEmpty} />
+      <Ionicons name={earned ? 'star' : 'star-outline'} size={index === 1 ? 58 : 46} color={earned ? star.filled : star.empty} />
     </Animated.View>
   );
 }
 
-export function ResultModal({ result, accent, nextLabel, onNext, onReplay, onLevels, reduceMotion }: Props) {
+export function ResultModal({ result, nextLabel, onNext, onReplay, onLevels, reduceMotion }: Props) {
+  const styles = useStyles();
   const backdrop = useSharedValue(0);
   const card = useSharedValue(0);
   useEffect(() => {
@@ -90,11 +92,11 @@ export function ResultModal({ result, accent, nextLabel, onNext, onReplay, onLev
           </View>
           {result.usedHint && <Text style={styles.note}>Hint used · replay without hints for ★★★</Text>}
           {result.streak !== undefined && result.streak > 0 && (
-            <Text style={[styles.reward, { color: colors.orangeGlow }]}>🔥 {result.streak}-day streak</Text>
+            <Text style={[styles.reward, styles.streak]}>🔥 {result.streak}-day streak</Text>
           )}
-          {result.packCompleted && <Text style={[styles.reward, { color: accent }]}>Pack complete! 🎉</Text>}
+          {result.packCompleted && <Text style={styles.reward}>Pack complete! 🎉</Text>}
           {result.hintsEarned > 0 && <Text style={styles.reward}>+{result.hintsEarned} hint{result.hintsEarned > 1 ? 's' : ''} 💡</Text>}
-          <GlassButton label={nextLabel} icon="play" variant="primary" accent={accent} size="lg" onPress={onNext} style={{ alignSelf: 'stretch', marginTop: 18 }} />
+          <GlassButton label={nextLabel} icon="play" variant="primary" size="lg" onPress={onNext} style={{ alignSelf: 'stretch', marginTop: 18 }} />
           <View style={styles.row}>
             <GlassButton label="Replay" icon="refresh" onPress={onReplay} style={{ flex: 1 }} />
             <GlassButton label="Levels" icon="grid" onPress={onLevels} style={{ flex: 1 }} />
@@ -106,6 +108,7 @@ export function ResultModal({ result, accent, nextLabel, onNext, onReplay, onLev
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
+  const styles = useStyles();
   return (
     <View style={{ alignItems: 'center', minWidth: 70 }}>
       <Text style={styles.statValue}>{value}</Text>
@@ -114,8 +117,8 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: { backgroundColor: colors.overlay },
+const useStyles = makeStyles((t) => ({
+  backdrop: { backgroundColor: t.box.overlay },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
   card: {
     width: '100%',
@@ -123,21 +126,22 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     padding: 24,
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: t.box.surface,
     borderWidth: 1,
-    borderColor: colors.glassBorder,
-    shadowColor: colors.board.shadow,
-    shadowOpacity: 0.5,
+    borderColor: t.box.border,
+    shadowColor: t.box.shadow,
+    shadowOpacity: 1,
     shadowRadius: 30,
     shadowOffset: { width: 0, height: 16 },
     elevation: 12,
   },
-  title: { fontFamily: fonts.titleBold, fontSize: 34, color: colors.text, letterSpacing: 0.5 },
+  title: { fontFamily: fonts.titleBold, fontSize: 34, color: t.text.primary, letterSpacing: 0.5 },
   stars: { flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 14, height: 76 },
   stats: { flexDirection: 'row', gap: 12, marginTop: 4 },
-  statValue: { fontFamily: fonts.title, fontSize: 24, color: colors.text },
-  statLabel: { fontFamily: fonts.body, fontSize: 12, color: colors.textDim, textTransform: 'uppercase', letterSpacing: 1 },
-  note: { fontFamily: fonts.body, fontSize: 12, color: colors.textDim, marginTop: 12 },
-  reward: { fontFamily: fonts.bodyBold, fontSize: 15, color: colors.gold, marginTop: 10 },
+  statValue: { fontFamily: fonts.title, fontSize: 24, color: t.text.primary },
+  statLabel: { fontFamily: fonts.body, fontSize: 12, color: t.text.secondary, textTransform: 'uppercase', letterSpacing: 1 },
+  note: { fontFamily: fonts.body, fontSize: 12, color: t.text.secondary, marginTop: 12 },
+  reward: { fontFamily: fonts.bodyBold, fontSize: 15, color: t.icon.hint, marginTop: 10 },
+  streak: { color: t.icon.streak },
   row: { flexDirection: 'row', gap: 10, marginTop: 10, alignSelf: 'stretch' },
-});
+}));

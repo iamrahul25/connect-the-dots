@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../ui/Screen';
 import { GlassButton } from '../ui/GlassButton';
-import { colors, fonts } from '../theme/tokens';
+import { fonts } from '../theme/tokens';
 import { withAlpha } from '../board/color';
-import { COLORBLIND_PALETTE, PALETTE, THEMES } from '../theme/themes';
+import { resolveTheme, THEME_IDS, themeName, type ThemeId } from '../theme/config';
+import { makeStyles, usePalette, useTheme } from '../theme/useTheme';
 import { useSettings, type SettingsState } from '../store/settings';
 import { useProgress } from '../store/progress';
 import { haptics } from '../services/haptics';
 
-type Key = Exclude<keyof SettingsState, 'set'>;
+type Key = Exclude<keyof SettingsState, 'set' | 'theme'>;
 
 type Row = { key: Key; icon: keyof typeof Ionicons.glyphMap; label: string; sub: string; native?: boolean };
 
@@ -29,9 +30,9 @@ const DEV_ROWS: Row[] = [
   { key: 'unlimitedHints', icon: 'bulb', label: 'Unlimited hints', sub: 'Use hints without spending them' },
 ];
 
-const accent = THEMES.dawn.accent;
-
 function ToggleRow({ row, divider }: { row: Row; divider: boolean }) {
+  const theme = useTheme();
+  const styles = useStyles();
   const value = useSettings((s) => s[row.key]);
   const set = useSettings((s) => s.set);
   return (
@@ -45,7 +46,7 @@ function ToggleRow({ row, divider }: { row: Row; divider: boolean }) {
       accessibilityState={{ checked: value }}
     >
       <View style={styles.iconWrap}>
-        <Ionicons name={row.icon} size={20} color={accent} />
+        <Ionicons name={row.icon} size={20} color={theme.icon.default} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={styles.label}>{row.label}</Text>
@@ -54,22 +55,74 @@ function ToggleRow({ row, divider }: { row: Row; divider: boolean }) {
       <Switch
         value={value}
         onValueChange={(v) => set({ [row.key]: v })}
-        trackColor={{ false: colors.meter.track, true: accent }}
-        thumbColor={colors.textPure}
-        {...(Platform.OS === 'web' ? { activeThumbColor: colors.textPure } : {})}
+        trackColor={{ false: theme.progress.track, true: theme.accent.color }}
+        thumbColor="#FFFFFF"
+        {...(Platform.OS === 'web' ? { activeThumbColor: '#FFFFFF' } : {})}
       />
     </Pressable>
   );
 }
 
+function ThemeCard({ id, selected, onPress }: { id: ThemeId; selected: boolean; onPress: () => void }) {
+  const current = useTheme();
+  const styles = useStyles();
+  const preview = resolveTheme(id);
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="radio"
+      accessibilityState={{ checked: selected }}
+      accessibilityLabel={`${themeName(id)} theme`}
+      style={({ pressed }) => [
+        styles.themeCard,
+        { backgroundColor: preview.background.color, borderColor: selected ? current.accent.color : preview.box.border },
+        selected && styles.themeCardSelected,
+        pressed && { transform: [{ scale: 0.96 }] },
+      ]}
+    >
+      <View style={styles.themeDots}>
+        {preview.dots.slice(0, 4).map((d) => (
+          <View key={d.slot} style={[styles.themeDot, { backgroundColor: d.dot }]} />
+        ))}
+      </View>
+      <View style={[styles.themeAccent, { backgroundColor: preview.accent.color }]} />
+      <Text style={[styles.themeName, { color: preview.text.primary }]}>{themeName(id)}</Text>
+      {selected && (
+        <View style={[styles.themeCheck, { backgroundColor: current.accent.color }]}>
+          <Ionicons name="checkmark" size={12} color={current.accent.onColor} />
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
 export default function Settings() {
-  const colorblind = useSettings((s) => s.colorblind);
+  const theme = useTheme();
+  const styles = useStyles();
+  const themeId = useSettings((s) => s.theme);
+  const set = useSettings((s) => s.set);
+  const palette = usePalette();
   const [confirm, setConfirm] = useState(false);
-  const palette = colorblind ? COLORBLIND_PALETTE : PALETTE;
 
   return (
     <Screen title="Settings" back>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <Text style={[styles.section, { marginTop: 0 }]}>Theme</Text>
+        <View style={styles.themes}>
+          {THEME_IDS.map((id) => (
+            <ThemeCard
+              key={id}
+              id={id}
+              selected={id === themeId}
+              onPress={() => {
+                set({ theme: id });
+                haptics.selection();
+              }}
+            />
+          ))}
+        </View>
+
+        <Text style={styles.section}>Preferences</Text>
         <View style={styles.group}>
           {ROWS.filter((r) => !r.native || Platform.OS !== 'web').map((r, i) => (
             <ToggleRow key={r.key} row={r} divider={i > 0} />
@@ -89,8 +142,8 @@ export default function Settings() {
 
         <Text style={styles.section}>Palette preview</Text>
         <View style={[styles.group, styles.palette]}>
-          {palette.map((c) => (
-            <View key={c} style={[styles.swatch, { backgroundColor: c, shadowColor: c }]} />
+          {palette.map((d) => (
+            <View key={d.slot} style={[styles.swatch, { backgroundColor: d.dot }]} />
           ))}
         </View>
 
@@ -105,7 +158,7 @@ export default function Settings() {
                   label="Reset"
                   size="sm"
                   variant="primary"
-                  accent={colors.danger}
+                  accent={theme.status.danger}
                   onPress={() => {
                     useProgress.getState().reset();
                     haptics.warning();
@@ -123,17 +176,36 @@ export default function Settings() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((t) => ({
   scroll: { width: '100%', maxWidth: 520, alignSelf: 'center', paddingBottom: 24 },
-  group: { borderRadius: 22, backgroundColor: colors.glass, borderWidth: 1, borderColor: colors.glassBorder, overflow: 'hidden' },
+  themes: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  themeCard: {
+    flexGrow: 1,
+    flexBasis: '45%',
+    padding: 14,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    gap: 10,
+    shadowColor: t.box.shadow,
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  themeCardSelected: { borderWidth: 2.5 },
+  themeDots: { flexDirection: 'row', gap: 6 },
+  themeDot: { width: 18, height: 18, borderRadius: 9 },
+  themeAccent: { height: 6, width: 44, borderRadius: 3 },
+  themeName: { fontFamily: fonts.title, fontSize: 17 },
+  themeCheck: { position: 'absolute', top: 10, right: 10, width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  group: { borderRadius: 22, backgroundColor: t.box.background, borderWidth: 1, borderColor: t.box.border, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 14 },
-  divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.glassBorder },
-  iconWrap: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: withAlpha(accent, 0.14) },
-  label: { fontFamily: fonts.title, fontSize: 17, color: colors.text },
-  sub: { fontFamily: fonts.body, fontSize: 13, color: colors.textDim },
-  section: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2, color: colors.textFaint, marginTop: 22, marginBottom: 8, textTransform: 'uppercase' },
+  divider: { borderTopWidth: 1, borderTopColor: t.box.border },
+  iconWrap: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: withAlpha(t.accent.color, 0.22) },
+  label: { fontFamily: fonts.title, fontSize: 17, color: t.text.primary },
+  sub: { fontFamily: fonts.body, fontSize: 13, color: t.text.secondary },
+  section: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2, color: t.text.muted, marginTop: 22, marginBottom: 8, textTransform: 'uppercase' },
   palette: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, padding: 16, justifyContent: 'center' },
-  swatch: { width: 30, height: 30, borderRadius: 15, shadowOpacity: 0.6, shadowRadius: 8, shadowOffset: { width: 0, height: 0 } },
+  swatch: { width: 30, height: 30, borderRadius: 15 },
   buttons: { marginTop: 24, gap: 12, alignItems: 'center' },
-  confirm: { alignItems: 'center', padding: 14, borderRadius: 18, backgroundColor: withAlpha(colors.danger, 0.1) },
-});
+  confirm: { alignItems: 'center', padding: 14, borderRadius: 18, backgroundColor: withAlpha(t.status.danger, 0.1) },
+}));
