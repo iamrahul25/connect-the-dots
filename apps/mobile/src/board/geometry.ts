@@ -10,9 +10,24 @@ export interface BoardGeom {
   H: number;
 }
 
-export function makeGeom(W: number, H: number, size: number): BoardGeom {
-  const pad = Math.max(10, size * 0.04);
-  const cell = (size - pad * 2) / Math.max(W, H);
+/** Inset between a tile's edge and the inner edge of the board border. */
+export const BORDER_INSET = 5;
+
+/** Tile gap inside each cell; Board draws tiles with this inset. */
+export function cellGapPx(cell: number, cellGap: number): number {
+  return Math.max(1.5, cell * cellGap);
+}
+
+/**
+ * Without `frame` the board keeps a margin wide enough for warp portals.
+ * With `frame` the margin only fits the border, so it touches the canvas edge.
+ */
+export function makeGeom(W: number, H: number, size: number, frame?: { borderWidth: number; cellGap: number }): BoardGeom {
+  const n = Math.max(W, H);
+  const pad = frame
+    ? Math.max(0, frame.borderWidth + BORDER_INSET - cellGapPx(size / n, frame.cellGap))
+    : Math.max(10, size * 0.04);
+  const cell = (size - pad * 2) / n;
   return {
     size,
     pad,

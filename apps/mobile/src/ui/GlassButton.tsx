@@ -22,6 +22,8 @@ interface Props {
   accent?: string;
   disabled?: boolean;
   size?: 'lg' | 'md' | 'sm';
+  /** Draws a 1px `button.outline` border. */
+  outlined?: boolean;
   style?: StyleProp<ViewStyle>;
   badge?: string | number;
   accessibilityLabel?: string;
@@ -38,6 +40,7 @@ export function GlassButton({
   accent,
   disabled,
   size = 'md',
+  outlined,
   style,
   badge,
   accessibilityLabel,
@@ -82,6 +85,7 @@ export function GlassButton({
             shadowColor: kind === 'ghost' ? 'transparent' : shadow,
             elevation: kind === 'ghost' ? 0 : 3,
           },
+          outlined && { borderWidth: 1, borderColor: btn.outline },
         ]}
       >
         {icon && <Ionicons name={icon} size={size === 'lg' ? 26 : 22} color={iconColor ?? (primary ? ink : btn.icon)} />}

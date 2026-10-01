@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,13 +7,13 @@ import { dateKey, WEEKDAY_NAMES } from '@ctd/core';
 import { Screen } from '../ui/Screen';
 import { Logo } from '../ui/Logo';
 import { GlassButton } from '../ui/GlassButton';
+import { useLayout } from '../ui/layout';
 import { fonts, tokens } from '../theme/tokens';
 import { makeStyles, useTheme } from '../theme/useTheme';
 import { withAlpha } from '../board/color';
 import { globalNumber, maxStars } from '../data/levels';
 import { nextToPlay, totalStars, useProgress } from '../store/progress';
 import { useSettings } from '../store/settings';
-import { useUi } from '../store/ui';
 import { audio } from '../services/audio';
 
 const DAILY_DIFFICULTY = ['Expert', 'Easy', 'Easy+', 'Medium', 'Medium+', 'Hard', 'Hard+'];
@@ -44,13 +44,13 @@ function Rise({ delay, children }: { delay: number; children: React.ReactNode })
 
 export default function Home() {
   const theme = useTheme();
-  const dailyTheme = useTheme('daily');
   const styles = useStyles();
   const levels = useProgress((s) => s.levels);
   const hints = useProgress((s) => s.hints);
   const unlimitedHints = useSettings((s) => __DEV__ && s.unlimitedHints);
   const daily = useProgress((s) => s.daily);
   const reduceMotion = useSettings((s) => s.reduceMotion);
+  const { tablet } = useLayout();
   const countdown = useCountdown();
   const next = nextToPlay(levels);
   const today = dateKey(new Date());
@@ -60,89 +60,88 @@ export default function Home() {
 
   useFocusEffect(
     React.useCallback(() => {
-      useUi.getState().setPack('dawn');
       audio.playMusic('dawn');
     }, []),
   );
 
   return (
-    <Screen right={<GlassButton icon="settings-sharp" size="sm" onPress={() => router.push('/settings')} accessibilityLabel="Settings" />}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Rise delay={0}>
-          <View style={styles.hero}>
-            <Logo reduceMotion={reduceMotion} />
-            <Text style={styles.title}>Connect the Dots</Text>
-            <Text style={styles.tagline}>Link the colors · fill every cell</Text>
+    <Screen scroll center right={<GlassButton icon="settings-sharp" size="sm" onPress={() => router.push('/settings')} accessibilityLabel="Settings" />}>
+      <Rise delay={0}>
+        <View style={[styles.hero, tablet && styles.heroTablet]}>
+          <Logo reduceMotion={reduceMotion} scale={tablet ? 1.4 : 1} />
+          <Text style={[styles.title, tablet && styles.titleTablet]}>Connect the Dots</Text>
+          <Text style={[styles.tagline, tablet && styles.taglineTablet]}>Link the colors · fill every cell</Text>
+        </View>
+      </Rise>
+
+      <Rise delay={120}>
+        <View style={styles.statsRow}>
+          <View style={styles.chip}>
+            <Ionicons name="star" size={16} color={theme.icon.star} />
+            <Text style={styles.chipText}>
+              {stars}
+              <Text style={styles.chipDim}> / {maxStars()}</Text>
+            </Text>
           </View>
-        </Rise>
-
-        <Rise delay={120}>
-          <View style={styles.statsRow}>
-            <View style={styles.chip}>
-              <Ionicons name="star" size={16} color={theme.icon.star} />
-              <Text style={styles.chipText}>
-                {stars}
-                <Text style={styles.chipDim}> / {maxStars()}</Text>
-              </Text>
-            </View>
-            <View style={styles.chip}>
-              <Ionicons name="bulb" size={16} color={theme.icon.hint} />
-              <Text style={styles.chipText}>{unlimitedHints ? '∞' : hints}</Text>
-            </View>
-            <View style={styles.chip}>
-              <Ionicons name="flame" size={16} color={theme.icon.streak} />
-              <Text style={styles.chipText}>{daily.streak}</Text>
-            </View>
+          <View style={styles.chip}>
+            <Ionicons name="bulb" size={16} color={theme.icon.hint} />
+            <Text style={styles.chipText}>{unlimitedHints ? '∞' : hints}</Text>
           </View>
-        </Rise>
+          <View style={styles.chip}>
+            <Ionicons name="flame" size={16} color={theme.icon.streak} />
+            <Text style={styles.chipText}>{daily.streak}</Text>
+          </View>
+        </View>
+      </Rise>
 
-        <Rise delay={220}>
-          <GlassButton
-            label="Play"
-            sublabel={`Level ${globalNumber(next)}`}
-            icon="play"
-            variant="primary"
-            size="lg"
-            onPress={() => router.push(`/play/${next}`)}
-            style={styles.play}
-          />
-        </Rise>
+      <Rise delay={220}>
+        <GlassButton
+          label="Play"
+          sublabel={`Level ${globalNumber(next)}`}
+          icon="play"
+          variant="primary"
+          size="lg"
+          onPress={() => router.push(`/play/${next}`)}
+          style={styles.play}
+        />
+      </Rise>
 
-        <Rise delay={320}>
-          <Pressable
-            onPress={() => router.push('/daily')}
-            style={({ pressed }) => [styles.dailyCard, { borderColor: withAlpha(dailyTheme.accent.color, 0.45) }, pressed && { transform: [{ scale: 0.98 }] }]}
-          >
-            <View style={[styles.dailyIcon, { backgroundColor: withAlpha(dailyTheme.accent.color, 0.18) }]}>
-              <Ionicons name={dailyDone ? 'checkmark-circle' : 'calendar'} size={28} color={dailyTheme.icon.hint} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.dailyTitle}>Daily Puzzle</Text>
-              <Text style={styles.dailySub}>
-                {WEEKDAY_NAMES[weekday]} · {DAILY_DIFFICULTY[weekday]}
-                {dailyDone ? ' · solved' : ''}
-              </Text>
-            </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.dailyTimerLabel}>next in</Text>
-              <Text style={styles.dailyTimer}>{countdown}</Text>
-            </View>
-          </Pressable>
-        </Rise>
+      <Rise delay={320}>
+        <Pressable
+          onPress={() => router.push('/daily')}
+          style={({ pressed }) => [styles.dailyCard, { borderColor: withAlpha(theme.text.primary, 0.25) }, pressed && { transform: [{ scale: 0.98 }] }]}
+        >
+          <View style={[styles.dailyIcon, { backgroundColor: withAlpha(theme.icon.streak, 0.18) }]}>
+            <Ionicons name={dailyDone ? 'checkmark-circle' : 'calendar'} size={28} color={theme.icon.streak} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.dailyTitle}>Daily Puzzle</Text>
+            <Text style={styles.dailySub}>
+              {WEEKDAY_NAMES[weekday]} · {DAILY_DIFFICULTY[weekday]}
+              {dailyDone ? ' · solved' : ''}
+            </Text>
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={styles.dailyTimerLabel}>next in</Text>
+            <Text style={styles.dailyTimer}>{countdown}</Text>
+          </View>
+        </Pressable>
+      </Rise>
 
-        <Rise delay={420}>
-          <GlassButton label="Level Packs" icon="albums" onPress={() => router.push('/packs')} style={{ marginTop: 14 }} />
-        </Rise>
-      </ScrollView>
+      <Rise delay={420}>
+        <GlassButton label="Level Packs" icon="albums" size="lg" outlined onPress={() => router.push('/packs')} style={{ marginTop: 14 }} />
+      </Rise>
     </Screen>
   );
 }
 
 const useStyles = makeStyles((t) => ({
-  scroll: { alignItems: 'stretch', paddingBottom: 24, width: '100%', maxWidth: 460, alignSelf: 'center' },
-  hero: { alignItems: 'center', marginTop: 8, marginBottom: 18 },
+  hero: { alignItems: 'center', marginBottom: 18 },
+  heroTablet: { marginBottom: 28 },
   title: { fontFamily: fonts.titleBold, fontSize: 40, color: t.text.primary, marginTop: 16, letterSpacing: 0.5, textAlign: 'center' },
+  titleTablet: { fontSize: 54, marginTop: 22 },
   tagline: { fontFamily: fonts.body, fontSize: 15, color: t.text.secondary, marginTop: 4 },
+  taglineTablet: { fontSize: 18 },
   statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 22 },
   chip: {
     flexDirection: 'row',

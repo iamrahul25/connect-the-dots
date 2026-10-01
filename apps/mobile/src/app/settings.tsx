@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
-import { Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { Platform, Pressable, Switch, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Canvas, Path } from '@shopify/react-native-skia';
 import { Screen } from '../ui/Screen';
 import { GlassButton } from '../ui/GlassButton';
+import { useLayout } from '../ui/layout';
 import { fonts } from '../theme/tokens';
 import { withAlpha } from '../board/color';
+import { symbolPath } from '../board/symbols';
 import { resolveTheme, THEME_IDS, themeName, type ThemeId } from '../theme/config';
 import { makeStyles, usePalette, useTheme } from '../theme/useTheme';
 import { useSettings, type SettingsState } from '../store/settings';
 import { useProgress } from '../store/progress';
 import { haptics } from '../services/haptics';
+
+const SWATCH = 30;
 
 type Key = Exclude<keyof SettingsState, 'set' | 'theme'>;
 
@@ -63,7 +68,7 @@ function ToggleRow({ row, divider }: { row: Row; divider: boolean }) {
   );
 }
 
-function ThemeCard({ id, selected, onPress }: { id: ThemeId; selected: boolean; onPress: () => void }) {
+function ThemeCard({ id, selected, compact, onPress }: { id: ThemeId; selected: boolean; compact: boolean; onPress: () => void }) {
   const current = useTheme();
   const styles = useStyles();
   const preview = resolveTheme(id);
@@ -75,6 +80,7 @@ function ThemeCard({ id, selected, onPress }: { id: ThemeId; selected: boolean; 
       accessibilityLabel={`${themeName(id)} theme`}
       style={({ pressed }) => [
         styles.themeCard,
+        compact && styles.themeCardRow,
         { backgroundColor: preview.background.color, borderColor: selected ? current.accent.color : preview.box.border },
         selected && styles.themeCardSelected,
         pressed && { transform: [{ scale: 0.96 }] },
@@ -102,82 +108,88 @@ export default function Settings() {
   const themeId = useSettings((s) => s.theme);
   const set = useSettings((s) => s.set);
   const palette = usePalette();
+  const colorblind = useSettings((s) => s.colorblind);
   const [confirm, setConfirm] = useState(false);
+  const { tablet } = useLayout();
 
   return (
-    <Screen title="Settings" back>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={[styles.section, { marginTop: 0 }]}>Theme</Text>
-        <View style={styles.themes}>
-          {THEME_IDS.map((id) => (
-            <ThemeCard
-              key={id}
-              id={id}
-              selected={id === themeId}
-              onPress={() => {
-                set({ theme: id });
-                haptics.selection();
-              }}
-            />
-          ))}
-        </View>
+    <Screen title="Settings" back scroll>
+      <Text style={[styles.section, { marginTop: 0 }]}>Theme</Text>
+      <View style={styles.themes}>
+        {THEME_IDS.map((id) => (
+          <ThemeCard
+            key={id}
+            id={id}
+            selected={id === themeId}
+            compact={tablet}
+            onPress={() => {
+              set({ theme: id });
+              haptics.selection();
+            }}
+          />
+        ))}
+      </View>
 
-        <Text style={styles.section}>Preferences</Text>
-        <View style={styles.group}>
-          {ROWS.filter((r) => !r.native || Platform.OS !== 'web').map((r, i) => (
-            <ToggleRow key={r.key} row={r} divider={i > 0} />
-          ))}
-        </View>
+      <Text style={styles.section}>Preferences</Text>
+      <View style={styles.group}>
+        {ROWS.filter((r) => !r.native || Platform.OS !== 'web').map((r, i) => (
+          <ToggleRow key={r.key} row={r} divider={i > 0} />
+        ))}
+      </View>
 
-        {__DEV__ && (
-          <>
-            <Text style={styles.section}>Developer</Text>
-            <View style={styles.group}>
-              {DEV_ROWS.map((r, i) => (
-                <ToggleRow key={r.key} row={r} divider={i > 0} />
-              ))}
+      {__DEV__ && (
+        <>
+          <Text style={styles.section}>Developer</Text>
+          <View style={styles.group}>
+            {DEV_ROWS.map((r, i) => (
+              <ToggleRow key={r.key} row={r} divider={i > 0} />
+            ))}
+          </View>
+        </>
+      )}
+
+      <Text style={styles.section}>Palette preview</Text>
+      <View style={[styles.group, styles.palette]}>
+        {palette.map((d, i) => (
+          <View key={d.slot} style={[styles.swatch, { backgroundColor: d.dot }]}>
+            {colorblind && (
+              <Canvas style={styles.swatch}>
+                <Path path={symbolPath(i, SWATCH / 2, SWATCH / 2, (SWATCH / 2) * 0.45)} color={theme.board.colorblindSymbol} />
+              </Canvas>
+            )}
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.buttons}>
+        <GlassButton label="Credits" icon="heart" onPress={() => router.push('/credits')} />
+        {confirm ? (
+          <View style={styles.confirm}>
+            <Text style={styles.sub}>Erase all stars, hints and streaks?</Text>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+              <GlassButton label="Cancel" size="sm" onPress={() => setConfirm(false)} />
+              <GlassButton
+                label="Reset"
+                size="sm"
+                variant="primary"
+                accent={theme.status.danger}
+                onPress={() => {
+                  useProgress.getState().reset();
+                  haptics.warning();
+                  setConfirm(false);
+                }}
+              />
             </View>
-          </>
+          </View>
+        ) : (
+          <GlassButton label="Reset progress" icon="trash" variant="ghost" onPress={() => setConfirm(true)} />
         )}
-
-        <Text style={styles.section}>Palette preview</Text>
-        <View style={[styles.group, styles.palette]}>
-          {palette.map((d) => (
-            <View key={d.slot} style={[styles.swatch, { backgroundColor: d.dot }]} />
-          ))}
-        </View>
-
-        <View style={styles.buttons}>
-          <GlassButton label="Credits" icon="heart" onPress={() => router.push('/credits')} />
-          {confirm ? (
-            <View style={styles.confirm}>
-              <Text style={styles.sub}>Erase all stars, hints and streaks?</Text>
-              <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
-                <GlassButton label="Cancel" size="sm" onPress={() => setConfirm(false)} />
-                <GlassButton
-                  label="Reset"
-                  size="sm"
-                  variant="primary"
-                  accent={theme.status.danger}
-                  onPress={() => {
-                    useProgress.getState().reset();
-                    haptics.warning();
-                    setConfirm(false);
-                  }}
-                />
-              </View>
-            </View>
-          ) : (
-            <GlassButton label="Reset progress" icon="trash" variant="ghost" onPress={() => setConfirm(true)} />
-          )}
-        </View>
-      </ScrollView>
+      </View>
     </Screen>
   );
 }
 
 const useStyles = makeStyles((t) => ({
-  scroll: { width: '100%', maxWidth: 520, alignSelf: 'center', paddingBottom: 24 },
   themes: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   themeCard: {
     flexGrow: 1,
@@ -191,6 +203,7 @@ const useStyles = makeStyles((t) => ({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 3 },
   },
+  themeCardRow: { flexBasis: '22%' },
   themeCardSelected: { borderWidth: 2.5 },
   themeDots: { flexDirection: 'row', gap: 6 },
   themeDot: { width: 18, height: 18, borderRadius: 9 },
@@ -205,7 +218,7 @@ const useStyles = makeStyles((t) => ({
   sub: { fontFamily: fonts.body, fontSize: 13, color: t.text.secondary },
   section: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2, color: t.text.muted, marginTop: 22, marginBottom: 8, textTransform: 'uppercase' },
   palette: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, padding: 16, justifyContent: 'center' },
-  swatch: { width: 30, height: 30, borderRadius: 15 },
+  swatch: { width: SWATCH, height: SWATCH, borderRadius: SWATCH / 2 },
   buttons: { marginTop: 24, gap: 12, alignItems: 'center' },
   confirm: { alignItems: 'center', padding: 14, borderRadius: 18, backgroundColor: withAlpha(t.status.danger, 0.1) },
 }));

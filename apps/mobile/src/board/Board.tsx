@@ -16,7 +16,7 @@ import {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useDerivedValue, useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
 import { isWarpStep, stepDirection, type Game } from '@ctd/core';
-import { cellCenter, type BoardGeom } from './geometry';
+import { BORDER_INSET, cellCenter, cellGapPx, type BoardGeom } from './geometry';
 import { drawEffects, type Effect } from './effects';
 import { symbolPath } from './symbols';
 import { recordPicture } from '../ui/skiaMemory';
@@ -49,8 +49,9 @@ export function Board(props: Props) {
   const { size, cell } = geom;
   const pathW = cell * tokens.pathWidthRatio;
   const dotR = (cell * tokens.dotRatio) / 2;
-  const gap = Math.max(1.5, cell * 0.035);
-  const radius = cell * 0.22;
+  const gap = cellGapPx(cell, B.cellGap);
+  const radius = cell * B.cellRadius;
+  const frameOffset = BORDER_INSET + B.borderWidth / 2;
   const styleOf = (pair: number): DotStyle => palette[game.puzzle.dots[pair].color % palette.length];
 
   // ---- Static layers (depend only on geometry) -----------------------------
@@ -270,6 +271,18 @@ export function Board(props: Props) {
         <Canvas style={{ width: size, height: size }}>
           <Group transform={boardTransform} opacity={boardOpacity}>
             {B.background !== 'transparent' && <RoundedRect x={0} y={0} width={size} height={size} r={tokens.radius.lg} color={B.background} />}
+            {B.borderWidth > 0 && (
+              <RoundedRect
+                x={geom.ox + gap - frameOffset}
+                y={geom.oy + gap - frameOffset}
+                width={geom.W * cell - gap * 2 + frameOffset * 2}
+                height={geom.H * cell - gap * 2 + frameOffset * 2}
+                r={radius}
+                style="stroke"
+                strokeWidth={B.borderWidth}
+                color={B.border}
+              />
+            )}
 
             <Picture picture={cellsPicture} />
 

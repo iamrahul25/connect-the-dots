@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { dateKey, WEEKDAY_NAMES } from '@ctd/core';
@@ -11,14 +11,13 @@ import { musicFor } from '../theme/packs';
 import { makeStyles, useTheme } from '../theme/useTheme';
 import { withAlpha } from '../board/color';
 import { useProgress } from '../store/progress';
-import { useUi } from '../store/ui';
 import { audio } from '../services/audio';
 
 const DOW = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const DIFFICULTY = ['10×10 · Expert', '6×6 · Easy', '7×7 · Easy+', '7×7 · Medium', '8×8 · Medium+', '8×8 · Hard', '9×9 · Hard+'];
 
 export default function Daily() {
-  const theme = useTheme('daily');
+  const theme = useTheme();
   const styles = useStyles();
   const daily = useProgress((s) => s.daily);
   const today = new Date();
@@ -28,7 +27,6 @@ export default function Daily() {
 
   useFocusEffect(
     React.useCallback(() => {
-      useUi.getState().setPack('daily');
       audio.playMusic(musicFor('daily'));
     }, []),
   );
@@ -47,70 +45,68 @@ export default function Daily() {
   const cal = theme.calendar;
 
   return (
-    <Screen title="Daily Puzzle" subtitle="A fresh puzzle every day" back>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.streakRow}>
-          <Stat icon="flame" color={theme.icon.streak} value={daily.streak} label="Streak" />
-          <Stat icon="trophy" color={theme.icon.hint} value={daily.bestStreak} label="Best" />
-          <Stat icon="checkmark-done" color={theme.icon.success} value={Object.keys(daily.completed).length} label="Solved" />
-        </View>
+    <Screen title="Daily Puzzle" subtitle="A fresh puzzle every day" back scroll center>
+      <View style={styles.streakRow}>
+        <Stat icon="flame" color={theme.icon.streak} value={daily.streak} label="Streak" />
+        <Stat icon="trophy" color={theme.icon.hint} value={daily.bestStreak} label="Best" />
+        <Stat icon="checkmark-done" color={theme.icon.success} value={Object.keys(daily.completed).length} label="Solved" />
+      </View>
 
-        <View style={[styles.todayCard, { borderColor: withAlpha(theme.accent.color, 0.45) }]}>
-          <Text style={styles.todayLabel}>TODAY · {WEEKDAY_NAMES[today.getDay()].toUpperCase()}</Text>
-          <Text style={styles.todayDiff}>{DIFFICULTY[today.getDay()]}</Text>
-          {todayDone && <Stars count={daily.completed[todayKey].stars} size={20} />}
-          <GlassButton
-            label={todayDone ? 'Play again' : 'Play today'}
-            icon="play"
-            variant="primary"
-            size="lg"
-            onPress={() => router.push(`/play/daily-${todayKey}`)}
-            style={{ marginTop: 16, alignSelf: 'stretch' }}
-          />
-        </View>
+      <View style={[styles.todayCard, { borderColor: withAlpha(theme.accent.color, 0.45) }]}>
+        <Text style={styles.todayLabel}>TODAY · {WEEKDAY_NAMES[today.getDay()].toUpperCase()}</Text>
+        <Text style={styles.todayDiff}>{DIFFICULTY[today.getDay()]}</Text>
+        {todayDone && <Stars count={daily.completed[todayKey].stars} size={20} />}
+        <GlassButton
+          label={todayDone ? 'Play again' : 'Play today'}
+          icon="play"
+          variant="primary"
+          size="lg"
+          onPress={() => router.push(`/play/daily-${todayKey}`)}
+          style={{ marginTop: 16, alignSelf: 'stretch' }}
+        />
+      </View>
 
-        <View style={styles.calendar}>
-          <View style={styles.monthRow}>
-            <GlassButton icon="chevron-back" size="sm" variant="ghost" onPress={() => shift(-1)} accessibilityLabel="Previous month" />
-            <Text style={styles.month}>{month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</Text>
-            <GlassButton icon="chevron-forward" size="sm" variant="ghost" onPress={() => shift(1)} disabled={!canNext} accessibilityLabel="Next month" />
-          </View>
-          <View style={styles.week}>
-            {DOW.map((d, i) => (
-              <Text key={i} style={styles.dow}>
-                {d}
-              </Text>
-            ))}
-          </View>
-          <View style={styles.days}>
-            {cells.map((d, i) => {
-              if (!d) return <View key={`e${i}`} style={styles.day} />;
-              const key = dateKey(d);
-              const done = daily.completed[key];
-              const future = d.getTime() > today.getTime();
-              const isToday = key === todayKey;
-              return (
-                <View key={key} style={styles.day}>
-                  <Pressable
-                    disabled={future}
-                    onPress={() => router.push(`/play/daily-${key}`)}
-                    accessibilityLabel={`${key}${done ? ', solved' : ''}`}
-                    style={({ pressed }) => [
-                      styles.dayInner,
-                      done && { backgroundColor: cal.solved },
-                      isToday && { borderColor: cal.today, borderWidth: 2 },
-                      pressed && { transform: [{ scale: 0.92 }] },
-                    ]}
-                  >
-                    <Text style={[styles.dayText, done && { color: cal.solvedText }, future && { color: cal.future }]}>{d.getDate()}</Text>
-                    {done && <Ionicons name="checkmark" size={10} color={cal.solvedText} style={styles.check} />}
-                  </Pressable>
-                </View>
-              );
-            })}
-          </View>
+      <View style={styles.calendar}>
+        <View style={styles.monthRow}>
+          <GlassButton icon="chevron-back" size="sm" variant="ghost" onPress={() => shift(-1)} accessibilityLabel="Previous month" />
+          <Text style={styles.month}>{month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</Text>
+          <GlassButton icon="chevron-forward" size="sm" variant="ghost" onPress={() => shift(1)} disabled={!canNext} accessibilityLabel="Next month" />
         </View>
-      </ScrollView>
+        <View style={styles.week}>
+          {DOW.map((d, i) => (
+            <Text key={i} style={styles.dow}>
+              {d}
+            </Text>
+          ))}
+        </View>
+        <View style={styles.days}>
+          {cells.map((d, i) => {
+            if (!d) return <View key={`e${i}`} style={styles.day} />;
+            const key = dateKey(d);
+            const done = daily.completed[key];
+            const future = d.getTime() > today.getTime();
+            const isToday = key === todayKey;
+            return (
+              <View key={key} style={styles.day}>
+                <Pressable
+                  disabled={future}
+                  onPress={() => router.push(`/play/daily-${key}`)}
+                  accessibilityLabel={`${key}${done ? ', solved' : ''}`}
+                  style={({ pressed }) => [
+                    styles.dayInner,
+                    done && { backgroundColor: cal.solved },
+                    isToday && { borderColor: cal.today, borderWidth: 2 },
+                    pressed && { transform: [{ scale: 0.92 }] },
+                  ]}
+                >
+                  <Text style={[styles.dayText, done && { color: cal.solvedText }, future && { color: cal.future }]}>{d.getDate()}</Text>
+                  {done && <Ionicons name="checkmark" size={10} color={cal.solvedText} style={styles.check} />}
+                </Pressable>
+              </View>
+            );
+          })}
+        </View>
+      </View>
     </Screen>
   );
 }
@@ -127,7 +123,6 @@ function Stat({ icon, color, value, label }: { icon: keyof typeof Ionicons.glyph
 }
 
 const useStyles = makeStyles((t) => ({
-  scroll: { width: '100%', maxWidth: 460, alignSelf: 'center', paddingBottom: 24 },
   streakRow: { flexDirection: 'row', gap: 10 },
   stat: {
     flex: 1,

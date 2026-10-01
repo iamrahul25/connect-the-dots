@@ -1,51 +1,54 @@
 import React from 'react';
-import { Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Screen } from '../ui/Screen';
+import { useLayout } from '../ui/layout';
 import { Stars } from '../ui/Stars';
 import { fonts } from '../theme/tokens';
 import { PACK_ICONS } from '../theme/packs';
-import { resolveTheme } from '../theme/config';
+import { packCardAccent } from '../theme/config';
 import { makeStyles, useTheme } from '../theme/useTheme';
 import { withAlpha } from '../board/color';
 import { manifest, maxStars, PACK_STAR_REQUIREMENTS } from '../data/levels';
 import { isPackUnlocked, packSolved, packStars, totalStars, useProgress } from '../store/progress';
 import { useSettings } from '../store/settings';
-import { useUi } from '../store/ui';
 import { audio } from '../services/audio';
 
 const SIZES: Record<number, string> = { 1: '5×5 – 6×6', 2: '7×7 – 8×8 · walls', 3: '8×8 – 9×9 · bridges', 4: '9×9 – 10×10 · warps', 5: '11×11 – 12×12 · everything' };
 
 export default function Packs() {
   const levels = useProgress((s) => s.levels);
-  const themeId = useSettings((s) => s.theme);
   useSettings((s) => s.unlockAll);
   const theme = useTheme();
   const styles = useStyles();
-  const { width } = useWindowDimensions();
-  const cardW = Math.min(340, width - 72);
+  const layout = useLayout();
+  const insets = useSafeAreaInsets();
+  const stripW = layout.width - insets.left - insets.right;
+  const cardW = layout.tablet ? 400 : Math.min(320, stripW - 72);
+  const room = layout.height - insets.top - insets.bottom - layout.landscapeClearance - 150;
+  const cardH = Math.max(340, Math.min(room, layout.tablet ? 540 : 440));
   const stars = totalStars(levels);
 
   useFocusEffect(
     React.useCallback(() => {
-      useUi.getState().setPack('dawn');
       audio.playMusic('dawn');
     }, []),
   );
 
   return (
-    <Screen title="Level Packs" subtitle={`${stars} ★ collected`} back>
+    <Screen title="Level Packs" subtitle={`${stars} ★ collected`} back center width="full">
       <ScrollView
         horizontal
         snapToInterval={cardW + 16}
         decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: (width - cardW) / 2 - 16, gap: 16, alignItems: 'center' }}
-        style={{ flexGrow: 0 }}
+        contentContainerStyle={{ paddingHorizontal: (stripW - cardW) / 2, gap: 16, alignItems: 'center' }}
+        style={{ flexGrow: 0, marginHorizontal: -layout.gutter }}
       >
         {manifest.packs.map((p) => {
-          const accent = resolveTheme(themeId, p.theme).accent.color;
+          const accent = packCardAccent(theme, p.theme);
           const unlocked = isPackUnlocked(levels, p.id);
           const solved = packSolved(levels, p.id);
           const pStars = packStars(levels, p.id);
@@ -54,14 +57,13 @@ export default function Packs() {
               key={p.id}
               disabled={!unlocked}
               onPress={() => router.push(`/pack/${p.id}`)}
-              onHoverIn={() => unlocked && useUi.getState().setPack(p.theme)}
               style={({ pressed }) => [{ width: cardW, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
             >
-              <View style={[styles.card, { borderColor: withAlpha(accent, 0.45) }]}>
+              <View style={[styles.card, { height: cardH, borderColor: withAlpha(accent, 0.45) }]}>
                 <View style={[styles.glow, { backgroundColor: accent }]} />
                 <Text style={styles.packNo}>PACK {p.id}</Text>
-                <Ionicons name={PACK_ICONS[p.theme] as keyof typeof Ionicons.glyphMap} size={64} color={accent} style={{ marginVertical: 18 }} />
-                <Text style={styles.packName}>{p.name}</Text>
+                <Ionicons name={PACK_ICONS[p.theme] as keyof typeof Ionicons.glyphMap} size={layout.tablet ? 84 : 64} color={accent} style={{ marginVertical: 18 }} />
+                <Text style={[styles.packName, layout.tablet && styles.packNameTablet]}>{p.name}</Text>
                 <Text style={styles.packSizes}>{SIZES[p.id]}</Text>
                 {unlocked ? (
                   <>
@@ -101,7 +103,6 @@ export default function Packs() {
 
 const useStyles = makeStyles((t) => ({
   card: {
-    height: 440,
     borderRadius: 30,
     padding: 24,
     alignItems: 'center',
@@ -113,6 +114,7 @@ const useStyles = makeStyles((t) => ({
   glow: { position: 'absolute', width: 220, height: 220, borderRadius: 110, opacity: 0.12, top: 40 },
   packNo: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 3, color: t.text.secondary },
   packName: { fontFamily: fonts.titleBold, fontSize: 36, color: t.text.primary },
+  packNameTablet: { fontSize: 44 },
   packSizes: { fontFamily: fonts.body, fontSize: 14, color: t.text.secondary, marginTop: 4 },
   progressTrack: { alignSelf: 'stretch', height: 8, borderRadius: 4, backgroundColor: t.progress.track, marginTop: 28, overflow: 'hidden' },
   progressFill: { height: 8, borderRadius: 4 },

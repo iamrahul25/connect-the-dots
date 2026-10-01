@@ -243,7 +243,7 @@ const useStyles = makeStyles((t) => ({
     position: 'absolute',
     width: C - 3,
     height: C - 3,
-    borderRadius: C * 0.22,
+    borderRadius: C * t.board.cellRadius,
     backgroundColor: t.board.cellEmpty,
   },
   wall: { backgroundColor: t.board.cellWall },

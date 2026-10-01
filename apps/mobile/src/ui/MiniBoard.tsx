@@ -58,7 +58,7 @@ export const MiniBoard = memo(function MiniBoard({
             <View
               style={{
                 flex: 1,
-                borderRadius: cell * 0.25,
+                borderRadius: cell * board.cellRadius,
                 backgroundColor: dot[i] ?? (k === WALL ? board.cellWall : board.cellEmpty),
                 borderWidth: k === BRIDGE ? Math.max(0.75, cell * 0.1) : 0,
                 borderColor: board.bridgeBorder,

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import { useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Game, sameCell, type Cell, type GameEvent, type Level } from '@ctd/core';
@@ -11,15 +11,14 @@ import type { Effect, EffectInput } from '../board/effects';
 import { GlassButton } from '../ui/GlassButton';
 import { useToast } from '../ui/Toast';
 import { LANDSCAPE_H } from '../ui/Background';
+import { useLayout } from '../ui/layout';
 import { ResultModal, type ResultInfo } from './ResultModal';
 import { ObstacleInfo, obstaclesIn } from './ObstacleInfo';
 import { fonts, tokens } from '../theme/tokens';
 import { musicFor } from '../theme/packs';
 import { makeStyles, usePalette, useTheme } from '../theme/useTheme';
-import { withAlpha } from '../board/color';
 import { useSettings } from '../store/settings';
 import { starsFor, useProgress } from '../store/progress';
-import { useUi } from '../store/ui';
 import { audio } from '../services/audio';
 import { haptics } from '../services/haptics';
 
@@ -28,7 +27,8 @@ export interface GameScreenProps {
   mode: 'pack' | 'daily';
   title: string;
   subtitle?: string;
-  themeId: string;
+  /** Pack music key (`dawn`, `lagoon`, ..., `daily`). */
+  pack: string;
   nextLabel: string;
   onNext: () => void;
   onLevels: () => void;
@@ -44,15 +44,15 @@ const WARP_MARGIN = 0.35;
 
 const sameCellPair = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
 
-export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, onNext, onLevels, dailyKey }: GameScreenProps) {
-  const theme = useTheme(themeId);
+export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNext, onLevels, dailyKey }: GameScreenProps) {
+  const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
-  const { width, height } = useWindowDimensions();
+  const { width, height, gutter } = useLayout();
   const { colorblind, reduceMotion, idleHints } = useSettings();
   const hints = useProgress((s) => s.hints);
   const unlimitedHints = useSettings((s) => __DEV__ && s.unlimitedHints);
-  const palette = usePalette(themeId);
+  const palette = usePalette();
   const toast = useToast();
 
   const game = useMemo(() => {
@@ -69,19 +69,22 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
   const wonRef = useRef(false);
 
   const boardSize = Math.floor(
-    Math.max(240, Math.min(width - 24, height - insets.top - insets.bottom - 230 - CONTROLS_LIFT, tokens.maxBoardWidth)),
+    Math.max(240, Math.min(width - insets.left - insets.right - gutter * 2, height - insets.top - insets.bottom - 230 - CONTROLS_LIFT, tokens.maxBoardWidth)),
   );
-  const geom = useMemo(() => makeGeom(level.size.width, level.size.height, boardSize), [level, boardSize]);
+  const { borderWidth, cellGap } = theme.board;
+  const geom = useMemo(
+    () => makeGeom(level.size.width, level.size.height, boardSize, level.warps.length ? undefined : { borderWidth, cellGap }),
+    [level, boardSize, borderWidth, cellGap],
+  );
 
   const fx = useSharedValue<Effect[]>([]);
   const intro = useSharedValue(0);
   const shake = useSharedValue(0);
 
   useEffect(() => {
-    useUi.getState().setPack(themeId);
-    audio.playMusic(musicFor(themeId));
+    audio.playMusic(musicFor(pack));
     useProgress.getState().setLastPlayed(level.id);
-  }, [themeId, level.id]);
+  }, [pack, level.id]);
 
   useEffect(() => {
     wonRef.current = false;
@@ -435,18 +438,19 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
   const view = game.view();
   const connected = game.connectedCount(view);
   const fill = game.fillRatio(view);
-  const best = mode === 'daily' && dailyKey
-    ? useProgress.getState().daily.completed[dailyKey]?.moves
-    : useProgress.getState().levels[level.id]?.bestMoves;
-
-  const fillAnim = useSharedValue(fill);
-  useEffect(() => {
-    fillAnim.value = withTiming(fill, { duration: 220 });
-  }, [fill, fillAnim]);
-  const fillStyle = useAnimatedStyle(() => ({ width: `${Math.round(fillAnim.value * 100)}%` }));
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 12 + CONTROLS_LIFT }]}>
+    <View
+      style={[
+        styles.root,
+        {
+          paddingTop: insets.top + 8,
+          paddingBottom: insets.bottom + 12 + CONTROLS_LIFT,
+          paddingLeft: insets.left + gutter,
+          paddingRight: insets.right + gutter,
+        },
+      ]}
+    >
       <View style={styles.header}>
         <GlassButton icon="chevron-back" size="sm" onPress={onLevels} accessibilityLabel="Back to levels" />
         <View style={styles.titleWrap}>
@@ -462,20 +466,9 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
 
       <View style={styles.boardWrap}>
         <View style={styles.hud}>
-          <Hud icon="swap-horizontal" iconColor={theme.icon.moves} label="Moves" value={`${game.moves}`} sub={best !== undefined ? `best ${best}` : `perfect ${level.stars.perfectMoves}`} />
-          <View style={styles.hudDivider} />
+          <Hud icon="swap-horizontal" iconColor={theme.icon.moves} label="Moves" value={`${game.moves}`} />
           <Hud icon="git-network" iconColor={theme.icon.flows} label="Flows" value={`${connected}/${game.pairCount}`} />
-          <View style={styles.hudDivider} />
-          <View style={[styles.hudItem, { flex: 1.3 }]}>
-            <HudIcon icon="water" color={theme.icon.fill} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.hudLabel}>Fill</Text>
-              <Text style={styles.hudValueSm}>{Math.round(fill * 100)}%</Text>
-              <View style={styles.meter}>
-                <Animated.View style={[styles.meterFill, fillStyle]} />
-              </View>
-            </View>
-          </View>
+          <Hud icon="water" iconColor={theme.icon.fill} label="Fill" value={`${Math.round(fill * 100)}%`} />
         </View>
 
         <Board
@@ -529,15 +522,10 @@ export function GameScreen({ level, mode, title, subtitle, themeId, nextLabel, o
 type IconName = keyof typeof Ionicons.glyphMap;
 
 function HudIcon({ icon, color }: { icon: IconName; color: string }) {
-  const styles = useStyles();
-  return (
-    <View style={[styles.hudIcon, { backgroundColor: withAlpha(color, 0.15) }]}>
-      <Ionicons name={icon} size={16} color={color} />
-    </View>
-  );
+  return <Ionicons name={icon} size={28} color={color} />;
 }
 
-function Hud({ icon, iconColor, label, value, sub }: { icon: IconName; iconColor: string; label: string; value: string; sub?: string }) {
+function Hud({ icon, iconColor, label, value }: { icon: IconName; iconColor: string; label: string; value: string }) {
   const styles = useStyles();
   return (
     <View style={styles.hudItem}>
@@ -545,12 +533,6 @@ function Hud({ icon, iconColor, label, value, sub }: { icon: IconName; iconColor
       <View style={{ flexShrink: 1 }}>
         <Text style={styles.hudLabel}>{label}</Text>
         <Text style={styles.hudValue}>{value}</Text>
-        {sub ? (
-          <Text style={styles.hudSub} numberOfLines={1}>
-            <Text style={styles.hudStar}>★ </Text>
-            {sub}
-          </Text>
-        ) : null}
       </View>
     </View>
   );
@@ -562,40 +544,25 @@ export function goBackOr(path: string) {
 }
 
 const useStyles = makeStyles((t) => ({
-  root: { flex: 1, paddingHorizontal: 12, alignItems: 'center' },
-  header: { flexDirection: 'row', alignItems: 'center', width: '100%', maxWidth: tokens.maxBoardWidth, height: 60 },
+  root: { flex: 1, alignItems: 'center' },
+  header: { flexDirection: 'row', alignItems: 'center', width: '100%', height: 60 },
   titleWrap: { flex: 1, alignItems: 'center' },
   title: { fontFamily: fonts.titleBold, fontSize: 24, color: t.text.primary, letterSpacing: 0.3 },
   titlePill: { marginTop: 2, paddingHorizontal: 12, paddingVertical: 1, borderRadius: tokens.radius.pill, backgroundColor: t.box.pill },
   subtitle: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, color: t.box.pillText },
-  hud: {
+  hud: { flexDirection: 'row', justifyContent: 'center', gap: 10, width: '100%', maxWidth: tokens.maxBoardWidth, marginBottom: 16 },
+  hudItem: {
+    minWidth: 110,
     flexDirection: 'row',
-    gap: 10,
-    width: '100%',
-    maxWidth: tokens.maxBoardWidth,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 16,
-    borderRadius: 18,
-    backgroundColor: t.box.background,
-    borderWidth: 1,
-    borderColor: t.box.border,
-    shadowColor: t.box.shadow,
-    shadowOpacity: 1,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 4 },
     alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 20,
+    backgroundColor: t.box.hud,
   },
-  hudItem: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  hudIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  hudDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: t.box.border },
-  hudLabel: { fontFamily: fonts.body, fontSize: 10, color: t.text.secondary, textTransform: 'uppercase', letterSpacing: 1 },
+  hudLabel: { fontFamily: fonts.body, fontSize: 13, color: t.text.secondary },
   hudValue: { fontFamily: fonts.title, fontSize: 20, lineHeight: 22, color: t.text.primary },
-  hudValueSm: { fontFamily: fonts.title, fontSize: 14, lineHeight: 16, color: t.text.primary },
-  hudSub: { fontFamily: fonts.body, fontSize: 10, color: t.text.secondary },
-  hudStar: { color: t.star.filled },
-  meter: { height: 8, borderRadius: 4, backgroundColor: t.progress.track, overflow: 'hidden', marginTop: 4 },
-  meterFill: { height: '100%', borderRadius: 4, backgroundColor: t.progress.fill },
   boardWrap: { flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' },
   controls: { flexDirection: 'row', gap: 14, justifyContent: 'center', alignItems: 'center' },
 }));

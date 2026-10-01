@@ -48,7 +48,7 @@ function PackPlay({ id }: { id: string }) {
       mode="pack"
       title={`Level ${globalNumber(id)}`}
       subtitle={`${pack.name} · ${level.size.width}×${level.size.height}`}
-      themeId={pack.theme}
+      pack={pack.theme}
       nextLabel={nextLabel}
       onNext={() => {
         if (next && isLevelUnlocked(useProgress.getState().levels, next)) router.replace(`/play/${next}`);
@@ -60,7 +60,7 @@ function PackPlay({ id }: { id: string }) {
 }
 
 function DailyPlay({ dateKey }: { dateKey: string }) {
-  const theme = useTheme('daily');
+  const theme = useTheme();
   const styles = useStyles();
   const [level, setLevel] = useState<Level | null | undefined>(() => dailyFromBank(dateKey));
 
@@ -105,7 +105,7 @@ function DailyPlay({ dateKey }: { dateKey: string }) {
       dailyKey={dateKey}
       title="Daily Puzzle"
       subtitle={`${WEEKDAY_NAMES[d.getDay()]} · ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
-      themeId="daily"
+      pack="daily"
       nextLabel="Calendar"
       onNext={() => router.replace('/daily')}
       onLevels={() => goBackOr('/daily')}

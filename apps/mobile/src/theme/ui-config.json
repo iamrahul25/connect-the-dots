@@ -2,21 +2,30 @@
   "$comment": [
     "Central UI color config. Pick a theme by key; \"defaultTheme\" is used until the player chooses one.",
     "dots[i] / colorblindDots[i] replace palette index i of @ctd/core DEFAULT_PALETTE; \"slot\" names that index. The \"white\" slot is a dark neutral because white is invisible on light themes.",
-    "packs.<packId> is deep-merged over its theme while that pack is open; an empty object means no change.",
+    "Every screen and pack uses the selected theme's colors as-is, except the pack cards on the Packs screen.",
+    "packCards.<packId> is that card's accent (border, glow, icon, progress); a pack without an entry uses the theme accent.",
+    "board.cellRadius / board.cellGap are fractions of one cell's size (0.22 = corners rounded by 22% of the cell; 0 = square, 0.5 = circle). They apply to the game board, logo, level previews and obstacle help.",
     "Landscape layer opacity (sun, far/mid hills) belongs to the illustration, not to these colors."
   ],
   "defaultTheme": "autumn",
+  "packCards": {
+    "lagoon": "#14B8A6",
+    "ember": "#F05A28",
+    "aurora": "#2DBE7A",
+    "cosmos": "#8B5CF6"
+  },
   "themes": {
     "autumn": {
       "name": "Autumn",
       "statusBar": "dark",
-      "background": { "color": "#FDF3E6" },
+      "background": { "color": "#FFEEDD" },
       "landscape": { "sun": "#E8B07E", "hillFar": "#EFA364", "hillMid": "#E88F46", "hillNear": "#DE7A2E", "trunk": "#682F10", "trunkDark": "#5D260B", "leaf": "#B35223", "leafDark": "#9C441E", "leafDeep": "#8B3613" },
       "accent": { "color": "#FFBE00", "onColor": "#4A2800", "shadow": "rgba(255,190,0,0.35)" },
       "text": { "primary": "#382218", "statusBar": "#2A170F", "secondary": "#7B675A", "muted": "#A8968A", "disabled": "#C9BBAF", "onBadge": "#FFFFFF" },
-      "icon": { "default": "#382218", "moves": "#DDA110", "time": "#F15C22", "star": "#FFB800", "streak": "#F15C22", "success": "#00C33A", "danger": "#ED1C24", "info": "#008BFF", "locked": "#A8968A", "hint": "#F5A300", "flows": "#008BFF", "fill": "#F15C22" },
+      "icon": { "default": "#382218", "moves": "#000000", "time": "#F15C22", "star": "#FFB800", "streak": "#F15C22", "success": "#00C33A", "danger": "#ED1C24", "info": "#008BFF", "locked": "#A8968A", "hint": "#F5A300", "flows": "#000000", "fill": "#000000" },
       "box": {
         "background": "#F5E9DC",
+        "hud": "#F6D8BC",
         "border": "rgba(56,34,24,0.06)",
         "shadow": "rgba(180,140,110,0.12)",
         "pill": "#F0DFD0",
@@ -24,37 +33,41 @@
         "surface": "#FFF8EF",
         "overlay": "rgba(56,34,24,0.35)",
         "toast": "#382218",
-        "toastText": "#FDF3E6"
+        "toastText": "#FFEEDD"
       },
-      "button": { "background": "#F5E7DA", "icon": "#382218", "label": "#382218", "shadow": "rgba(140,95,60,0.10)", "badge": "#ED1C24", "badgeText": "#FFFFFF" },
+      "button": { "background": "#EFD9C4", "icon": "#382218", "label": "#382218", "shadow": "rgba(140,95,60,0.10)", "outline": "#555555", "badge": "#ED1C24", "badgeText": "#FFFFFF" },
       "board": {
         "background": "transparent",
-        "cellEmpty": "rgba(225,203,184,0.35)",
+        "border": "#D9BFA8",
+        "borderWidth": 2,
+        "cellEmpty": "#F4E5D6",
         "cellWall": "#D9C3AF",
         "bridgeBox": "#F5E9DC",
         "bridgeBorder": "#E1CBB8",
         "warp": "#00A8C8",
         "pointerRing": "rgba(56,34,24,0.35)",
         "colorblindSymbol": "rgba(42,23,15,0.75)",
-        "lineOpacity": 0.9
+        "lineOpacity": 0.9,
+        "cellRadius": 0.11,
+        "cellGap": 0.035
       },
       "progress": { "track": "#F0DFD0", "fill": "#FFB800" },
       "star": { "filled": "#FFB800", "empty": "#E6D5C5" },
       "calendar": { "day": "#F5E9DC", "dayText": "#382218", "today": "#FFBE00", "solved": "#00C33A", "solvedText": "#FFFFFF", "future": "#C9BBAF" },
       "status": { "success": "#00C33A", "warning": "#F15C22", "danger": "#ED1C24" },
       "dots": [
-        { "slot": "red", "dot": "#F4284D", "line": "#F4284D", "cellFill": "rgba(244,40,77,0.13)" },
-        { "slot": "blue", "dot": "#008BFF", "line": "#008BFF", "cellFill": "rgba(0,139,255,0.13)" },
-        { "slot": "green", "dot": "#00C33A", "line": "#00C33A", "cellFill": "rgba(0,195,58,0.13)" },
-        { "slot": "yellow", "dot": "#FFB800", "line": "#FFB800", "cellFill": "rgba(255,184,0,0.13)" },
-        { "slot": "purple", "dot": "#9B4DE0", "line": "#9B4DE0", "cellFill": "rgba(155,77,224,0.13)" },
-        { "slot": "orange", "dot": "#FF7A1A", "line": "#FF7A1A", "cellFill": "rgba(255,122,26,0.13)" },
-        { "slot": "cyan", "dot": "#00B5C8", "line": "#00B5C8", "cellFill": "rgba(0,181,200,0.13)" },
-        { "slot": "pink", "dot": "#F2559B", "line": "#F2559B", "cellFill": "rgba(242,85,155,0.13)" },
-        { "slot": "lime", "dot": "#8CC63F", "line": "#8CC63F", "cellFill": "rgba(140,198,63,0.13)" },
-        { "slot": "indigo", "dot": "#5B5BD6", "line": "#5B5BD6", "cellFill": "rgba(91,91,214,0.13)" },
-        { "slot": "white", "dot": "#7A5C4A", "line": "#7A5C4A", "cellFill": "rgba(122,92,74,0.13)" },
-        { "slot": "bronze", "dot": "#B8732E", "line": "#B8732E", "cellFill": "rgba(184,115,46,0.13)" }
+        { "slot": "red", "dot": "#FD0041", "line": "#FF5B6C", "cellFill": "rgba(244,40,77,0.13)" },
+        { "slot": "blue", "dot": "#0083FF", "line": "#009EFF", "cellFill": "rgba(0,139,255,0.13)" },
+        { "slot": "green", "dot": "#00C330", "line": "#32CD6D", "cellFill": "rgba(0,195,58,0.13)" },
+        { "slot": "yellow", "dot": "#FFCF00", "line": "#FFD03C", "cellFill": "rgba(255,184,0,0.13)" },
+        { "slot": "purple", "dot": "#9B4DE0", "line": "#B174E7", "cellFill": "rgba(155,77,224,0.13)" },
+        { "slot": "orange", "dot": "#FF7A1A", "line": "#FF974C", "cellFill": "rgba(255,122,26,0.13)" },
+        { "slot": "cyan", "dot": "#00B5C8", "line": "#38C5D4", "cellFill": "rgba(0,181,200,0.13)" },
+        { "slot": "pink", "dot": "#F2559B", "line": "#F57AB1", "cellFill": "rgba(242,85,155,0.13)" },
+        { "slot": "lime", "dot": "#8CC63F", "line": "#A5D369", "cellFill": "rgba(140,198,63,0.13)" },
+        { "slot": "indigo", "dot": "#5B5BD6", "line": "#7F7FDF", "cellFill": "rgba(91,91,214,0.13)" },
+        { "slot": "white", "dot": "#7A5C4A", "line": "#978072", "cellFill": "rgba(122,92,74,0.13)" },
+        { "slot": "bronze", "dot": "#B8732E", "line": "#C8925C", "cellFill": "rgba(184,115,46,0.13)" }
       ],
       "colorblindDots": [
         { "slot": "red", "dot": "#E69F00", "line": "#E69F00", "cellFill": "rgba(230,159,0,0.13)" },
@@ -69,35 +82,7 @@
         { "slot": "indigo", "dot": "#4E8FB0", "line": "#4E8FB0", "cellFill": "rgba(78,143,176,0.13)" },
         { "slot": "white", "dot": "#B8860B", "line": "#B8860B", "cellFill": "rgba(184,134,11,0.13)" },
         { "slot": "bronze", "dot": "#9467BD", "line": "#9467BD", "cellFill": "rgba(148,103,189,0.13)" }
-      ],
-      "packs": {
-        "dawn": {},
-        "lagoon": {
-          "accent": { "color": "#14B8A6", "onColor": "#FFFFFF", "shadow": "rgba(20,184,166,0.35)" },
-          "background": { "color": "#EDEFE2" },
-          "landscape": { "hillFar": "#ADA978", "hillMid": "#A89B63", "hillNear": "#A18D52" }
-        },
-        "ember": {
-          "accent": { "color": "#F05A28", "onColor": "#FFFFFF", "shadow": "rgba(240,90,40,0.35)" },
-          "background": { "color": "#FCE8D9" },
-          "landscape": { "hillFar": "#EF8D52", "hillMid": "#EA7F3D", "hillNear": "#E3702C" }
-        },
-        "aurora": {
-          "accent": { "color": "#2DBE7A", "onColor": "#FFFFFF", "shadow": "rgba(45,190,122,0.35)" },
-          "background": { "color": "#EEEFDE" },
-          "landscape": { "hillFar": "#B5AB6B", "hillMid": "#B09D56", "hillNear": "#A98E45" }
-        },
-        "cosmos": {
-          "accent": { "color": "#8B5CF6", "onColor": "#FFFFFF", "shadow": "rgba(139,92,246,0.35)" },
-          "background": { "color": "#F5E8E7" },
-          "landscape": { "hillFar": "#D18E90", "hillMid": "#CC807B", "hillNear": "#C5716A" }
-        },
-        "daily": {
-          "accent": { "color": "#FFB800", "onColor": "#473400", "shadow": "rgba(255,184,0,0.35)" },
-          "background": { "color": "#FDEFD6" },
-          "landscape": { "hillFar": "#F4A946", "hillMid": "#EF9B31", "hillNear": "#E88D20" }
-        }
-      }
+      ]
     },
     "winter": {
       "name": "Winter",
@@ -106,9 +91,10 @@
       "landscape": { "sun": "#FFFFFF", "hillFar": "#C8DAEB", "hillMid": "#DEEAF5", "hillNear": "#FFFFFF", "trunk": "#4A3B35", "trunkDark": "#3A2D28", "leaf": "#2F6B5A", "leafDark": "#285C4D", "leafDeep": "#1F4A3E" },
       "accent": { "color": "#3D9BE9", "onColor": "#FFFFFF", "shadow": "rgba(61,155,233,0.35)" },
       "text": { "primary": "#1E2D3D", "statusBar": "#14202C", "secondary": "#5E7185", "muted": "#93A3B3", "disabled": "#C2CDD8", "onBadge": "#FFFFFF" },
-      "icon": { "default": "#1E2D3D", "moves": "#3D9BE9", "time": "#7A6FE0", "star": "#F5B700", "streak": "#FF7A45", "success": "#1FAF6E", "danger": "#E5384F", "info": "#3D9BE9", "locked": "#93A3B3", "hint": "#F5B700", "flows": "#7A6FE0", "fill": "#14B3C9" },
+      "icon": { "default": "#1E2D3D", "moves": "#000000", "time": "#7A6FE0", "star": "#F5B700", "streak": "#FF7A45", "success": "#1FAF6E", "danger": "#E5384F", "info": "#3D9BE9", "locked": "#93A3B3", "hint": "#F5B700", "flows": "#000000", "fill": "#000000" },
       "box": {
         "background": "#E2EBF4",
+        "hud": "#D2DFEC",
         "border": "rgba(30,45,61,0.06)",
         "shadow": "rgba(90,120,150,0.14)",
         "pill": "#D6E2EE",
@@ -118,9 +104,11 @@
         "toast": "#1E2D3D",
         "toastText": "#EEF4FA"
       },
-      "button": { "background": "#E2EBF4", "icon": "#1E2D3D", "label": "#1E2D3D", "shadow": "rgba(90,120,150,0.12)", "badge": "#E5384F", "badgeText": "#FFFFFF" },
+      "button": { "background": "#D2DFEC", "icon": "#1E2D3D", "label": "#1E2D3D", "shadow": "rgba(90,120,150,0.12)", "outline": "#555555", "badge": "#E5384F", "badgeText": "#FFFFFF" },
       "board": {
         "background": "transparent",
+        "border": "#B9C8D8",
+        "borderWidth": 2,
         "cellEmpty": "rgba(176,198,220,0.35)",
         "cellWall": "#B9C8D8",
         "bridgeBox": "#E2EBF4",
@@ -128,7 +116,9 @@
         "warp": "#7A6FE0",
         "pointerRing": "rgba(30,45,61,0.35)",
         "colorblindSymbol": "rgba(20,32,44,0.75)",
-        "lineOpacity": 0.9
+        "lineOpacity": 0.9,
+        "cellRadius": 0.22,
+        "cellGap": 0.035
       },
       "progress": { "track": "#D6E2EE", "fill": "#3D9BE9" },
       "star": { "filled": "#F5B700", "empty": "#D3DDE7" },
@@ -161,35 +151,7 @@
         { "slot": "indigo", "dot": "#4E8FB0", "line": "#4E8FB0", "cellFill": "rgba(78,143,176,0.13)" },
         { "slot": "white", "dot": "#B8860B", "line": "#B8860B", "cellFill": "rgba(184,134,11,0.13)" },
         { "slot": "bronze", "dot": "#9467BD", "line": "#9467BD", "cellFill": "rgba(148,103,189,0.13)" }
-      ],
-      "packs": {
-        "dawn": {},
-        "lagoon": {
-          "accent": { "color": "#14B8A6", "onColor": "#FFFFFF", "shadow": "rgba(20,184,166,0.35)" },
-          "background": { "color": "#DFF0F4" },
-          "landscape": { "hillFar": "#92D0D6", "hillMid": "#A1DBDD", "hillNear": "#B9EAE4" }
-        },
-        "ember": {
-          "accent": { "color": "#F05A28", "onColor": "#FFFFFF", "shadow": "rgba(240,90,40,0.35)" },
-          "background": { "color": "#EEE9EB" },
-          "landscape": { "hillFar": "#D4B4B1", "hillMid": "#E3BFB8", "hillNear": "#FBCEBF" }
-        },
-        "aurora": {
-          "accent": { "color": "#2DBE7A", "onColor": "#FFFFFF", "shadow": "rgba(45,190,122,0.35)" },
-          "background": { "color": "#E0F0F1" },
-          "landscape": { "hillFar": "#9AD2C9", "hillMid": "#A9DDD0", "hillNear": "#C0ECD7" }
-        },
-        "cosmos": {
-          "accent": { "color": "#8B5CF6", "onColor": "#FFFFFF", "shadow": "rgba(139,92,246,0.35)" },
-          "background": { "color": "#E7E9FA" },
-          "landscape": { "hillFar": "#B6B4EE", "hillMid": "#C5BFF5", "hillNear": "#DCCEFC" }
-        },
-        "daily": {
-          "accent": { "color": "#FFB800", "onColor": "#473400", "shadow": "rgba(255,184,0,0.35)" },
-          "background": { "color": "#EFF0E9" },
-          "landscape": { "hillFar": "#D9D0A5", "hillMid": "#E8DBAC", "hillNear": "#FFEAB3" }
-        }
-      }
+      ]
     },
     "spring": {
       "name": "Spring",
@@ -198,9 +160,10 @@
       "landscape": { "sun": "#FFD678", "hillFar": "#B2DE96", "hillMid": "#8CCC6E", "hillNear": "#79BF5A", "trunk": "#6B4A32", "trunkDark": "#5A3C27", "leaf": "#F7A8C4", "leafDark": "#EE8DB0", "leafDeep": "#E0729B" },
       "accent": { "color": "#6CC24A", "onColor": "#1E3615", "shadow": "rgba(108,194,74,0.35)" },
       "text": { "primary": "#24331F", "statusBar": "#1A2616", "secondary": "#637358", "muted": "#98A68E", "disabled": "#C6D0BE", "onBadge": "#FFFFFF" },
-      "icon": { "default": "#24331F", "moves": "#E0729B", "time": "#4FA3D9", "star": "#FFB800", "streak": "#FF7A45", "success": "#3DAA4F", "danger": "#E5384F", "info": "#4FA3D9", "locked": "#98A68E", "hint": "#F5A300", "flows": "#4FA3D9", "fill": "#FF8A3D" },
+      "icon": { "default": "#24331F", "moves": "#000000", "time": "#4FA3D9", "star": "#FFB800", "streak": "#FF7A45", "success": "#3DAA4F", "danger": "#E5384F", "info": "#4FA3D9", "locked": "#98A68E", "hint": "#F5A300", "flows": "#000000", "fill": "#000000" },
       "box": {
         "background": "#E8F3E0",
+        "hud": "#D8EACB",
         "border": "rgba(36,51,31,0.06)",
         "shadow": "rgba(110,150,90,0.14)",
         "pill": "#DCEBD1",
@@ -210,9 +173,11 @@
         "toast": "#24331F",
         "toastText": "#F4FAEF"
       },
-      "button": { "background": "#E8F3E0", "icon": "#24331F", "label": "#24331F", "shadow": "rgba(110,150,90,0.12)", "badge": "#E5384F", "badgeText": "#FFFFFF" },
+      "button": { "background": "#D8EACB", "icon": "#24331F", "label": "#24331F", "shadow": "rgba(110,150,90,0.12)", "outline": "#555555", "badge": "#E5384F", "badgeText": "#FFFFFF" },
       "board": {
         "background": "transparent",
+        "border": "#C3D5B4",
+        "borderWidth": 2,
         "cellEmpty": "rgba(190,215,170,0.35)",
         "cellWall": "#C3D5B4",
         "bridgeBox": "#E8F3E0",
@@ -220,7 +185,9 @@
         "warp": "#4FA3D9",
         "pointerRing": "rgba(36,51,31,0.35)",
         "colorblindSymbol": "rgba(26,38,22,0.75)",
-        "lineOpacity": 0.9
+        "lineOpacity": 0.9,
+        "cellRadius": 0.22,
+        "cellGap": 0.035
       },
       "progress": { "track": "#DCEBD1", "fill": "#6CC24A" },
       "star": { "filled": "#FFB800", "empty": "#D8E4CE" },
@@ -253,35 +220,7 @@
         { "slot": "indigo", "dot": "#4E8FB0", "line": "#4E8FB0", "cellFill": "rgba(78,143,176,0.13)" },
         { "slot": "white", "dot": "#B8860B", "line": "#B8860B", "cellFill": "rgba(184,134,11,0.13)" },
         { "slot": "bronze", "dot": "#9467BD", "line": "#9467BD", "cellFill": "rgba(148,103,189,0.13)" }
-      ],
-      "packs": {
-        "dawn": {},
-        "lagoon": {
-          "accent": { "color": "#14B8A6", "onColor": "#FFFFFF", "shadow": "rgba(20,184,166,0.35)" },
-          "background": { "color": "#E4F5EA" },
-          "landscape": { "hillFar": "#83D39B", "hillMid": "#68C67F", "hillNear": "#5BBD71" }
-        },
-        "ember": {
-          "accent": { "color": "#F05A28", "onColor": "#FFFFFF", "shadow": "rgba(240,90,40,0.35)" },
-          "background": { "color": "#F4EFE1" },
-          "landscape": { "hillFar": "#C5B675", "hillMid": "#AAAA59", "hillNear": "#9DA14B" }
-        },
-        "aurora": {
-          "accent": { "color": "#2DBE7A", "onColor": "#FFFFFF", "shadow": "rgba(45,190,122,0.35)" },
-          "background": { "color": "#E6F6E7" },
-          "landscape": { "hillFar": "#8AD48E", "hillMid": "#70C872", "hillNear": "#62BF64" }
-        },
-        "cosmos": {
-          "accent": { "color": "#8B5CF6", "onColor": "#FFFFFF", "shadow": "rgba(139,92,246,0.35)" },
-          "background": { "color": "#EDEFEF" },
-          "landscape": { "hillFar": "#A6B7B3", "hillMid": "#8CAA97", "hillNear": "#7EA189" }
-        },
-        "daily": {
-          "accent": { "color": "#FFB800", "onColor": "#473400", "shadow": "rgba(255,184,0,0.35)" },
-          "background": { "color": "#F5F5DE" },
-          "landscape": { "hillFar": "#C9D369", "hillMid": "#AFC64D", "hillNear": "#A1BD3F" }
-        }
-      }
+      ]
     },
     "summer": {
       "name": "Summer",
@@ -290,9 +229,10 @@
       "landscape": { "sun": "#FFC43C", "hillFar": "#6EC8E6", "hillMid": "#46AFD7", "hillNear": "#F2D59A", "trunk": "#7A5230", "trunkDark": "#634224", "leaf": "#3FAE5A", "leafDark": "#33964C", "leafDeep": "#2A7F3F" },
       "accent": { "color": "#FF9F1C", "onColor": "#472D08", "shadow": "rgba(255,159,28,0.35)" },
       "text": { "primary": "#2E2416", "statusBar": "#211A0F", "secondary": "#7A6A50", "muted": "#AD9E84", "disabled": "#D4C8B2", "onBadge": "#FFFFFF" },
-      "icon": { "default": "#2E2416", "moves": "#FF9F1C", "time": "#1FA2D6", "star": "#FFB800", "streak": "#FF5E3A", "success": "#25B35A", "danger": "#F03A47", "info": "#1FA2D6", "locked": "#AD9E84", "hint": "#E8A400", "flows": "#1FA2D6", "fill": "#FF5E3A" },
+      "icon": { "default": "#2E2416", "moves": "#000000", "time": "#1FA2D6", "star": "#FFB800", "streak": "#FF5E3A", "success": "#25B35A", "danger": "#F03A47", "info": "#1FA2D6", "locked": "#AD9E84", "hint": "#E8A400", "flows": "#000000", "fill": "#000000" },
       "box": {
         "background": "#FCEFD4",
+        "hud": "#F6E1B8",
         "border": "rgba(46,36,22,0.06)",
         "shadow": "rgba(190,150,80,0.14)",
         "pill": "#F7E4C0",
@@ -302,9 +242,11 @@
         "toast": "#2E2416",
         "toastText": "#FFF8E8"
       },
-      "button": { "background": "#FCEFD4", "icon": "#2E2416", "label": "#2E2416", "shadow": "rgba(190,150,80,0.12)", "badge": "#F03A47", "badgeText": "#FFFFFF" },
+      "button": { "background": "#F6E1B8", "icon": "#2E2416", "label": "#2E2416", "shadow": "rgba(190,150,80,0.12)", "outline": "#555555", "badge": "#F03A47", "badgeText": "#FFFFFF" },
       "board": {
         "background": "transparent",
+        "border": "#E3CFA6",
+        "borderWidth": 2,
         "cellEmpty": "rgba(235,210,160,0.35)",
         "cellWall": "#E3CFA6",
         "bridgeBox": "#FCEFD4",
@@ -312,7 +254,9 @@
         "warp": "#1FA2D6",
         "pointerRing": "rgba(46,36,22,0.35)",
         "colorblindSymbol": "rgba(33,26,15,0.75)",
-        "lineOpacity": 0.9
+        "lineOpacity": 0.9,
+        "cellRadius": 0.22,
+        "cellGap": 0.035
       },
       "progress": { "track": "#F7E4C0", "fill": "#FF9F1C" },
       "star": { "filled": "#FFB800", "empty": "#EDDDC0" },
@@ -345,35 +289,7 @@
         { "slot": "indigo", "dot": "#4E8FB0", "line": "#4E8FB0", "cellFill": "rgba(78,143,176,0.13)" },
         { "slot": "white", "dot": "#B8860B", "line": "#B8860B", "cellFill": "rgba(184,134,11,0.13)" },
         { "slot": "bronze", "dot": "#9467BD", "line": "#9467BD", "cellFill": "rgba(148,103,189,0.13)" }
-      ],
-      "packs": {
-        "dawn": {},
-        "lagoon": {
-          "accent": { "color": "#14B8A6", "onColor": "#FFFFFF", "shadow": "rgba(20,184,166,0.35)" },
-          "background": { "color": "#EFF4E3" },
-          "landscape": { "hillFar": "#53C3D3", "hillMid": "#37B2C8", "hillNear": "#AFCC9E" }
-        },
-        "ember": {
-          "accent": { "color": "#F05A28", "onColor": "#FFFFFF", "shadow": "rgba(240,90,40,0.35)" },
-          "background": { "color": "#FEEDDB" },
-          "landscape": { "hillFar": "#95A7AD", "hillMid": "#7996A3", "hillNear": "#F1B078" }
-        },
-        "aurora": {
-          "accent": { "color": "#2DBE7A", "onColor": "#FFFFFF", "shadow": "rgba(45,190,122,0.35)" },
-          "background": { "color": "#F0F4E0" },
-          "landscape": { "hillFar": "#5BC5C6", "hillMid": "#3FB4BB", "hillNear": "#B7CE90" }
-        },
-        "cosmos": {
-          "accent": { "color": "#8B5CF6", "onColor": "#FFFFFF", "shadow": "rgba(139,92,246,0.35)" },
-          "background": { "color": "#F7EDE9" },
-          "landscape": { "hillFar": "#77A8EB", "hillMid": "#5B96E0", "hillNear": "#D3B1B6" }
-        },
-        "daily": {
-          "accent": { "color": "#FFB800", "onColor": "#473400", "shadow": "rgba(255,184,0,0.35)" },
-          "background": { "color": "#FFF4D8" },
-          "landscape": { "hillFar": "#9AC3A1", "hillMid": "#7EB297", "hillNear": "#F6CC6C" }
-        }
-      }
+      ]
     }
   }
 }

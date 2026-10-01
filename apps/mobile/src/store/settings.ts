@@ -24,14 +24,22 @@ export const useSettings = create<SettingsState>()(
       music: true,
       sfx: true,
       haptics: true,
-      colorblind: false,
+      colorblind: true,
       reduceMotion: false,
       idleHints: true,
       unlockAll: false,
       unlimitedHints: false,
       set: (patch) => set(patch),
     }),
-    { name: 'settings.v1', storage: persistStorage, version: 1 },
+    {
+      name: 'settings.v1',
+      storage: persistStorage,
+      version: 2,
+      migrate: (persisted, version) => {
+        const s = persisted as Partial<SettingsState>;
+        return (version < 2 ? { ...s, colorblind: true } : s) as SettingsState;
+      },
+    },
   ),
 );
 
