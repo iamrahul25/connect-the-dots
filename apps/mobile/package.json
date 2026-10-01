@@ -34,6 +34,8 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~57.0.2",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -46,7 +48,8 @@
     "postinstall": "setup-skia-web public",
     "release-apk": "node scripts/build-apk.js release",
     "preflight-apk": "node scripts/build-apk.js preflight release",
-    "test-apk": "node scripts/build-apk.js debug"
+    "test-apk": "node scripts/build-apk.js debug",
+    "lint": "expo lint"
   },
   "private": true
 }

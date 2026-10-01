@@ -9,6 +9,7 @@
   ],
   "defaultTheme": "autumn",
   "packCards": {
+    "dawn": "#FFBE00",
     "lagoon": "#14B8A6",
     "ember": "#F05A28",
     "aurora": "#2DBE7A",

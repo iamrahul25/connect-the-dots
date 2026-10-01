@@ -21,11 +21,12 @@ export const MiniBoard = memo(function MiniBoard({
   size: number;
   palette: Palette;
 }) {
-  const { board } = useTheme();
+  const { board, box } = useTheme();
   const { width: W, height: H } = level.size;
   const pad = Math.max(3, Math.round(size * 0.05));
   const cell = (size - pad * 2) / Math.max(W, H);
   const gap = cell > 6 ? 0.5 : 0;
+  const outline = Math.max(0.5, Math.min(1, cell * 0.05));
 
   const kind = new Array<number>(W * H).fill(EMPTY);
   for (const [r, c] of level.walls) kind[r * W + c] = WALL;
@@ -52,6 +53,19 @@ export const MiniBoard = memo(function MiniBoard({
 
   return (
     <View style={{ width: W * cell + pad * 2, height: H * cell + pad * 2 }}>
+      <View
+        style={{
+          position: 'absolute',
+          left: pad,
+          top: pad,
+          width: W * cell,
+          height: H * cell,
+          borderRadius: cell * board.cellRadius,
+          backgroundColor: box.surface,
+          borderWidth: outline,
+          borderColor: board.border,
+        }}
+      />
       <View style={{ position: 'absolute', left: pad, top: pad, width: W * cell, height: H * cell, flexDirection: 'row', flexWrap: 'wrap' }}>
         {kind.map((k, i) => (
           <View key={i} style={{ width: cell, height: cell, padding: gap }}>
@@ -60,8 +74,8 @@ export const MiniBoard = memo(function MiniBoard({
                 flex: 1,
                 borderRadius: cell * board.cellRadius,
                 backgroundColor: dot[i] ?? (k === WALL ? board.cellWall : board.cellEmpty),
-                borderWidth: k === BRIDGE ? Math.max(0.75, cell * 0.1) : 0,
-                borderColor: board.bridgeBorder,
+                borderWidth: k === BRIDGE ? Math.max(0.75, cell * 0.1) : k === EMPTY && !dot[i] ? outline : 0,
+                borderColor: k === BRIDGE ? board.bridgeBorder : board.border,
               }}
             />
           </View>

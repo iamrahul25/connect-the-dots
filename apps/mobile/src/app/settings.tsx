@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Platform, Pressable, Switch, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Canvas, Path } from '@shopify/react-native-skia';
+import { Canvas, Circle, Group, Path } from '@shopify/react-native-skia';
 import { Screen } from '../ui/Screen';
 import { GlassButton } from '../ui/GlassButton';
 import { useLayout } from '../ui/layout';
@@ -16,6 +16,14 @@ import { useProgress } from '../store/progress';
 import { haptics } from '../services/haptics';
 
 const SWATCH = 30;
+const SWATCH_GAP = 10;
+
+const THEME_META: Record<ThemeId, { icon: keyof typeof Ionicons.glyphMap; tagline: string }> = {
+  autumn: { icon: 'leaf', tagline: 'Warm & cozy' },
+  winter: { icon: 'snow', tagline: 'Cool & crisp' },
+  spring: { icon: 'flower', tagline: 'Fresh & floral' },
+  summer: { icon: 'sunny', tagline: 'Bright & sunny' },
+};
 
 type Key = Exclude<keyof SettingsState, 'set' | 'theme'>;
 
@@ -72,33 +80,86 @@ function ThemeCard({ id, selected, compact, onPress }: { id: ThemeId; selected: 
   const current = useTheme();
   const styles = useStyles();
   const preview = resolveTheme(id);
+  const meta = THEME_META[id];
+  const l = preview.landscape;
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
-      accessibilityLabel={`${themeName(id)} theme`}
+      accessibilityLabel={`${themeName(id)} theme, ${meta.tagline}`}
       style={({ pressed }) => [
         styles.themeCard,
         compact && styles.themeCardRow,
-        { backgroundColor: preview.background.color, borderColor: selected ? current.accent.color : preview.box.border },
+        { backgroundColor: preview.box.surface, borderColor: selected ? current.accent.color : preview.box.border },
         selected && styles.themeCardSelected,
         pressed && { transform: [{ scale: 0.96 }] },
       ]}
     >
-      <View style={styles.themeDots}>
-        {preview.dots.slice(0, 4).map((d) => (
-          <View key={d.slot} style={[styles.themeDot, { backgroundColor: d.dot }]} />
-        ))}
-      </View>
-      <View style={[styles.themeAccent, { backgroundColor: preview.accent.color }]} />
-      <Text style={[styles.themeName, { color: preview.text.primary }]}>{themeName(id)}</Text>
-      {selected && (
-        <View style={[styles.themeCheck, { backgroundColor: current.accent.color }]}>
-          <Ionicons name="checkmark" size={12} color={current.accent.onColor} />
+      <View style={[styles.scene, { backgroundColor: preview.background.color }]}>
+        <View style={[styles.sun, { backgroundColor: l.sun }]} />
+        <View style={[styles.hill, styles.hillFar, { backgroundColor: l.hillFar }]} />
+        <View style={[styles.hill, styles.hillMid, { backgroundColor: l.hillMid }]} />
+        <View style={[styles.hill, styles.hillNear, { backgroundColor: l.hillNear }]} />
+        <View style={[styles.tree, { left: '18%' }]}>
+          <View style={[styles.leaf, { backgroundColor: l.leafDark }]} />
+          <View style={[styles.trunk, { backgroundColor: l.trunk }]} />
         </View>
-      )}
+        <View style={[styles.tree, styles.treeSmall, { right: '20%' }]}>
+          <View style={[styles.leaf, styles.leafSmall, { backgroundColor: l.leaf }]} />
+          <View style={[styles.trunk, { backgroundColor: l.trunkDark }]} />
+        </View>
+        <View style={[styles.seasonBadge, { backgroundColor: preview.accent.color }]}>
+          <Ionicons name={meta.icon} size={14} color={preview.accent.onColor} />
+        </View>
+        {selected && (
+          <View style={[styles.themeCheck, { backgroundColor: current.accent.color }]}>
+            <Ionicons name="checkmark" size={14} color={current.accent.onColor} />
+          </View>
+        )}
+      </View>
+      <View style={styles.themeInfo}>
+        <Text style={[styles.themeName, { color: preview.text.primary }]} numberOfLines={1}>
+          {themeName(id)}
+        </Text>
+        <Text style={[styles.themeTagline, { color: preview.text.secondary }]} numberOfLines={1}>
+          {selected ? 'Active' : meta.tagline}
+        </Text>
+      </View>
     </Pressable>
+  );
+}
+
+/** Every swatch in one canvas: each Skia canvas on web holds its own WebGL context, and browsers drop the oldest past ~16. */
+function PalettePreview() {
+  const theme = useTheme();
+  const palette = usePalette();
+  const colorblind = useSettings((s) => s.colorblind);
+  const [width, setWidth] = useState(0);
+  const r = SWATCH / 2;
+  const perRow = Math.max(1, Math.floor((width + SWATCH_GAP) / (SWATCH + SWATCH_GAP)));
+  const rows = Math.ceil(palette.length / perRow);
+  const height = rows * SWATCH + (rows - 1) * SWATCH_GAP;
+  return (
+    <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={{ height: width > 0 ? height : SWATCH }}>
+      {width > 0 && (
+        <Canvas style={{ width, height }}>
+          {palette.map((d, i) => {
+            const row = Math.floor(i / perRow);
+            const inRow = Math.min(perRow, palette.length - row * perRow);
+            const rowWidth = inRow * SWATCH + (inRow - 1) * SWATCH_GAP;
+            const cx = (width - rowWidth) / 2 + (i % perRow) * (SWATCH + SWATCH_GAP) + r;
+            const cy = row * (SWATCH + SWATCH_GAP) + r;
+            return (
+              <Group key={d.slot}>
+                <Circle cx={cx} cy={cy} r={r} color={d.dot} />
+                {colorblind && <Path path={symbolPath(i, cx, cy, r * 0.45)} color={theme.board.colorblindSymbol} />}
+              </Group>
+            );
+          })}
+        </Canvas>
+      )}
+    </View>
   );
 }
 
@@ -107,8 +168,6 @@ export default function Settings() {
   const styles = useStyles();
   const themeId = useSettings((s) => s.theme);
   const set = useSettings((s) => s.set);
-  const palette = usePalette();
-  const colorblind = useSettings((s) => s.colorblind);
   const [confirm, setConfirm] = useState(false);
   const { tablet } = useLayout();
 
@@ -150,15 +209,7 @@ export default function Settings() {
 
       <Text style={styles.section}>Palette preview</Text>
       <View style={[styles.group, styles.palette]}>
-        {palette.map((d, i) => (
-          <View key={d.slot} style={[styles.swatch, { backgroundColor: d.dot }]}>
-            {colorblind && (
-              <Canvas style={styles.swatch}>
-                <Path path={symbolPath(i, SWATCH / 2, SWATCH / 2, (SWATCH / 2) * 0.45)} color={theme.board.colorblindSymbol} />
-              </Canvas>
-            )}
-          </View>
-        ))}
+        <PalettePreview />
       </View>
 
       <View style={styles.buttons}>
@@ -194,22 +245,32 @@ const useStyles = makeStyles((t) => ({
   themeCard: {
     flexGrow: 1,
     flexBasis: '45%',
-    padding: 14,
+    padding: 6,
     borderRadius: 20,
     borderWidth: 1.5,
-    gap: 10,
     shadowColor: t.box.shadow,
     shadowOpacity: 1,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 3 },
   },
   themeCardRow: { flexBasis: '22%' },
-  themeCardSelected: { borderWidth: 2.5 },
-  themeDots: { flexDirection: 'row', gap: 6 },
-  themeDot: { width: 18, height: 18, borderRadius: 9 },
-  themeAccent: { height: 6, width: 44, borderRadius: 3 },
+  themeCardSelected: { borderWidth: 3, padding: 4.5 },
+  scene: { height: 76, borderRadius: 14, overflow: 'hidden' },
+  sun: { position: 'absolute', top: 10, right: '30%', width: 22, height: 22, borderRadius: 11, opacity: 0.85 },
+  hill: { position: 'absolute', borderRadius: 999 },
+  hillFar: { width: 170, height: 170, left: '-30%', bottom: -132, opacity: 0.75 },
+  hillMid: { width: 150, height: 150, right: '-35%', bottom: -118, opacity: 0.9 },
+  hillNear: { width: 220, height: 220, left: '-10%', bottom: -200 },
+  tree: { position: 'absolute', bottom: 12, alignItems: 'center' },
+  treeSmall: { bottom: 14 },
+  leaf: { width: 12, height: 20, borderRadius: 6 },
+  leafSmall: { width: 10, height: 15, borderRadius: 5 },
+  trunk: { width: 2, height: 7, borderRadius: 1 },
+  seasonBadge: { position: 'absolute', top: 8, left: 8, width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  themeInfo: { paddingHorizontal: 8, paddingTop: 8, paddingBottom: 6, gap: 2 },
   themeName: { fontFamily: fonts.title, fontSize: 17 },
-  themeCheck: { position: 'absolute', top: 10, right: 10, width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  themeTagline: { fontFamily: fonts.body, fontSize: 12 },
+  themeCheck: { position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   group: { borderRadius: 22, backgroundColor: t.box.background, borderWidth: 1, borderColor: t.box.border, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 14 },
   divider: { borderTopWidth: 1, borderTopColor: t.box.border },
@@ -217,8 +278,7 @@ const useStyles = makeStyles((t) => ({
   label: { fontFamily: fonts.title, fontSize: 17, color: t.text.primary },
   sub: { fontFamily: fonts.body, fontSize: 13, color: t.text.secondary },
   section: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2, color: t.text.muted, marginTop: 22, marginBottom: 8, textTransform: 'uppercase' },
-  palette: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, padding: 16, justifyContent: 'center' },
-  swatch: { width: SWATCH, height: SWATCH, borderRadius: SWATCH / 2 },
+  palette: { padding: 16 },
   buttons: { marginTop: 24, gap: 12, alignItems: 'center' },
   confirm: { alignItems: 'center', padding: 14, borderRadius: 18, backgroundColor: withAlpha(t.status.danger, 0.1) },
 }));

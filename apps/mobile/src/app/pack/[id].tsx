@@ -9,7 +9,7 @@ import { useLayout } from '../../ui/layout';
 import { fonts } from '../../theme/tokens';
 import { musicFor } from '../../theme/packs';
 import { makeStyles, usePalette, useTheme } from '../../theme/useTheme';
-import { withAlpha } from '../../board/color';
+import { mix } from '../../board/color';
 import { getLevel, getPack, globalNumber, maxStars } from '../../data/levels';
 import { isLevelUnlocked, isPackUnlocked, packStars, useProgress } from '../../store/progress';
 import { useSettings } from '../../store/settings';
@@ -45,6 +45,8 @@ export default function PackScreen() {
   const cols = layout.tablet ? 5 : 4;
   const contentW = layout.contentWidth('wide');
   const tile = Math.floor((contentW - (cols - 1) * 12) / cols);
+  const numSize = Math.round(Math.min(48, Math.max(28, tile * 0.32)));
+  const detailSize = Math.round(Math.min(18, Math.max(13, tile * 0.115)));
 
   return (
     <Screen title={pack.name} subtitle={`${packStars(levels, pack.id)} / ${maxStars(pack.id)} ★`} back scroll width="wide" contentStyle={styles.grid}>
@@ -66,9 +68,12 @@ export default function PackScreen() {
                 width: tile,
                 height: tile + 26,
                 borderColor: current ? accent : theme.box.border,
-                backgroundColor: current ? withAlpha(accent, 0.14) : theme.box.background,
+                backgroundColor: current
+                  ? mix(theme.box.background, accent, 0.14)
+                  : unlocked
+                    ? theme.box.background
+                    : mix(theme.background.color, theme.box.background, 0.55),
                 transform: [{ scale: pressed ? 0.95 : 1 }],
-                opacity: unlocked ? 1 : 0.55,
               },
             ]}
           >
@@ -76,8 +81,8 @@ export default function PackScreen() {
               <MiniBoard level={level} size={tile - 26} palette={palette} />
             ) : unlocked ? (
               <View style={styles.center}>
-                <Text style={[styles.num, { color: theme.text.primary }]}>{globalNumber(lid)}</Text>
-                <Text style={styles.size}>
+                <Text style={[styles.num, { color: theme.text.primary, fontSize: numSize }]}>{globalNumber(lid)}</Text>
+                <Text style={[styles.size, { fontSize: detailSize }]}>
                   {level.size.width}×{level.size.height}
                 </Text>
                 {inProgress[lid] && <View style={[styles.dot, { backgroundColor: accent }]} />}
@@ -86,7 +91,7 @@ export default function PackScreen() {
               <Ionicons name="lock-closed" size={22} color={theme.icon.locked} />
             )}
             <View style={styles.footer}>
-              {rec ? <Stars count={rec.stars} size={12} /> : <Text style={styles.footerText}>{unlocked ? '' : globalNumber(lid)}</Text>}
+              {rec ? <Stars count={rec.stars} size={12} /> : <Text style={[styles.footerText, { fontSize: detailSize }]}>{unlocked ? '' : globalNumber(lid)}</Text>}
             </View>
           </Pressable>
         );
@@ -99,10 +104,10 @@ const useStyles = makeStyles((t) => ({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   tile: { borderRadius: 18, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', paddingTop: 10 },
   center: { alignItems: 'center', justifyContent: 'center', flex: 1 },
-  num: { fontFamily: fonts.titleBold, fontSize: 28 },
-  size: { fontFamily: fonts.body, fontSize: 12, color: t.text.secondary },
-  dot: { width: 6, height: 6, borderRadius: 3, marginTop: 4 },
+  num: { fontFamily: fonts.titleBold },
+  size: { fontFamily: fonts.body, color: t.text.secondary, marginTop: 2 },
+  dot: { width: 8, height: 8, borderRadius: 4, marginTop: 6 },
   footer: { height: 24, justifyContent: 'center' },
-  footerText: { fontFamily: fonts.body, fontSize: 12, color: t.text.muted },
+  footerText: { fontFamily: fonts.body, color: t.text.muted },
   empty: { fontFamily: fonts.body, color: t.text.secondary, textAlign: 'center', marginTop: 40 },
 }));

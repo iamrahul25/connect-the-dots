@@ -16,7 +16,15 @@ import { isPackUnlocked, packSolved, packStars, totalStars, useProgress } from '
 import { useSettings } from '../store/settings';
 import { audio } from '../services/audio';
 
-const SIZES: Record<number, string> = { 1: '5×5 – 6×6', 2: '7×7 – 8×8 · walls', 3: '8×8 – 9×9 · bridges', 4: '9×9 – 10×10 · warps', 5: '11×11 – 12×12 · everything' };
+const DETAILS: Record<number, { grid: string; feature?: string }> = {
+  1: { grid: '5×5 – 6×6' },
+  2: { grid: '7×7 – 8×8', feature: 'Walls' },
+  3: { grid: '8×8 – 9×9', feature: 'Bridges' },
+  4: { grid: '9×9 – 10×10', feature: 'Warps' },
+  5: { grid: '11×11 – 12×12', feature: 'Everything' },
+};
+
+const clamp = (v: number, lo: number, hi: number) => Math.round(Math.min(hi, Math.max(lo, v)));
 
 export default function Packs() {
   const levels = useProgress((s) => s.levels);
@@ -30,6 +38,11 @@ export default function Packs() {
   const room = layout.height - insets.top - insets.bottom - layout.landscapeClearance - 150;
   const cardH = Math.max(340, Math.min(room, layout.tablet ? 540 : 440));
   const stars = totalStars(levels);
+  const pad = clamp(cardW * 0.075, 20, 30);
+  const medallion = clamp(Math.min(cardW * 0.46, cardH * 0.32), 104, 180);
+  const nameSize = clamp(cardW * 0.115, 30, 46);
+  const gridSize = clamp(cardW * 0.048, 14, 18);
+  const metaSize = clamp(cardW * 0.043, 13, 16);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -59,38 +72,85 @@ export default function Packs() {
               onPress={() => router.push(`/pack/${p.id}`)}
               style={({ pressed }) => [{ width: cardW, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
             >
-              <View style={[styles.card, { height: cardH, borderColor: withAlpha(accent, 0.45) }]}>
-                <View style={[styles.glow, { backgroundColor: accent }]} />
-                <Text style={styles.packNo}>PACK {p.id}</Text>
-                <Ionicons name={PACK_ICONS[p.theme] as keyof typeof Ionicons.glyphMap} size={layout.tablet ? 84 : 64} color={accent} style={{ marginVertical: 18 }} />
-                <Text style={[styles.packName, layout.tablet && styles.packNameTablet]}>{p.name}</Text>
-                <Text style={styles.packSizes}>{SIZES[p.id]}</Text>
-                {unlocked ? (
-                  <>
-                    <View style={styles.progressTrack}>
-                      <View style={[styles.progressFill, { width: `${(solved / p.levels.length) * 100}%`, backgroundColor: accent }]} />
+              <View style={[styles.card, { height: cardH, padding: pad, borderColor: withAlpha(accent, 0.45) }]}>
+                <View style={[styles.packNo, { backgroundColor: withAlpha(accent, 0.16) }]}>
+                  <Text style={styles.packNoText}>PACK {p.id}</Text>
+                </View>
+
+                <View style={styles.hero}>
+                  <View style={{ width: medallion, height: medallion, alignItems: 'center', justifyContent: 'center' }}>
+                    <View
+                      style={[
+                        styles.halo,
+                        { width: medallion * 1.32, height: medallion * 1.32, borderRadius: medallion * 0.66, backgroundColor: accent },
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.medallion,
+                        {
+                          width: medallion,
+                          height: medallion,
+                          borderRadius: medallion / 2,
+                          backgroundColor: withAlpha(accent, 0.14),
+                          borderColor: withAlpha(accent, 0.35),
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        name={PACK_ICONS[p.theme] as keyof typeof Ionicons.glyphMap}
+                        size={Math.round(medallion * 0.5)}
+                        color={unlocked ? accent : theme.icon.locked}
+                      />
                     </View>
-                    <View style={styles.row}>
-                      <Text style={styles.meta}>
-                        {solved}/{p.levels.length} solved
-                      </Text>
-                      <View style={styles.row}>
-                        <Stars count={1} max={1} />
-                        <Text style={styles.meta}>
-                          {' '}
-                          {pStars}/{maxStars(p.id)}
-                        </Text>
+                    {!unlocked && (
+                      <View style={[styles.lockBadge, { borderColor: theme.box.background }]}>
+                        <Ionicons name="lock-closed" size={16} color={theme.icon.locked} />
                       </View>
-                    </View>
-                  </>
-                ) : (
-                  <View style={styles.locked}>
-                    <Ionicons name="lock-closed" size={18} color={theme.icon.locked} />
-                    <Text style={styles.meta}>
-                      {Math.max(0, (PACK_STAR_REQUIREMENTS[p.id] ?? 0) - stars)} more ★ or finish Pack {p.id - 1}
-                    </Text>
+                    )}
                   </View>
-                )}
+                </View>
+
+                <View style={styles.info}>
+                  <Text style={[styles.packName, { fontSize: nameSize, lineHeight: Math.round(nameSize * 1.15) }]} numberOfLines={1} adjustsFontSizeToFit>
+                    {p.name}
+                  </Text>
+                  <View style={styles.detailRow}>
+                    <Text style={[styles.grid, { fontSize: gridSize }]}>{DETAILS[p.id]?.grid}</Text>
+                    {DETAILS[p.id]?.feature && (
+                      <View style={[styles.chip, { backgroundColor: withAlpha(accent, 0.16) }]}>
+                        <Text style={[styles.chipText, { fontSize: metaSize - 1 }]}>{DETAILS[p.id]?.feature}</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+
+                <View style={styles.footer}>
+                  {unlocked ? (
+                    <>
+                      <View style={styles.progressTrack}>
+                        <View style={[styles.progressFill, { width: `${(solved / p.levels.length) * 100}%`, backgroundColor: accent }]} />
+                      </View>
+                      <View style={styles.statsRow}>
+                        <Text style={[styles.meta, { fontSize: metaSize }]}>
+                          {solved}/{p.levels.length} solved
+                        </Text>
+                        <View style={styles.starStat}>
+                          <Stars count={1} max={1} size={metaSize + 1} />
+                          <Text style={[styles.meta, { fontSize: metaSize }]}>
+                            {pStars}/{maxStars(p.id)}
+                          </Text>
+                        </View>
+                      </View>
+                    </>
+                  ) : (
+                    <View style={styles.locked}>
+                      <Text style={[styles.meta, styles.lockedText, { fontSize: metaSize }]} numberOfLines={2}>
+                        {Math.max(0, (PACK_STAR_REQUIREMENTS[p.id] ?? 0) - stars)} more ★ or finish Pack {p.id - 1}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
             </Pressable>
           );
@@ -104,22 +164,41 @@ export default function Packs() {
 const useStyles = makeStyles((t) => ({
   card: {
     borderRadius: 30,
-    padding: 24,
     alignItems: 'center',
-    justifyContent: 'center',
     borderWidth: 1.5,
     overflow: 'hidden',
     backgroundColor: t.box.background,
   },
-  glow: { position: 'absolute', width: 220, height: 220, borderRadius: 110, opacity: 0.12, top: 40 },
-  packNo: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 3, color: t.text.secondary },
-  packName: { fontFamily: fonts.titleBold, fontSize: 36, color: t.text.primary },
-  packNameTablet: { fontSize: 44 },
-  packSizes: { fontFamily: fonts.body, fontSize: 14, color: t.text.secondary, marginTop: 4 },
-  progressTrack: { alignSelf: 'stretch', height: 8, borderRadius: 4, backgroundColor: t.progress.track, marginTop: 28, overflow: 'hidden' },
+  packNo: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999 },
+  packNoText: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2.5, color: t.text.primary },
+  hero: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', paddingVertical: 12 },
+  halo: { position: 'absolute', opacity: 0.08 },
+  medallion: { alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
+  lockBadge: {
+    position: 'absolute',
+    right: 4,
+    bottom: 4,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: t.box.pill,
+  },
+  info: { alignSelf: 'stretch', alignItems: 'center', gap: 8 },
+  packName: { fontFamily: fonts.titleBold, color: t.text.primary, textAlign: 'center' },
+  detailRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 8 },
+  grid: { fontFamily: fonts.body, color: t.text.secondary },
+  chip: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 },
+  chipText: { fontFamily: fonts.bodyBold, color: t.text.primary },
+  footer: { alignSelf: 'stretch', marginTop: 22, gap: 10 },
+  progressTrack: { height: 8, borderRadius: 4, backgroundColor: t.progress.track, overflow: 'hidden' },
   progressFill: { height: 8, borderRadius: 4 },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', alignSelf: 'stretch', marginTop: 10 },
-  meta: { fontFamily: fonts.body, fontSize: 13, color: t.text.secondary },
-  locked: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 28, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: t.box.pill },
+  statsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  starStat: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  meta: { fontFamily: fonts.body, color: t.text.secondary },
+  locked: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: t.box.pill },
+  lockedText: { textAlign: 'center' },
   hint: { fontFamily: fonts.body, fontSize: 13, color: t.text.muted, textAlign: 'center', marginTop: 18 },
 }));

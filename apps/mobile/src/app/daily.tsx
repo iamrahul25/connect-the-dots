@@ -31,11 +31,14 @@ export default function Daily() {
     }, []),
   );
 
-  const cells = useMemo(() => {
+  const weeks = useMemo(() => {
     const first = new Date(month);
     const days = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
-    const out: (Date | null)[] = Array.from({ length: first.getDay() }, () => null);
-    for (let d = 1; d <= days; d++) out.push(new Date(month.getFullYear(), month.getMonth(), d));
+    const cells: (Date | null)[] = Array.from({ length: first.getDay() }, () => null);
+    for (let d = 1; d <= days; d++) cells.push(new Date(month.getFullYear(), month.getMonth(), d));
+    while (cells.length % 7) cells.push(null);
+    const out: (Date | null)[][] = [];
+    for (let i = 0; i < cells.length; i += 7) out.push(cells.slice(i, i + 7));
     return out;
   }, [month]);
 
@@ -80,31 +83,35 @@ export default function Daily() {
           ))}
         </View>
         <View style={styles.days}>
-          {cells.map((d, i) => {
-            if (!d) return <View key={`e${i}`} style={styles.day} />;
-            const key = dateKey(d);
-            const done = daily.completed[key];
-            const future = d.getTime() > today.getTime();
-            const isToday = key === todayKey;
-            return (
-              <View key={key} style={styles.day}>
-                <Pressable
-                  disabled={future}
-                  onPress={() => router.push(`/play/daily-${key}`)}
-                  accessibilityLabel={`${key}${done ? ', solved' : ''}`}
-                  style={({ pressed }) => [
-                    styles.dayInner,
-                    done && { backgroundColor: cal.solved },
-                    isToday && { borderColor: cal.today, borderWidth: 2 },
-                    pressed && { transform: [{ scale: 0.92 }] },
-                  ]}
-                >
-                  <Text style={[styles.dayText, done && { color: cal.solvedText }, future && { color: cal.future }]}>{d.getDate()}</Text>
-                  {done && <Ionicons name="checkmark" size={10} color={cal.solvedText} style={styles.check} />}
-                </Pressable>
-              </View>
-            );
-          })}
+          {weeks.map((week, w) => (
+            <View key={w} style={styles.weekRow}>
+              {week.map((d, i) => {
+                if (!d) return <View key={`e${i}`} style={styles.day} />;
+                const key = dateKey(d);
+                const done = daily.completed[key];
+                const future = d.getTime() > today.getTime();
+                const isToday = key === todayKey;
+                return (
+                  <View key={key} style={styles.day}>
+                    <Pressable
+                      disabled={future}
+                      onPress={() => router.push(`/play/daily-${key}`)}
+                      accessibilityLabel={`${key}${done ? ', solved' : ''}`}
+                      style={({ pressed }) => [
+                        styles.dayInner,
+                        done && { backgroundColor: cal.solved },
+                        isToday && { borderColor: cal.today, borderWidth: 2 },
+                        pressed && { transform: [{ scale: 0.92 }] },
+                      ]}
+                    >
+                      <Text style={[styles.dayText, done && { color: cal.solvedText }, future && { color: cal.future }]}>{d.getDate()}</Text>
+                      {done && <Ionicons name="checkmark" size={10} color={cal.solvedText} style={styles.check} />}
+                    </Pressable>
+                  </View>
+                );
+              })}
+            </View>
+          ))}
         </View>
       </View>
     </Screen>
@@ -150,9 +157,10 @@ const useStyles = makeStyles((t) => ({
   monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   month: { fontFamily: fonts.title, fontSize: 18, color: t.text.primary },
   week: { flexDirection: 'row', marginTop: 6 },
-  dow: { width: `${100 / 7}%`, textAlign: 'center', fontFamily: fonts.bodyBold, fontSize: 12, color: t.text.muted },
-  days: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 },
-  day: { width: `${100 / 7}%`, aspectRatio: 1, padding: 3 },
+  dow: { flex: 1, textAlign: 'center', fontFamily: fonts.bodyBold, fontSize: 12, color: t.text.muted },
+  days: { marginTop: 6 },
+  weekRow: { flexDirection: 'row' },
+  day: { flex: 1, aspectRatio: 1, padding: 3 },
   dayInner: {
     flex: 1,
     borderRadius: 12,
