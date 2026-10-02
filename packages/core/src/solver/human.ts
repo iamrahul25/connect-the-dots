@@ -41,7 +41,7 @@ export function tier1(s: SolveState): Move | null {
     }
   }
   for (let v = 0; v < g.nodeCount; v++) {
-    if (s.owner[v] !== -1) continue;
+    if (s.owner[v] !== -1 || !s.isMandatory(v)) continue;
     let avail = 0;
     let headNb = -1;
     for (const n of g.adj[v]) {
@@ -53,7 +53,8 @@ export function tier1(s: SolveState): Move | null {
     }
     if (avail === 2 && headNb !== -1) {
       const pair = s.headOf[headNb];
-      return { pair, side: s.sideOfHead(pair, headNb), node: v };
+      const side = s.sideOfHead(pair, headNb);
+      if (s.canStep(pair, side, v)) return { pair, side, node: v };
     }
   }
   return null;
@@ -142,6 +143,6 @@ export function solveHuman(
     s.apply(move.pair, move.side, move.node);
     steps++;
   }
-  if (s.emptyCount !== 0) return fail();
+  if (s.emptyCount !== 0 || !s.locksOk()) return fail();
   return { solved: true, maxTier: usedTier, tierCounts: counts, steps, paths: s.extractPaths() };
 }

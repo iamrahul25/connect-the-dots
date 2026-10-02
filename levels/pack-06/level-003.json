@@ -1,0 +1,108 @@
+{
+  "$schema": "../schema/level.schema.json",
+  "id": "p06-l003",
+  "pack": 6,
+  "index": 3,
+  "formatVersion": 2,
+  "size": {
+    "width": 8,
+    "height": 8
+  },
+  "dots": [
+    {
+      "color": 6,
+      "start": [0, 7],
+      "end": [5, 1]
+    },
+    {
+      "color": 3,
+      "start": [1, 1],
+      "end": [2, 6]
+    },
+    {
+      "color": 4,
+      "start": [1, 6],
+      "end": [3, 4]
+    },
+    {
+      "color": 2,
+      "start": [3, 5],
+      "end": [5, 5]
+    },
+    {
+      "color": 0,
+      "start": [3, 6],
+      "end": [4, 4]
+    },
+    {
+      "color": 5,
+      "start": [4, 1],
+      "end": [5, 2]
+    },
+    {
+      "color": 7,
+      "start": [5, 0],
+      "end": [7, 3]
+    },
+    {
+      "color": 1,
+      "start": [5, 6],
+      "end": [6, 5]
+    }
+  ],
+  "walls": [],
+  "bridges": [],
+  "warps": [],
+  "teleporters": [
+    {
+      "a": [3, 7],
+      "b": [4, 0]
+    }
+  ],
+  "tunnels": [],
+  "rotators": [],
+  "locks": [],
+  "solution": {
+    "0": [[0, 7], [1, 7], [2, 7], [3, 7], [4, 0], [3, 0], [3, 1], [3, 2], [3, 3], [4, 3], [5, 3], [6, 3], [6, 2], [6, 1], [5, 1]],
+    "1": [[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [2, 6]],
+    "2": [[1, 6], [0, 6], [0, 5], [0, 4], [0, 3], [0, 2], [0, 1], [0, 0], [1, 0], [2, 0], [2, 1], [2, 2], [2, 3], [2, 4], [3, 4]],
+    "3": [[3, 5], [4, 5], [5, 5]],
+    "4": [[3, 6], [4, 6], [4, 7], [5, 7], [6, 7], [7, 7], [7, 6], [7, 5], [7, 4], [6, 4], [5, 4], [4, 4]],
+    "5": [[4, 1], [4, 2], [5, 2]],
+    "6": [[5, 0], [6, 0], [7, 0], [7, 1], [7, 2], [7, 3]],
+    "7": [[5, 6], [6, 6], [6, 5]]
+  },
+  "difficulty": {
+    "score": 38.8,
+    "band": "medium",
+    "metrics": {
+      "cells": 64,
+      "colors": 8,
+      "avgPathLength": 8,
+      "turnDensity": 0.266,
+      "maxSolverTier": 3,
+      "tierCounts": [42, 0, 14, 0],
+      "searchNodes": 105,
+      "forcedMoveRatio": 0.75
+    }
+  },
+  "stars": {
+    "perfectMoves": 8,
+    "twoStarMoves": 12
+  },
+  "meta": {
+    "seed": 1383716358,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 8,
+      "colors": [6, 8],
+      "walls": 0,
+      "bridges": 0,
+      "warps": 0,
+      "teleporters": 1,
+      "tunnels": 0,
+      "rotators": 0,
+      "locks": 0
+    }
+  }
+}

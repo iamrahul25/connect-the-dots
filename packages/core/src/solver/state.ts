@@ -7,6 +7,9 @@ interface LogEntry {
   join: boolean;
 }
 
+/** Owner value for the unused orientations of a resolved tunnel / rotator. */
+export const DEAD = -2;
+
 /**
  * Partial solution where every pair grows from both endpoints ("two heads").
  * A pair is finished when its two heads become adjacent and join.
@@ -15,7 +18,7 @@ interface LogEntry {
 export class SolveState {
   readonly g: BoardGraph;
   readonly K: number;
-  /** Pair owning each node, -1 when empty. */
+  /** Pair owning each node, -1 when empty, DEAD for discarded orientations. */
   readonly owner: Int16Array;
   /** Pair whose *active* head sits on the node, -1 otherwise. */
   readonly headOf: Int16Array;
@@ -24,12 +27,14 @@ export class SolveState {
   readonly done: Uint8Array;
   /** stacks[2p + side]: nodes grown from that endpoint, endpoint first. */
   readonly stacks: number[][];
+  /** Uncovered fill units (an option cell is one unit). */
   emptyCount: number;
   doneCount = 0;
   private log: LogEntry[] = [];
 
   private compId: Int32Array;
   private queue: Int32Array;
+  private readonly hasTeleports: boolean;
 
   constructor(g: BoardGraph, endpoints: [number, number][]) {
     this.g = g;
@@ -48,31 +53,54 @@ export class SolveState {
       this.heads[2 * p + 1] = b;
       this.stacks.push([a], [b]);
     });
-    this.emptyCount = g.nodeCount - 2 * this.K;
+    this.emptyCount = g.unitCount - 2 * this.K;
     this.compId = new Int32Array(g.nodeCount);
     this.queue = new Int32Array(g.nodeCount);
+    this.hasTeleports = g.partner.some((p) => p !== -1);
   }
 
   get depth(): number {
     return this.log.length;
   }
 
+  /** A head standing on a gate it entered from the grid must jump to the partner gate. */
+  private forcedNext(hi: number): number {
+    const h = this.heads[hi];
+    const p = this.g.partner[h];
+    if (p === -1) return -1;
+    const st = this.stacks[hi];
+    return st.length > 1 && st[st.length - 2] === p ? -1 : p;
+  }
+
+  /** Whether head (pair, side) may step onto node n (n empty, or the other head = join). */
+  canStep(pair: number, side: number, n: number): boolean {
+    const hi = 2 * pair + side;
+    const other = this.heads[2 * pair + 1 - side];
+    if (!this.hasTeleports) return n === other || this.owner[n] === -1;
+    const f = this.forcedNext(hi);
+    if (f !== -1 && n !== f) return false;
+    const h = this.heads[hi];
+    if (n === other) {
+      const fo = this.forcedNext(2 * pair + 1 - side);
+      return fo === -1 || fo === h;
+    }
+    if (this.owner[n] !== -1) return false;
+    const pn = this.g.partner[n];
+    return pn === -1 || pn === h || pn === other || this.owner[pn] === -1;
+  }
+
   /** Legal targets for head (pair, side): empty neighbors, or the other head (join). */
   legalMoves(pair: number, side: number, out: number[]): number[] {
     out.length = 0;
     const h = this.heads[2 * pair + side];
-    const other = this.heads[2 * pair + 1 - side];
-    for (const n of this.g.adj[h]) {
-      if (n === other || this.owner[n] === -1) out.push(n);
-    }
+    for (const n of this.g.adj[h]) if (this.canStep(pair, side, n)) out.push(n);
     return out;
   }
 
   countMoves(pair: number, side: number): number {
     const h = this.heads[2 * pair + side];
-    const other = this.heads[2 * pair + 1 - side];
     let k = 0;
-    for (const n of this.g.adj[h]) if (n === other || this.owner[n] === -1) k++;
+    for (const n of this.g.adj[h]) if (this.canStep(pair, side, n)) k++;
     return k;
   }
 
@@ -89,6 +117,9 @@ export class SolveState {
       return;
     }
     this.owner[node] = pair;
+    if (this.g.isOption[node]) {
+      for (const s of this.g.cellNodes[this.g.nodeCellIdx[node]]) if (s !== node) this.owner[s] = DEAD;
+    }
     this.emptyCount--;
     this.headOf[h] = -1;
     this.headOf[node] = pair;
@@ -112,6 +143,9 @@ export class SolveState {
     stack.pop();
     const prev = stack[stack.length - 1];
     this.owner[e.node] = -1;
+    if (this.g.isOption[e.node]) {
+      for (const s of this.g.cellNodes[this.g.nodeCellIdx[e.node]]) this.owner[s] = -1;
+    }
     this.emptyCount++;
     this.headOf[e.node] = -1;
     this.headOf[prev] = e.pair;
@@ -126,11 +160,60 @@ export class SolveState {
     return this.heads[2 * pair] === node ? 0 : 1;
   }
 
+  private availCount(v: number): number {
+    let avail = 0;
+    for (const n of this.g.adj[v]) if (this.owner[n] === -1 || this.headOf[n] !== -1) avail++;
+    return avail;
+  }
+
+  /** Orientations of an unresolved option cell that still have both sides available. */
+  private viableOptions(ci: number, out: number[]): number[] {
+    out.length = 0;
+    const ns = this.g.cellNodes[ci];
+    if (ns.some((n) => this.owner[n] !== -1)) return out;
+    for (const n of ns) if (this.availCount(n) >= 2) out.push(n);
+    return out;
+  }
+
+  private optBuf: number[] = [];
+
+  /**
+   * An empty node that must be covered: every non-option node, plus the only
+   * viable orientation left in an option cell.
+   */
+  isMandatory(v: number): boolean {
+    if (!this.g.isOption[v]) return true;
+    const opts = this.viableOptions(this.g.nodeCellIdx[v], this.optBuf);
+    return opts.length === 1 && opts[0] === v;
+  }
+
+  /** No path may need a door that only it can open (lock dependencies stay acyclic). */
+  locksOk(): boolean {
+    const L = this.g.locks;
+    if (L.length === 0) return true;
+    const edges: [number, number][] = [];
+    for (const l of L) {
+      const ko = this.owner[l.key];
+      const dn = this.owner[l.door];
+      if (ko < 0 || dn < 0) continue;
+      if (ko === dn) return false;
+      edges.push([dn, ko]);
+    }
+    if (edges.length < 2) return true;
+    const reaches = (from: number, to: number, seen: Set<number>): boolean => {
+      if (from === to) return true;
+      if (seen.has(from)) return false;
+      seen.add(from);
+      return edges.some(([a, b]) => a === from && reaches(b, to, seen));
+    };
+    return !edges.some(([a, b]) => reaches(b, a, new Set()));
+  }
+
   /** Local check: every empty node can still get 2 edges, every head can still move. */
   degreeOk(): boolean {
     const { g, owner, headOf } = this;
     for (let v = 0; v < g.nodeCount; v++) {
-      if (owner[v] !== -1) continue;
+      if (owner[v] !== -1 || g.isOption[v]) continue;
       let avail = 0;
       for (const n of g.adj[v]) {
         if (owner[n] === -1 || headOf[n] !== -1) {
@@ -144,13 +227,17 @@ export class SolveState {
       if (this.done[p]) continue;
       if (this.countMoves(p, 0) === 0 || this.countMoves(p, 1) === 0) return false;
     }
-    return true;
+    for (const ci of g.optionCells) {
+      if (owner[g.cellNodes[ci][0]] !== -1) continue;
+      if (this.viableOptions(ci, this.optBuf).length === 0) return false;
+    }
+    return this.locksOk();
   }
 
   /**
    * Full check: degree constraints plus region reasoning. Every empty region
-   * must be fillable by some pair whose two heads both touch it, and every
-   * unfinished pair must still be able to connect.
+   * holding a mandatory node must be fillable by some pair whose two heads both
+   * touch it, and every unfinished pair must still be able to connect.
    */
   consistent(): boolean {
     if (!this.degreeOk()) return false;
@@ -194,7 +281,18 @@ export class SolveState {
       }
       if (!proceed) return false;
     }
-    for (let c = 0; c < comps; c++) if (!ok[c]) return false;
+    if (g.optionCells.length === 0) {
+      for (let c = 0; c < comps; c++) if (!ok[c]) return false;
+      return true;
+    }
+    for (let v = 0; v < g.nodeCount; v++) {
+      if (owner[v] === -1 && !g.isOption[v] && !ok[compId[v]]) return false;
+    }
+    for (const ci of g.optionCells) {
+      const ns = g.cellNodes[ci];
+      if (owner[ns[0]] !== -1) continue;
+      if (!ns.some((n) => ok[compId[n]])) return false;
+    }
     return true;
   }
 

@@ -16,7 +16,15 @@ export function renderLevel(level: Level, withSolution = false): string {
     });
   }
   for (const [r, c] of level.walls) grid[r][c] = '███';
-  for (const [r, c] of level.bridges) grid[r][c] = withSolution ? grid[r][c].replace('   ', ' + ') : ' + ';
+  const overlay = ([r, c]: [number, number], s: string) => (grid[r][c] = withSolution ? grid[r][c].replace('   ', s) : s);
+  for (const b of level.bridges) overlay(b, ' + ');
+  (level.teleporters ?? []).forEach((t, i) => [t.a, t.b].forEach((c) => overlay(c, ` ${'@&$%'[i % 4]} `)));
+  const PIECE: Record<string, string> = { h: '═', v: '║', ne: '╚', se: '╔', sw: '╗', nw: '╝' };
+  for (const t of [...(level.tunnels ?? []), ...(level.rotators ?? [])]) overlay(t.cell, ` ${PIECE[t.start]} `);
+  (level.locks ?? []).forEach((l, i) => {
+    overlay(l.key, ` k${i}`);
+    overlay(l.door, ` D${i}`);
+  });
   level.dots.forEach((d, i) => {
     const hex = DEFAULT_PALETTE[d.color];
     const ch = String.fromCharCode(65 + i);
@@ -34,7 +42,11 @@ export function renderLevel(level: Level, withSolution = false): string {
   const d = level.difficulty;
   lines.push(
     `${level.id}  ${W}x${H}  colors=${level.dots.length}  score=${d.score} (${d.band})  tier=${d.metrics.maxSolverTier}  ` +
-      `walls=${level.walls.length} bridges=${level.bridges.length} warps=${level.warps.length}`,
+      `walls=${level.walls.length} bridges=${level.bridges.length} warps=${level.warps.length}` +
+      (level.teleporters
+        ? ` teleporters=${level.teleporters.length} tunnels=${level.tunnels?.length ?? 0} ` +
+          `rotators=${level.rotators?.length ?? 0} locks=${level.locks?.length ?? 0}`
+        : ''),
   );
   return lines.join('\n');
 }

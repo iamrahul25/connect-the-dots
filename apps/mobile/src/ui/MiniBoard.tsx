@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { PixelRatio, View } from 'react-native';
 import type { Level } from '@ctd/core';
-import type { Palette } from '../theme/config';
+import { lockColor, teleporterColor, type Palette } from '../theme/config';
 import { useTheme } from '../theme/useTheme';
 import { HatchedTile } from './HatchedTile';
 
@@ -10,7 +10,7 @@ const WALL = 1;
 const BRIDGE = 2;
 
 /**
- * Level thumbnail showing only the puzzle layout (dots, walls, bridges, warps), never the solution,
+ * Level thumbnail showing only the puzzle layout (dots and obstacles), never the solution,
  * so a solved card can't be used as an answer key. Plain views, no WebGL context.
  */
 export const MiniBoard = memo(function MiniBoard({
@@ -34,6 +34,16 @@ export const MiniBoard = memo(function MiniBoard({
   const kind = new Array<number>(W * H).fill(EMPTY);
   for (const [r, c] of level.walls) kind[r * W + c] = WALL;
   for (const [r, c] of level.bridges) kind[r * W + c] = BRIDGE;
+  for (const t of [...(level.tunnels ?? []), ...(level.rotators ?? [])]) kind[t.cell[0] * W + t.cell[1]] = BRIDGE;
+  const ring = new Array<string | null>(W * H).fill(null);
+  (level.teleporters ?? []).forEach((t, i) => {
+    for (const [r, c] of [t.a, t.b]) ring[r * W + c] = teleporterColor(i);
+  });
+  const lock = new Array<{ color: string; door: boolean } | null>(W * H).fill(null);
+  (level.locks ?? []).forEach((l, i) => {
+    lock[l.key[0] * W + l.key[1]] = { color: lockColor(i), door: false };
+    lock[l.door[0] * W + l.door[1]] = { color: lockColor(i), door: true };
+  });
   const dot = new Array<string | null>(W * H).fill(null);
   for (const d of level.dots) {
     const color = palette[d.color % palette.length].dot;
@@ -87,7 +97,20 @@ export const MiniBoard = memo(function MiniBoard({
                   borderWidth: k === BRIDGE ? Math.max(1, cell * 0.12) : k === EMPTY && !dot[i] ? outline : 0,
                   borderColor: k === BRIDGE ? board.bridgeBorder : board.border,
                 }}
-              />
+              >
+                {ring[i] && (
+                  <View style={{ flex: 1, margin: cell * 0.12, borderRadius: cell, borderWidth: Math.max(1, cell * 0.14), borderColor: ring[i]! }} />
+                )}
+                {lock[i] && (
+                  <View
+                    style={
+                      lock[i]!.door
+                        ? { flex: 1, borderRadius: cell * board.cellRadius, backgroundColor: lock[i]!.color }
+                        : { flex: 1, margin: cell * 0.28, borderRadius: cell, backgroundColor: lock[i]!.color }
+                    }
+                  />
+                )}
+              </View>
             )}
           </View>
         ))}

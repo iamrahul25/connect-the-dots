@@ -1,7 +1,26 @@
-import type { Cell, Puzzle, Warp } from './types';
+import type { Cell, Lock, Puzzle, Teleporter, Warp } from './types';
 
-export type Layer = 'n' | 'h' | 'v';
+/** `n` normal; `h`/`v` bridge or tunnel lanes; `ne`/`se`/`sw`/`nw` rotator orientations. */
+export type Layer = 'n' | 'h' | 'v' | 'ne' | 'se' | 'sw' | 'nw';
 export type Direction = 'up' | 'down' | 'left' | 'right';
+export type CellKind = 'cell' | 'wall' | 'bridge' | 'tunnel' | 'rotator';
+
+export const TUNNEL_LAYERS = ['h', 'v'] as const;
+/** Clockwise, so tapping a rotator advances one step through this list. */
+export const ROTATOR_LAYERS = ['ne', 'se', 'sw', 'nw'] as const;
+
+/** Sides of the cell each layer connects. */
+export const PORTS: Record<Layer, Direction[]> = {
+  n: ['up', 'down', 'left', 'right'],
+  h: ['left', 'right'],
+  v: ['up', 'down'],
+  ne: ['up', 'right'],
+  se: ['down', 'right'],
+  sw: ['down', 'left'],
+  nw: ['up', 'left'],
+};
+
+export const OPPOSITE: Record<Direction, Direction> = { up: 'down', down: 'up', left: 'right', right: 'left' };
 
 export interface BoardSpec {
   width: number;
@@ -9,11 +28,18 @@ export interface BoardSpec {
   walls: Cell[];
   bridges: Cell[];
   warps: Warp[];
+  teleporters?: Teleporter[];
+  tunnels?: Cell[];
+  rotators?: Cell[];
+  locks?: Lock[];
 }
 
 /**
  * The board as a graph. Walls are removed nodes, bridge cells are split into a
  * horizontal (`h`) and vertical (`v`) node, and warps add wrap-around edges.
+ * Tunnels and rotators are "option cells": one node per orientation, of which
+ * exactly one is used. Teleporter gates are normal nodes joined by an extra
+ * edge that a path through either gate must take.
  */
 export interface BoardGraph {
   width: number;
@@ -22,20 +48,34 @@ export interface BoardGraph {
   nodeRow: number[];
   nodeCol: number[];
   nodeLayer: Layer[];
+  /** Cell index (`r * width + c`) of each node. */
+  nodeCellIdx: number[];
   adj: number[][];
-  /** Node ids per cell index (`r * width + c`): [] for walls, [h, v] for bridges. */
+  /** Node ids per cell index: [] for walls, [h, v] for bridges and tunnels, 4 nodes for rotators. */
   cellNodes: number[][];
+  cellKind: CellKind[];
   isWall: boolean[];
   isBridge: boolean[];
   warpRows: boolean[];
   warpCols: boolean[];
+  /** True for nodes of tunnel and rotator cells. */
+  isOption: boolean[];
+  /** Cell indices of tunnels and rotators. */
+  optionCells: number[];
+  /** Fill unit per node: option cells share one unit, every other node is its own unit. */
+  nodeUnit: number[];
+  unitCount: number;
+  /** Teleporter partner node, -1 for non-gates. */
+  partner: number[];
+  /** Key and door node per lock. */
+  locks: { key: number; door: number }[];
 }
 
-const DIRS: { d: Direction; dr: number; dc: number; axis: 'h' | 'v' }[] = [
-  { d: 'up', dr: -1, dc: 0, axis: 'v' },
-  { d: 'down', dr: 1, dc: 0, axis: 'v' },
-  { d: 'left', dr: 0, dc: -1, axis: 'h' },
-  { d: 'right', dr: 0, dc: 1, axis: 'h' },
+const DIRS: { d: Direction; dr: number; dc: number }[] = [
+  { d: 'up', dr: -1, dc: 0 },
+  { d: 'down', dr: 1, dc: 0 },
+  { d: 'left', dr: 0, dc: -1 },
+  { d: 'right', dr: 0, dc: 1 },
 ];
 
 export function specOf(p: Puzzle): BoardSpec {
@@ -45,17 +85,22 @@ export function specOf(p: Puzzle): BoardSpec {
     walls: p.walls,
     bridges: p.bridges,
     warps: p.warps,
+    teleporters: p.teleporters ?? [],
+    tunnels: (p.tunnels ?? []).map((t) => t.cell),
+    rotators: (p.rotators ?? []).map((t) => t.cell),
+    locks: p.locks ?? [],
   };
 }
 
 export function buildGraph(spec: BoardSpec): BoardGraph {
   const { width: W, height: H } = spec;
-  const isWall = new Array<boolean>(W * H).fill(false);
-  const isBridge = new Array<boolean>(W * H).fill(false);
+  const cellKind = new Array<CellKind>(W * H).fill('cell');
   const warpRows = new Array<boolean>(H).fill(false);
   const warpCols = new Array<boolean>(W).fill(false);
-  for (const [r, c] of spec.walls) isWall[r * W + c] = true;
-  for (const [r, c] of spec.bridges) isBridge[r * W + c] = true;
+  for (const [r, c] of spec.walls) cellKind[r * W + c] = 'wall';
+  for (const [r, c] of spec.bridges) cellKind[r * W + c] = 'bridge';
+  for (const [r, c] of spec.tunnels ?? []) cellKind[r * W + c] = 'tunnel';
+  for (const [r, c] of spec.rotators ?? []) cellKind[r * W + c] = 'rotator';
   for (const w of spec.warps) {
     if (w.axis === 'row') warpRows[w.index] = true;
     else warpCols[w.index] = true;
@@ -64,30 +109,39 @@ export function buildGraph(spec: BoardSpec): BoardGraph {
   const nodeRow: number[] = [];
   const nodeCol: number[] = [];
   const nodeLayer: Layer[] = [];
+  const nodeCellIdx: number[] = [];
+  const nodeUnit: number[] = [];
   const cellNodes: number[][] = [];
+  const optionCells: number[] = [];
+  let units = 0;
+  const addNodes = (r: number, c: number, layers: readonly Layer[], shared: boolean) => {
+    const ids: number[] = [];
+    for (const l of layers) {
+      ids.push(nodeRow.length);
+      nodeRow.push(r);
+      nodeCol.push(c);
+      nodeLayer.push(l);
+      nodeCellIdx.push(r * W + c);
+      nodeUnit.push(shared ? units : units++);
+    }
+    if (shared) units++;
+    cellNodes.push(ids);
+  };
   for (let r = 0; r < H; r++) {
     for (let c = 0; c < W; c++) {
-      const i = r * W + c;
-      if (isWall[i]) {
-        cellNodes.push([]);
-      } else if (isBridge[i]) {
-        const id = nodeRow.length;
-        nodeRow.push(r, r);
-        nodeCol.push(c, c);
-        nodeLayer.push('h', 'v');
-        cellNodes.push([id, id + 1]);
-      } else {
-        const id = nodeRow.length;
-        nodeRow.push(r);
-        nodeCol.push(c);
-        nodeLayer.push('n');
-        cellNodes.push([id]);
-      }
+      const kind = cellKind[r * W + c];
+      if (kind === 'wall') cellNodes.push([]);
+      else if (kind === 'bridge') addNodes(r, c, ['h', 'v'], false);
+      else if (kind === 'tunnel') addNodes(r, c, TUNNEL_LAYERS, true);
+      else if (kind === 'rotator') addNodes(r, c, ROTATOR_LAYERS, true);
+      else addNodes(r, c, ['n'], false);
+      if (kind === 'tunnel' || kind === 'rotator') optionCells.push(r * W + c);
     }
   }
 
   const nodeCount = nodeRow.length;
   const adj: number[][] = Array.from({ length: nodeCount }, () => []);
+  const isOption = nodeCellIdx.map((i) => cellKind[i] === 'tunnel' || cellKind[i] === 'rotator');
   const g: BoardGraph = {
     width: W,
     height: H,
@@ -95,37 +149,56 @@ export function buildGraph(spec: BoardSpec): BoardGraph {
     nodeRow,
     nodeCol,
     nodeLayer,
+    nodeCellIdx,
     adj,
     cellNodes,
-    isWall,
-    isBridge,
+    cellKind,
+    isWall: cellKind.map((k) => k === 'wall'),
+    isBridge: cellKind.map((k) => k === 'bridge'),
     warpRows,
     warpCols,
+    isOption,
+    optionCells,
+    nodeUnit,
+    unitCount: units,
+    partner: new Array<number>(nodeCount).fill(-1),
+    locks: [],
   };
 
-  const axisNode = (i: number, axis: 'h' | 'v') => {
-    const ns = cellNodes[i];
-    return ns.length === 2 ? (axis === 'h' ? ns[0] : ns[1]) : ns[0];
+  const link = (a: number, b: number) => {
+    if (!adj[a].includes(b)) {
+      adj[a].push(b);
+      adj[b].push(a);
+    }
   };
-
   for (let r = 0; r < H; r++) {
     for (let c = 0; c < W; c++) {
       const i = r * W + c;
-      if (isWall[i]) continue;
+      if (cellKind[i] === 'wall') continue;
       for (const dir of DIRS) {
         const nb = neighborCell(g, r, c, dir.d);
         if (!nb) continue;
         const j = nb[0] * W + nb[1];
-        if (isWall[j] || j === i) continue;
-        const a = axisNode(i, dir.axis);
-        const b = axisNode(j, dir.axis);
-        if (!adj[a].includes(b)) {
-          adj[a].push(b);
-          adj[b].push(a);
+        if (cellKind[j] === 'wall' || j === i) continue;
+        const back = OPPOSITE[dir.d];
+        for (const a of cellNodes[i]) {
+          if (!PORTS[nodeLayer[a]].includes(dir.d)) continue;
+          for (const b of cellNodes[j]) if (PORTS[nodeLayer[b]].includes(back)) link(a, b);
         }
       }
     }
   }
+  for (const t of spec.teleporters ?? []) {
+    const a = cellNodes[t.a[0] * W + t.a[1]][0];
+    const b = cellNodes[t.b[0] * W + t.b[1]][0];
+    g.partner[a] = b;
+    g.partner[b] = a;
+    link(a, b);
+  }
+  g.locks = (spec.locks ?? []).map((l) => ({
+    key: cellNodes[l.key[0] * W + l.key[1]][0],
+    door: cellNodes[l.door[0] * W + l.door[1]][0],
+  }));
   return g;
 }
 
@@ -161,14 +234,19 @@ export function nodesAt(g: BoardGraph, cell: Cell): number[] {
   return g.cellNodes[cell[0] * g.width + cell[1]];
 }
 
+/** True when the edge a-b joins two teleporter gates. */
+export function isTeleportStep(g: BoardGraph, a: number, b: number): boolean {
+  return g.partner[a] === b;
+}
+
 /** True when the edge a-b crosses the board boundary via a warp. */
 export function isWarpStep(g: BoardGraph, a: number, b: number): boolean {
   const dr = Math.abs(g.nodeRow[a] - g.nodeRow[b]);
   const dc = Math.abs(g.nodeCol[a] - g.nodeCol[b]);
-  return dr + dc > 1;
+  return dr + dc > 1 && g.partner[a] !== b;
 }
 
-/** Direction of travel from node a to adjacent node b (warp-aware). */
+/** Direction of travel from node a to adjacent node b (warp-aware; meaningless for teleports). */
 export function stepDirection(g: BoardGraph, a: number, b: number): Direction {
   const dr = g.nodeRow[b] - g.nodeRow[a];
   const dc = g.nodeCol[b] - g.nodeCol[a];
@@ -180,19 +258,34 @@ export function stepDirection(g: BoardGraph, a: number, b: number): Direction {
   return dr > 0 ? 'up' : 'down';
 }
 
-/** Converts an ordered list of cells into graph nodes, resolving bridge layers. */
+/** Layer of the cell-local piece that a path entering via `from` and leaving via `to` uses. */
+export function layerFor(inSide: Direction, outSide: Direction): Layer {
+  const s = new Set([inSide, outSide]);
+  if (s.has('left') && s.has('right')) return 'h';
+  if (s.has('up') && s.has('down')) return 'v';
+  if (s.has('up')) return s.has('right') ? 'ne' : 'nw';
+  return s.has('right') ? 'se' : 'sw';
+}
+
+/**
+ * Converts an ordered list of cells into graph nodes, resolving bridge lanes
+ * and tunnel / rotator orientations (which can need one step of lookahead).
+ */
 export function cellsToNodes(g: BoardGraph, cells: Cell[]): number[] | null {
   if (cells.length === 0) return [];
-  const first = nodesAt(g, cells[0]);
-  if (first.length === 0) return null;
-  const out = [first[0]];
-  for (let i = 1; i < cells.length; i++) {
-    const prev = out[out.length - 1];
-    const next = g.adj[prev].find((n) => sameCell(g, n, cells[i]));
-    if (next === undefined) return null;
-    out.push(next);
-  }
-  return out;
+  const out: number[] = [];
+  const walk = (i: number): boolean => {
+    if (i === cells.length) return true;
+    const options =
+      i === 0 ? nodesAt(g, cells[0]) : g.adj[out[i - 1]].filter((n) => sameCell(g, n, cells[i]));
+    for (const n of options) {
+      out.push(n);
+      if (walk(i + 1)) return true;
+      out.pop();
+    }
+    return false;
+  };
+  return walk(0) ? out : null;
 }
 
 export function nodesToCells(g: BoardGraph, nodes: number[]): Cell[] {

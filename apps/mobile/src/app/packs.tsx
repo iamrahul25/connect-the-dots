@@ -22,6 +22,11 @@ const DETAILS: Record<number, { grid: string; feature?: string }> = {
   3: { grid: '8×8 – 9×9', feature: 'Bridges' },
   4: { grid: '9×9 – 10×10', feature: 'Warps' },
   5: { grid: '11×11 – 12×12', feature: 'Everything' },
+  6: { grid: '8×8 – 9×9', feature: 'Teleporters' },
+  7: { grid: '9×9 – 10×10', feature: 'Tunnels' },
+  8: { grid: '10×10 – 11×11', feature: 'Rotators' },
+  9: { grid: '10×10 – 11×11', feature: 'Keys & Doors' },
+  10: { grid: '11×11 – 12×12', feature: 'All 7 obstacles' },
 };
 
 const clamp = (v: number, lo: number, hi: number) => Math.round(Math.min(hi, Math.max(lo, v)));

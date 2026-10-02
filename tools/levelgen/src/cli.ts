@@ -10,7 +10,7 @@ import {
   type GenParams,
   type Level,
 } from '@ctd/core';
-import { buildAll, type BuildConfig } from './build';
+import { buildAll, writeManifest, type BuildConfig } from './build';
 import { LEVELS_DIR, ROOT, listLevelFiles, loadLevelsFromFile, pad, readJson, writeIndex, writeJson } from './io';
 import { renderLevel } from './show';
 
@@ -18,12 +18,14 @@ const HELP = `levelgen - Connect the Dots level generator
 
 Usage:
   levelgen generate --size 7 --colors 6-8 [--walls 0-2] [--bridges 1] [--warps 1]
+                    [--teleporters 1] [--tunnels 1-2] [--rotators 1-2] [--locks 1]
                     [--difficulty 35-50] [--count 20] [--seed 42] [--out levels/custom]
   levelgen build    --config tools/levelgen/levels.config.json [--pack 3]
   levelgen validate <dir|file>
   levelgen show     <file> [--solution]
   levelgen daily    --month 2026-10 [--out levels/daily]
   levelgen index    (regenerate levels/index.ts)
+  levelgen manifest [--config ...] (rewrite manifest.json from the recipe, skipping hidden packs, then index)
 `;
 
 function parseArgs(argv: string[]) {
@@ -59,6 +61,10 @@ function cmdGenerate(flags: Record<string, string | true>) {
     walls: range(flags.walls),
     bridges: range(flags.bridges),
     warps: range(flags.warps),
+    teleporters: range(flags.teleporters),
+    tunnels: range(flags.tunnels),
+    rotators: range(flags.rotators),
+    locks: range(flags.locks),
     targetDifficulty: range(flags.difficulty),
     maxSolverTier: flags.tier ? Number(flags.tier) : 4,
   };
@@ -143,6 +149,10 @@ function main() {
       return cmdDaily(flags);
     case 'index':
       return writeIndex();
+    case 'manifest': {
+      writeManifest(readJson<BuildConfig>(resolve(String(flags.config ?? 'tools/levelgen/levels.config.json'))));
+      return writeIndex();
+    }
     default:
       console.log(HELP);
   }

@@ -22,7 +22,16 @@ export function canonicalKey(p: Puzzle): string {
       })
       .sort()
       .join(';');
-    const key = `${W}x${H}#${pairs}#${walls}#${bridges}#${warps}`;
+    let key = `${W}x${H}#${pairs}#${walls}#${bridges}#${warps}`;
+    if (p.teleporters !== undefined) {
+      const cells = (list: { cell: Cell }[] | undefined) => (list ?? []).map((x) => tf(x.cell).join(',')).sort().join(';');
+      const teleporters = p.teleporters
+        .map((t) => [tf(t.a), tf(t.b)].map((c) => c.join(',')).sort().join('-'))
+        .sort()
+        .join(';');
+      const locks = (p.locks ?? []).map((l) => `${tf(l.key).join(',')}>${tf(l.door).join(',')}`).sort().join(';');
+      key += `#${teleporters}#${cells(p.tunnels)}#${cells(p.rotators)}#${locks}`;
+    }
     if (best === null || key < best) best = key;
   }
   return best!;

@@ -5,6 +5,7 @@
     "On the Night theme landscape.sun is drawn as the moon.",
     "Every screen and pack uses the selected theme's colors as-is, except the pack cards on the Packs screen.",
     "packCards.<packId> is that card's accent (border, glow, icon, progress); a pack without an entry uses the theme accent.",
+    "obstacles.teleporters[i] colors teleporter pair i; obstacles.locks[i] colors key & door i (both share it). They are the same on every theme.",
     "board.cellRadius / board.cellGap are fractions of one cell's size (0.22 = corners rounded by 22% of the cell; 0 = square, 0.5 = circle). They apply to the game board, logo, level previews and obstacle help.",
     "Landscape layer opacity (sun, far/mid hills) belongs to the illustration, not to these colors."
   ],
@@ -14,7 +15,17 @@
     "lagoon": "#14B8A6",
     "ember": "#F05A28",
     "aurora": "#2DBE7A",
-    "cosmos": "#8B5CF6"
+    "cosmos": "#8B5CF6",
+    "mirage": "#E879F9",
+    "glacier": "#38BDF8",
+    "tempest": "#6366F1",
+    "temple": "#D4A017",
+    "eclipse": "#F43F5E"
+  },
+  "obstacles": {
+    "teleporters": ["#A855F7", "#EC4899", "#06B6D4", "#84CC16"],
+    "locks": ["#E0A800", "#7C8BA1", "#C2410C"],
+    "lockOnColor": "#FFFFFF"
   },
   "themes": {
     "autumn": {

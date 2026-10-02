@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { dateKey, parseDateKey } from '@ctd/core';
+import { dateKey, parseDateKey, type Layer } from '@ctd/core';
 import { persistStorage } from '../services/storage';
 import { getPack, manifest, PACK_STAR_REQUIREMENTS } from '../data/levels';
 import { unlimitedHintsActive, unlockAllActive } from './settings';
@@ -16,6 +16,8 @@ export interface SavedBoard {
   paths: number[][];
   moves: number;
   hinted: number[];
+  /** Tunnel / rotator orientations; absent for levels without them. */
+  orient?: Layer[];
 }
 
 export interface CompletionResult {

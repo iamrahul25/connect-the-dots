@@ -14,6 +14,34 @@ export interface Warp {
   index: number;
 }
 
+/** Two linked gates: a path entering either gate continues out of the other one. */
+export interface Teleporter {
+  a: Cell;
+  b: Cell;
+}
+
+/** Straight one-lane piece: `h` connects left-right, `v` connects up-down. */
+export type TunnelDir = 'h' | 'v';
+/** L-shaped piece named by the two sides it connects (`ne` = up + right). Clockwise order. */
+export type RotatorDir = 'ne' | 'se' | 'sw' | 'nw';
+
+export interface Tunnel {
+  cell: Cell;
+  /** Orientation shown when the level starts (never the solved one). */
+  start: TunnelDir;
+}
+
+export interface Rotator {
+  cell: Cell;
+  start: RotatorDir;
+}
+
+/** A door opens once a completed path runs through its key. */
+export interface Lock {
+  key: Cell;
+  door: Cell;
+}
+
 /** The minimal description of a playable board. */
 export interface Puzzle {
   size: { width: number; height: number };
@@ -21,6 +49,10 @@ export interface Puzzle {
   walls: Cell[];
   bridges: Cell[];
   warps: Warp[];
+  teleporters?: Teleporter[];
+  tunnels?: Tunnel[];
+  rotators?: Rotator[];
+  locks?: Lock[];
 }
 
 export type DifficultyBand = 'relaxed' | 'easy' | 'medium' | 'hard' | 'expert';
@@ -48,6 +80,10 @@ export interface GenParamsRecord {
   walls: number;
   bridges: number;
   warps: number;
+  teleporters?: number;
+  tunnels?: number;
+  rotators?: number;
+  locks?: number;
 }
 
 export interface Level extends Puzzle {
@@ -55,7 +91,8 @@ export interface Level extends Puzzle {
   id: string;
   pack: number;
   index: number;
-  formatVersion: 1;
+  /** 2 = uses teleporters, tunnels, rotators or locks. */
+  formatVersion: 1 | 2;
   /** Ordered cells per dot index (key = index into `dots`), from `start` to `end`. */
   solution: Record<string, Cell[]>;
   difficulty: Difficulty;
@@ -64,6 +101,8 @@ export interface Level extends Puzzle {
     seed: number;
     generatorVersion: string;
     params: GenParamsRecord;
+    /** Overlay mechanics (tunnels, rotators, locks) are needed for a unique logical solve. */
+    loadBearing?: boolean;
   };
 }
 

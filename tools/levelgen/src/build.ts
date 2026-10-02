@@ -12,15 +12,23 @@ import {
 } from '@ctd/core';
 import { LEVELS_DIR, levelFile, levelId, readJson, writeIndex, writeJson } from './io';
 
+type Count = number | [number, number];
+
 export interface GroupConfig {
   range: [number, number];
   size: number;
   colors: [number, number];
   difficulty: [number, number];
-  walls?: number | [number, number];
-  bridges?: number | [number, number];
-  warps?: number | [number, number];
+  walls?: Count;
+  bridges?: Count;
+  warps?: Count;
+  teleporters?: Count;
+  tunnels?: Count;
+  rotators?: Count;
+  locks?: Count;
   maxSolverTier?: number;
+  /** Generation attempts per level in the group (default 250). */
+  attemptsPerLevel?: number;
   tutorial?: boolean;
   introduces?: string;
   showcase?: boolean;
@@ -30,6 +38,8 @@ export interface PackConfig {
   id: number;
   name: string;
   theme: string;
+  /** Built and validated, but left out of manifest.json / index.ts (the app can't render it yet). */
+  hidden?: boolean;
   groups: GroupConfig[];
 }
 
@@ -48,6 +58,10 @@ function groupParams(g: GroupConfig, seed: number): GenParams {
     walls: g.walls,
     bridges: g.bridges,
     warps: g.warps,
+    teleporters: g.teleporters,
+    tunnels: g.tunnels,
+    rotators: g.rotators,
+    locks: g.locks,
     maxSolverTier: g.maxSolverTier ?? 4,
     targetDifficulty: g.difficulty,
   };
@@ -60,7 +74,10 @@ const dist = (c: Candidate, band: [number, number]) =>
 
 /** Picks `count` candidates spread across the band, falling back to the closest ones. */
 function select(pool: Candidate[], count: number, band: [number, number], preferHard: boolean): Candidate[] {
-  const good = pool.filter((c) => inBand(c, band)).sort((a, b) => a.difficulty.score - b.difficulty.score);
+  let good = pool.filter((c) => inBand(c, band)).sort((a, b) => a.difficulty.score - b.difficulty.score);
+  // Prefer levels whose tunnels / rotators / locks actually matter for the logic.
+  const bearing = good.filter((c) => c.loadBearing !== false);
+  if (bearing.length >= count) good = bearing;
   let chosen: Candidate[];
   if (good.length >= count) {
     chosen = [];
@@ -117,7 +134,7 @@ export function buildAll(config: BuildConfig, opts: BuildOptions = {}): void {
     for (const g of pack.groups) {
       const count = g.range[1] - g.range[0] + 1;
       const target = count * 3;
-      const maxAttempts = count * 250;
+      const maxAttempts = count * (g.attemptsPerLevel ?? 250);
       const pool: Candidate[] = [];
       const stats = emptyStats();
       const t0 = Date.now();
@@ -129,7 +146,7 @@ export function buildAll(config: BuildConfig, opts: BuildOptions = {}): void {
         if (seen.has(key)) continue;
         seen.add(key);
         pool.push(c);
-        if (pool.filter((x) => inBand(x, g.difficulty)).length >= target) break;
+        if (pool.filter((x) => inBand(x, g.difficulty) && x.loadBearing !== false).length >= target) break;
       }
       const chosen = sawtooth(select(pool, count, g.difficulty, !!g.showcase), g.range[0], g);
       if (chosen.length < count) throw new Error(`group ${g.range.join('-')}: only ${chosen.length}/${count} levels`);
@@ -145,9 +162,12 @@ export function buildAll(config: BuildConfig, opts: BuildOptions = {}): void {
         writeJson(levelFile(pack.id, index), { $schema: '../schema/level.schema.json', ...level });
       });
       const scores = chosen.map((c) => c.difficulty.score).join(', ');
+      const bearing = chosen.filter((c) => c.loadBearing).length;
       log(
         `pack ${pack.id} levels ${g.range[0]}-${g.range[1]} (${g.size}x${g.size}): ${stats.attempts} attempts, ` +
-          `${pool.length} candidates, ${((Date.now() - t0) / 1000).toFixed(1)}s  scores: ${scores}`,
+          `${pool.length} candidates, ${((Date.now() - t0) / 1000).toFixed(1)}s  scores: ${scores}` +
+          (chosen.some((c) => c.loadBearing !== undefined) ? `  load-bearing: ${bearing}/${count}` : '') +
+          `  rejects: ${JSON.stringify(stats.rejects)}`,
       );
     }
   }
@@ -158,12 +178,14 @@ export function buildAll(config: BuildConfig, opts: BuildOptions = {}): void {
 export function writeManifest(config: BuildConfig): void {
   const manifest: Manifest = {
     formatVersion: 1,
-    packs: config.packs.map((p) => ({
-      id: p.id,
-      name: p.name,
-      theme: p.theme,
-      levels: Array.from({ length: LEVELS_PER_PACK }, (_, i) => levelId(p.id, i + 1)),
-    })),
+    packs: config.packs
+      .filter((p) => !p.hidden)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        theme: p.theme,
+        levels: Array.from({ length: LEVELS_PER_PACK }, (_, i) => levelId(p.id, i + 1)),
+      })),
   };
   writeJson(path.join(LEVELS_DIR, 'manifest.json'), manifest);
 }

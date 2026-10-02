@@ -1,5 +1,5 @@
 {
-  "generatorVersion": "1.0.0",
+  "generatorVersion": "2.0.0",
   "packs": [
     {
       "id": 1,
@@ -48,6 +48,60 @@
         { "range": [81, 90], "size": 11, "colors": [8, 11], "walls": [0, 3], "bridges": [0, 2], "warps": [0, 2], "difficulty": [55, 72] },
         { "range": [91, 99], "size": 12, "colors": [9, 12], "walls": [1, 4], "bridges": [1, 2], "warps": [1, 2], "difficulty": [60, 85] },
         { "range": [100, 100], "size": 12, "colors": [10, 12], "walls": [2, 4], "bridges": 2, "warps": 2, "difficulty": [65, 90], "showcase": true }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Mirage",
+      "theme": "mirage",
+      "groups": [
+        { "range": [101, 105], "size": 8, "colors": [6, 8], "teleporters": 1, "difficulty": [30, 45], "introduces": "teleporters" },
+        { "range": [106, 110], "size": 8, "colors": [6, 8], "teleporters": 1, "walls": [1, 2], "difficulty": [33, 48] },
+        { "range": [111, 115], "size": 9, "colors": [7, 9], "teleporters": [1, 2], "walls": [1, 3], "difficulty": [38, 52] },
+        { "range": [116, 120], "size": 9, "colors": [7, 9], "teleporters": 2, "bridges": 1, "difficulty": [42, 56], "attemptsPerLevel": 400 }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Glacier",
+      "theme": "glacier",
+      "groups": [
+        { "range": [121, 125], "size": 9, "colors": [6, 8], "tunnels": [1, 2], "difficulty": [35, 50], "introduces": "tunnels" },
+        { "range": [126, 130], "size": 9, "colors": [6, 8], "tunnels": [2, 3], "bridges": 1, "difficulty": [40, 55] },
+        { "range": [131, 135], "size": 10, "colors": [7, 9], "tunnels": [2, 3], "walls": [1, 3], "teleporters": 1, "difficulty": [45, 58] },
+        { "range": [136, 140], "size": 10, "colors": [7, 10], "tunnels": [3, 4], "bridges": [1, 2], "warps": 1, "difficulty": [48, 62] }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Tempest",
+      "theme": "tempest",
+      "groups": [
+        { "range": [141, 145], "size": 10, "colors": [7, 9], "rotators": [1, 2], "difficulty": [42, 56], "introduces": "rotators", "attemptsPerLevel": 400 },
+        { "range": [146, 150], "size": 10, "colors": [7, 9], "rotators": [2, 3], "tunnels": [1, 2], "difficulty": [45, 60], "attemptsPerLevel": 400 },
+        { "range": [151, 155], "size": 10, "colors": [7, 10], "rotators": [2, 3], "walls": [1, 3], "warps": 1, "difficulty": [48, 62], "attemptsPerLevel": 400 },
+        { "range": [156, 160], "size": 11, "colors": [9, 11], "rotators": [3, 4], "tunnels": [1, 2], "teleporters": 1, "difficulty": [52, 66], "attemptsPerLevel": 600 }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Temple",
+      "theme": "temple",
+      "groups": [
+        { "range": [161, 165], "size": 10, "colors": [7, 9], "locks": 1, "difficulty": [45, 58], "introduces": "locks", "attemptsPerLevel": 600 },
+        { "range": [166, 170], "size": 11, "colors": [9, 11], "locks": 1, "walls": [1, 3], "teleporters": 1, "difficulty": [50, 63], "attemptsPerLevel": 1500 },
+        { "range": [171, 175], "size": 11, "colors": [9, 11], "locks": [1, 2], "rotators": [1, 2], "tunnels": [1, 2], "difficulty": [52, 66], "attemptsPerLevel": 600 },
+        { "range": [176, 180], "size": 11, "colors": [9, 11], "locks": 2, "bridges": 1, "warps": 1, "rotators": [1, 2], "difficulty": [55, 70], "attemptsPerLevel": 600 }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Eclipse",
+      "theme": "eclipse",
+      "groups": [
+        { "range": [181, 190], "size": 11, "colors": [9, 11], "walls": [1, 3], "bridges": 1, "warps": 1, "teleporters": 1, "tunnels": [1, 2], "rotators": [1, 2], "locks": 1, "difficulty": [57, 72], "attemptsPerLevel": 600 },
+        { "range": [191, 199], "size": 12, "colors": [10, 12], "walls": [2, 4], "bridges": [1, 2], "warps": [1, 2], "teleporters": [1, 2], "tunnels": [2, 3], "rotators": [2, 3], "locks": [1, 2], "difficulty": [62, 80], "attemptsPerLevel": 600 },
+        { "range": [200, 200], "size": 12, "colors": [10, 12], "walls": [2, 4], "bridges": 2, "warps": 2, "teleporters": 2, "tunnels": 3, "rotators": 3, "locks": 2, "difficulty": [66, 90], "attemptsPerLevel": 1500, "showcase": true }
       ]
     }
   ]

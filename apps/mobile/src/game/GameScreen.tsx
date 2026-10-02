@@ -3,7 +3,7 @@ import { Platform, Text, View, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { Game, sameCell, type Cell, type GameEvent, type Level } from '@ctd/core';
+import { Game, isTeleportStep, sameCell, type Cell, type GameEvent, type Level } from '@ctd/core';
 import { Board } from '../board/Board';
 import { cellAtRaw, cellCenter, clampCell, frameWidth, makeGeom } from '../board/geometry';
 import type { Effect, EffectInput } from '../board/effects';
@@ -16,6 +16,7 @@ import { ObstacleInfo, obstaclesIn } from './ObstacleInfo';
 import { fonts, tokens } from '../theme/tokens';
 import { musicFor } from '../theme/packs';
 import { makeStyles, usePalette, useTheme } from '../theme/useTheme';
+import { lockColor } from '../theme/config';
 import { useSettings } from '../store/settings';
 import { starsFor, useProgress } from '../store/progress';
 import { audio } from '../services/audio';
@@ -236,6 +237,36 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
             }
             break;
           }
+          case 'teleport': {
+            audio.play('warp', { volume: 0.6 });
+            haptics.light();
+            const color = lineOf(e.pair);
+            for (const n of [e.from, e.to]) {
+              const [x, y] = centerOfNode(n);
+              emit({ kind: 'ring', dur: 550, x, y, color, r0: gg.cell * 0.15, r1: gg.cell * 0.9, width: 3 });
+            }
+            break;
+          }
+          case 'rotate': {
+            audio.play('tap', { volume: 0.5 });
+            haptics.selection();
+            const [x, y] = cellCenter(gg, e.cell[0], e.cell[1]);
+            emit({ kind: 'ring', dur: 350, x, y, color: ref.current.theme.board.bridgeBorder, r0: gg.cell * 0.3, r1: gg.cell * 0.6, width: 2 });
+            break;
+          }
+          case 'door': {
+            const lock = ref.current.level.locks?.[e.lock];
+            if (!lock) break;
+            const [x, y] = cellCenter(gg, lock.door[0], lock.door[1]);
+            if (e.open) {
+              audio.play('hint', { volume: 0.6 });
+              haptics.light();
+              emit({ kind: 'ring', dur: 650, x, y, color: lockColor(e.lock), r0: gg.cell * 0.3, r1: gg.cell * 1.1, width: 3 });
+            } else {
+              audio.play('cut', { volume: 0.4 });
+            }
+            break;
+          }
           case 'win':
             onWin();
             break;
@@ -253,17 +284,27 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
 
   const lastTarget = useRef<Cell | null>(null);
   const wrapShift = useRef<[number, number]>([0, 0]);
+  /** A press on a tunnel / rotator: a release without leaving the cell rotates it, a drag starts a path there. */
+  const pendingTap = useRef<Cell | null>(null);
+  /** Path length kept from before this gesture; only teleports made during the gesture offset the pointer. */
+  const gestureBase = useRef(0);
 
   const onDown = useCallback(
     (x: number, y: number) => {
       if (wonRef.current) return;
       const { game: gm, geom: gg } = ref.current;
       const [r, c] = cellAtRaw(gg, x, y);
+      pendingTap.current = null;
       if (r < 0 || c < 0 || r >= gg.H || c >= gg.W) return;
       lastTarget.current = [r, c];
       wrapShift.current = [0, 0];
+      if (gm.orientationAt([r, c])) {
+        pendingTap.current = [r, c];
+        return;
+      }
       const ev = gm.beginDrag([r, c]);
       if (ev.length) {
+        gestureBase.current = gm.view()[gm.dragging].length;
         process(ev);
         bump();
       }
@@ -274,13 +315,37 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
   const onMove = useCallback(
     (x: number, y: number) => {
       const { game: gm, geom: gg } = ref.current;
-      if (wonRef.current || gm.dragging < 0) return;
+      if (wonRef.current) return;
+      if (pendingTap.current) {
+        const start = pendingTap.current;
+        if (sameCellPair(cellAtRaw(gg, x, y), start)) return;
+        pendingTap.current = null;
+        const ev = gm.beginDrag(start);
+        if (!ev.length) return;
+        gestureBase.current = gm.view()[gm.dragging].length;
+        process(ev);
+        bump();
+      }
+      if (gm.dragging < 0) return;
       const g = gm.g;
       const headOf = () => {
         const p = gm.view()[gm.dragging];
         const n = p[p.length - 1];
         return [g.nodeRow[n], g.nodeCol[n]] as Cell;
       };
+      // After a teleport the head is at the exit gate while the finger is still on the entry gate,
+      // so the pointer is offset by the jump for as long as the path keeps that teleport.
+      const tele = (() => {
+        const p = gm.view()[gm.dragging];
+        gestureBase.current = Math.min(gestureBase.current, p.length);
+        for (let i = p.length - 1; i >= gestureBase.current; i--) {
+          if (!isTeleportStep(g, p[i - 1], p[i])) continue;
+          const [ax, ay] = cellCenter(gg, g.nodeRow[p[i - 1]], g.nodeCol[p[i - 1]]);
+          const [bx, by] = cellCenter(gg, g.nodeRow[p[i]], g.nodeCol[p[i]]);
+          return { dx: bx - ax, dy: by - ay, entry: i - 1 };
+        }
+        return { dx: 0, dy: 0, entry: -1 };
+      })();
       const spanX = gg.W * gg.cell;
       const spanY = gg.H * gg.cell;
       const inside = (px: number, py: number) => px >= gg.ox && px < gg.ox + spanX && py >= gg.oy && py < gg.oy + spanY;
@@ -328,12 +393,20 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
         vy = y;
       }
 
-      const target = clampCell(gg, cellAtRaw(gg, vx, vy));
+      const target = clampCell(gg, cellAtRaw(gg, vx + tele.dx, vy + tele.dy));
       if (lastTarget.current && sameCellPair(lastTarget.current, target)) return;
       lastTarget.current = target;
 
       const events: GameEvent[] = [];
       const path = gm.view()[gm.dragging];
+      // With the pointer offset, the only way back through a teleporter is the finger returning to the
+      // path before the entry gate when it can't move forward from the exit.
+      const backThroughGate = () => {
+        if (tele.entry < 0) return;
+        const real = clampCell(gg, cellAtRaw(gg, vx, vy));
+        const j = path.findIndex((n) => sameCell(g, n, real));
+        if (j >= 0 && j < tele.entry) events.push(...gm.dragTo(real));
+      };
       if (path.some((n) => sameCell(g, n, target))) {
         events.push(...gm.dragTo(target));
       } else {
@@ -352,7 +425,12 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
           }
           if (ev.length === 0) break;
           events.push(...ev);
-          if (ev[0].type === 'invalid' || ev.some((e) => e.type === 'connect')) break;
+          if (ev[0].type === 'invalid' || ev.some((e) => e.type === 'connect' || e.type === 'teleport')) break;
+        }
+        if (events.length === 0 || events[0].type === 'invalid') {
+          const blocked = events.splice(0);
+          backThroughGate();
+          if (events.length === 0) events.push(...blocked);
         }
       }
       if (events.length) {
@@ -367,6 +445,17 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
     const { game: gm, geom: gg } = ref.current;
     lastTarget.current = null;
     wrapShift.current = [0, 0];
+    const tap = pendingTap.current;
+    pendingTap.current = null;
+    if (tap && gm.dragging < 0 && !wonRef.current) {
+      const ev = gm.rotate(tap);
+      if (ev.length) {
+        process(ev);
+        bump();
+        save();
+      }
+      return;
+    }
     if (gm.dragging < 0) return;
     const ev = gm.endDrag();
     bump();
@@ -376,7 +465,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
       toast.show('Fill every cell ✨');
       const owner = gm.ownerMap();
       for (let v = 0; v < gm.g.nodeCount; v++) {
-        if (owner[v] !== -1 || gm.endpointPair[v] !== -1) continue;
+        if (owner[v] !== -1 || gm.endpointPair[v] !== -1 || !gm.isActive(v)) continue;
         const [x, y] = cellCenter(gg, gm.g.nodeRow[v], gm.g.nodeCol[v]);
         emit({ kind: 'flash', dur: 900, x: x - gg.cell / 2 + 2, y: y - gg.cell / 2 + 2, w: gg.cell - 4, h: gg.cell - 4, radius: gg.cell * 0.2, color: ref.current.theme.accent.color });
       }

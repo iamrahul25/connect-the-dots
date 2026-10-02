@@ -79,7 +79,9 @@ export function listLevelFiles(dir: string): string[] {
   const walk = (d: string) => {
     for (const e of fs.readdirSync(d, { withFileTypes: true })) {
       const p = path.join(d, e.name);
-      if (e.isDirectory()) walk(p);
+      if (e.isDirectory()) {
+        if (e.name !== 'schema') walk(p);
+      }
       else if (e.name.endsWith('.json') && e.name !== 'manifest.json' && e.name !== 'package.json') out.push(p);
     }
   };

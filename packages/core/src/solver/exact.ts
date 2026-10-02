@@ -53,7 +53,7 @@ export function solveExact(
     // An empty cell with exactly two possible neighbors must use both, so a
     // neighboring head is forced into it.
     for (let v = 0; v < g.nodeCount; v++) {
-      if (s.owner[v] !== -1) continue;
+      if (s.owner[v] !== -1 || !s.isMandatory(v)) continue;
       let avail = 0;
       let headNb = -1;
       for (const n of g.adj[v]) {
@@ -65,7 +65,10 @@ export function solveExact(
       }
       if (avail === 2 && headNb !== -1) {
         const pair = s.headOf[headNb];
-        s.apply(pair, s.sideOfHead(pair, headNb), v);
+        const side = s.sideOfHead(pair, headNb);
+        // v must take the edge to this head, so an illegal step is a contradiction.
+        if (!s.canStep(pair, side, v)) return;
+        s.apply(pair, side, v);
         dfs(depth + 1);
         s.undo();
         return;

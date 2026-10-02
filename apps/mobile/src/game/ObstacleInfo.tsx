@@ -6,12 +6,13 @@ import type { Puzzle } from '@ctd/core';
 import { GlassButton } from '../ui/GlassButton';
 import { HatchedTile } from '../ui/HatchedTile';
 import { fonts, tokens } from '../theme/tokens';
-import type { DotStyle, Palette } from '../theme/config';
+import { LOCK_ON_COLOR, lockColor, teleporterColor, type DotStyle, type Palette } from '../theme/config';
+import { withAlpha } from '../board/color';
 import { makeStyles, useTheme } from '../theme/useTheme';
 
-export type ObstacleKind = 'walls' | 'bridges' | 'warps';
+export type ObstacleKind = 'walls' | 'bridges' | 'warps' | 'teleporters' | 'tunnels' | 'rotators' | 'locks';
 
-const KINDS: ObstacleKind[] = ['walls', 'bridges', 'warps'];
+const KINDS: ObstacleKind[] = ['walls', 'bridges', 'warps', 'teleporters', 'tunnels', 'rotators', 'locks'];
 
 const INFO: Record<ObstacleKind, { name: string; looks: string; rule: string }> = {
   walls: {
@@ -29,10 +30,32 @@ const INFO: Record<ObstacleKind, { name: string; looks: string; rule: string }> 
     looks: 'Glowing gates with arrows at both ends of a tinted row or column.',
     rule: 'Drag a flow off one bar and it re-enters from the matching bar on the other side.',
   },
+  teleporters: {
+    name: 'Teleporters',
+    looks: 'Pairs of glowing rings in matching colors.',
+    rule: 'Enter one ring and the flow jumps to its twin, then keeps going from there. Works both ways.',
+  },
+  tunnels: {
+    name: 'Tunnels',
+    looks: 'A raised piece with a straight groove.',
+    rule: 'Flows only pass along the groove. Tap it to turn it a quarter; turning it cuts any flow inside.',
+  },
+  rotators: {
+    name: 'Rotators',
+    looks: 'A raised piece with an L-shaped groove.',
+    rule: 'Flows turn the corner along the groove. Tap it to rotate it clockwise; rotating cuts any flow inside.',
+  },
+  locks: {
+    name: 'Keys & Doors',
+    looks: 'A key and a solid door tile in the same color.',
+    rule: 'Connect a flow through the key to open its door. The door must then be filled; breaking that flow locks it again.',
+  },
 };
 
+const countOf = (puzzle: Puzzle, k: ObstacleKind) => (puzzle[k] ?? []).length;
+
 export function obstaclesIn(puzzle: Puzzle): ObstacleKind[] {
-  return KINDS.filter((k) => puzzle[k].length > 0);
+  return KINDS.filter((k) => countOf(puzzle, k) > 0);
 }
 
 interface Props {
@@ -74,10 +97,14 @@ export function ObstacleInfo({ puzzle, palette, onClose }: Props) {
                 {k === 'walls' && <WallPreview color={color(0)} />}
                 {k === 'bridges' && <BridgePreview across={color(1)} over={color(2)} />}
                 {k === 'warps' && <WarpPreview color={color(3)} />}
+                {k === 'teleporters' && <TeleportPreview color={color(4)} />}
+                {k === 'tunnels' && <PiecePreview ports={['left', 'right']} color={color(5)} />}
+                {k === 'rotators' && <PiecePreview ports={['down', 'right']} color={color(6)} />}
+                {k === 'locks' && <LockPreview color={color(7)} />}
                 <View style={{ flex: 1 }}>
                   <View style={styles.nameRow}>
                     <Text style={styles.name}>{INFO[k].name}</Text>
-                    <Text style={styles.count}>×{puzzle[k].length}</Text>
+                    <Text style={styles.count}>×{countOf(puzzle, k)}</Text>
                   </View>
                   <Text style={styles.looks}>{INFO[k].looks}</Text>
                   <Text style={styles.rule}>{INFO[k].rule}</Text>
@@ -219,6 +246,112 @@ function WarpPreview({ color }: { color: DotStyle }) {
       <Pipe from={[0, -0.25]} to={[0, 0]} color={color} />
       <Dot at={[0, 2]} color={color} />
       <Dot at={[0, 0]} color={color} />
+    </Plate>
+  );
+}
+
+function Ring({ at, color }: { at: Pt; color: string }) {
+  const d = C * 0.7;
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        left: (at[1] + 0.5) * C - d / 2,
+        top: (at[0] + 0.5) * C - d / 2,
+        width: d,
+        height: d,
+        borderRadius: d / 2,
+        borderWidth: 2.5,
+        borderColor: color,
+        backgroundColor: withAlpha(color, 0.18),
+      }}
+    />
+  );
+}
+
+function TeleportPreview({ color }: { color: DotStyle }) {
+  const gate = teleporterColor(0);
+  return (
+    <Plate rows={1} cols={5}>
+      <Tiles rows={1} cols={5} />
+      <Ring at={[0, 1]} color={gate} />
+      <Ring at={[0, 3]} color={gate} />
+      <Pipe from={[0, 0]} to={[0, 1]} color={color} />
+      <Pipe from={[0, 3]} to={[0, 4]} color={color} />
+      <Dot at={[0, 0]} color={color} />
+      <Dot at={[0, 4]} color={color} />
+    </Plate>
+  );
+}
+
+const PORT_VEC = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] } as const;
+
+function PiecePreview({ ports, color }: { ports: (keyof typeof PORT_VEC)[]; color: DotStyle }) {
+  const styles = useStyles();
+  const { board } = useTheme();
+  const groove = C * tokens.pathWidthRatio * 1.7;
+  const reach = C * 0.38;
+  const ends = ports.map((p) => [1 + PORT_VEC[p][0], 1 + PORT_VEC[p][1]] as Pt);
+  return (
+    <Plate rows={3} cols={3}>
+      <Tiles rows={3} cols={3} />
+      <View style={[styles.bridge, styles.bridgeShadow]} />
+      <View style={styles.bridge} />
+      {ports.map((p) => {
+        const [dr, dc] = PORT_VEC[p];
+        const cx = 1.5 * C;
+        const cy = 1.5 * C;
+        return (
+          <View
+            key={p}
+            style={{
+              position: 'absolute',
+              left: Math.min(cx, cx + dc * reach) - groove / 2,
+              top: Math.min(cy, cy + dr * reach) - groove / 2,
+              width: Math.abs(dc * reach) + groove,
+              height: Math.abs(dr * reach) + groove,
+              borderRadius: groove / 2,
+              backgroundColor: board.bridgeRail,
+            }}
+          />
+        );
+      })}
+      {ends.map((e, i) => (
+        <Pipe key={i} from={e} to={[1, 1]} color={color} />
+      ))}
+      {ends.map((e, i) => (
+        <Dot key={`d${i}`} at={e} color={color} />
+      ))}
+    </Plate>
+  );
+}
+
+function LockPreview({ color }: { color: DotStyle }) {
+  const lock = lockColor(0);
+  return (
+    <Plate rows={2} cols={3}>
+      <Tiles rows={2} cols={3} />
+      <Pipe from={[0, 0]} to={[0, 2]} color={color} />
+      <Dot at={[0, 0]} color={color} />
+      <Dot at={[0, 2]} color={color} />
+      <View style={{ position: 'absolute', left: C, top: 0, width: C, height: C, alignItems: 'center', justifyContent: 'center' }}>
+        <Ionicons name="key" size={C * 0.6} color={lock} />
+      </View>
+      <View
+        style={{
+          position: 'absolute',
+          left: C + 1.5,
+          top: C + 1.5,
+          width: C - 3,
+          height: C - 3,
+          borderRadius: C * 0.15,
+          backgroundColor: lock,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Ionicons name="lock-closed" size={C * 0.5} color={LOCK_ON_COLOR} />
+      </View>
     </Plate>
   );
 }

@@ -1,4 +1,4 @@
-import { stepDirection, type BoardGraph } from './graph';
+import { isTeleportStep, stepDirection, type BoardGraph } from './graph';
 import type { Difficulty, DifficultyBand, DifficultyMetrics } from './types';
 import type { HumanResult } from './solver/human';
 
@@ -18,6 +18,7 @@ export function turnDensity(g: BoardGraph, paths: number[][]): number {
   for (const p of paths) {
     cells += p.length;
     for (let i = 1; i < p.length - 1; i++) {
+      if (isTeleportStep(g, p[i - 1], p[i]) || isTeleportStep(g, p[i], p[i + 1])) continue;
       if (stepDirection(g, p[i - 1], p[i]) !== stepDirection(g, p[i], p[i + 1])) turns++;
     }
   }
@@ -28,6 +29,10 @@ export interface MechanicsCount {
   walls: number;
   bridges: number;
   warps: number;
+  teleporters?: number;
+  tunnels?: number;
+  rotators?: number;
+  locks?: number;
 }
 
 export function computeDifficulty(
@@ -45,7 +50,17 @@ export function computeDifficulty(
   const total = t1 + t2 + t3 + t4 || 1;
   const forcedMoveRatio = t1 / total;
   const lookahead = human.maxTier >= 5 ? 2 : t4 > 0 ? 1 : 0;
-  const mechanicsWeight = norm(mech.bridges * 1.0 + mech.warps * 1.2 + mech.walls * 0.4, 0, 4);
+  const mechanicsWeight = norm(
+    mech.bridges * 1.0 +
+      mech.warps * 1.2 +
+      mech.walls * 0.4 +
+      (mech.teleporters ?? 0) * 1.2 +
+      (mech.tunnels ?? 0) * 0.5 +
+      (mech.rotators ?? 0) * 0.6 +
+      (mech.locks ?? 0) * 1.0,
+    0,
+    4,
+  );
 
   const score =
     18 * norm(cells, 25, 196) +

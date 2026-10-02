@@ -1,0 +1,96 @@
+{
+  "$schema": "../schema/level.schema.json",
+  "id": "p06-l005",
+  "pack": 6,
+  "index": 5,
+  "formatVersion": 2,
+  "size": {
+    "width": 8,
+    "height": 8
+  },
+  "dots": [
+    {
+      "color": 2,
+      "start": [2, 0],
+      "end": [5, 4]
+    },
+    {
+      "color": 3,
+      "start": [2, 1],
+      "end": [3, 3]
+    },
+    {
+      "color": 5,
+      "start": [2, 2],
+      "end": [2, 5]
+    },
+    {
+      "color": 4,
+      "start": [4, 1],
+      "end": [5, 7]
+    },
+    {
+      "color": 0,
+      "start": [4, 5],
+      "end": [7, 1]
+    },
+    {
+      "color": 1,
+      "start": [6, 1],
+      "end": [6, 5]
+    }
+  ],
+  "walls": [],
+  "bridges": [],
+  "warps": [],
+  "teleporters": [
+    {
+      "a": [6, 6],
+      "b": [7, 3]
+    }
+  ],
+  "tunnels": [],
+  "rotators": [],
+  "locks": [],
+  "solution": {
+    "0": [[2, 0], [1, 0], [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [1, 7], [2, 7], [3, 7], [4, 7], [4, 6], [5, 6], [5, 5], [5, 4]],
+    "1": [[2, 1], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [2, 6], [3, 6], [3, 5], [3, 4], [3, 3]],
+    "2": [[2, 2], [2, 3], [2, 4], [2, 5]],
+    "3": [[4, 1], [5, 1], [5, 2], [5, 3], [6, 3], [6, 4], [7, 4], [7, 5], [7, 6], [7, 7], [6, 7], [5, 7]],
+    "4": [[4, 5], [4, 4], [4, 3], [4, 2], [3, 2], [3, 1], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [7, 1]],
+    "5": [[6, 1], [6, 2], [7, 2], [7, 3], [6, 6], [6, 5]]
+  },
+  "difficulty": {
+    "score": 44.6,
+    "band": "medium",
+    "metrics": {
+      "cells": 64,
+      "colors": 6,
+      "avgPathLength": 10.67,
+      "turnDensity": 0.313,
+      "maxSolverTier": 4,
+      "tierCounts": [52, 1, 4, 1],
+      "searchNodes": 157,
+      "forcedMoveRatio": 0.897
+    }
+  },
+  "stars": {
+    "perfectMoves": 6,
+    "twoStarMoves": 9
+  },
+  "meta": {
+    "seed": 1202597169,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 8,
+      "colors": [6, 8],
+      "walls": 0,
+      "bridges": 0,
+      "warps": 0,
+      "teleporters": 1,
+      "tunnels": 0,
+      "rotators": 0,
+      "locks": 0
+    }
+  }
+}

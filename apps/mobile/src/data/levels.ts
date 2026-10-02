@@ -4,7 +4,9 @@ import { dailyBanks, levels, manifest } from '@ctd/levels';
 export { manifest };
 
 export const LEVELS_PER_PACK = 20;
-export const PACK_STAR_REQUIREMENTS: Record<number, number> = { 1: 0, 2: 30, 3: 70, 4: 110, 5: 150 };
+export const PACK_STAR_REQUIREMENTS: Record<number, number> = {
+  1: 0, 2: 30, 3: 70, 4: 110, 5: 150, 6: 190, 7: 230, 8: 270, 9: 310, 10: 350,
+};
 
 export type Pack = (typeof manifest.packs)[number];
 

@@ -8,6 +8,8 @@ export interface CoverOptions {
   maxLen: number;
   /** Warp edges ([a, b] node pairs) that at least one path must traverse. */
   warpEdges: [number, number][];
+  /** Teleporter edges: their two gates must be consecutive in one path. */
+  teleportEdges?: [number, number][];
   maxIterations: number;
 }
 
@@ -20,8 +22,8 @@ interface Eval {
 /**
  * Energy of a path cover; 0 means every hard constraint holds:
  * path count in range, lengths in range, no self-touching paths,
- * no endpoint on a bridge, bridges crossed by two different paths,
- * and every warp used.
+ * no endpoint on a bridge or gate, bridges crossed by two different paths,
+ * every warp used, and every teleporter taken gate-to-gate.
  */
 function evaluate(g: BoardGraph, paths: number[][], o: CoverOptions, pid: Int32Array, pos: Int32Array): number {
   for (let p = 0; p < paths.length; p++) {
@@ -42,6 +44,8 @@ function evaluate(g: BoardGraph, paths: number[][], o: CoverOptions, pid: Int32A
     if (L > o.maxLen) e += (L - o.maxLen) * 2;
     if (g.nodeLayer[P[0]] !== 'n') e += 6;
     if (g.nodeLayer[P[L - 1]] !== 'n') e += 6;
+    if (g.partner[P[0]] !== -1) e += 6;
+    if (g.partner[P[L - 1]] !== -1) e += 6;
     for (let i = 0; i < L; i++) {
       const u = P[i];
       for (const v of g.adj[u]) {
@@ -54,6 +58,9 @@ function evaluate(g: BoardGraph, paths: number[][], o: CoverOptions, pid: Int32A
     if (ns.length === 2 && pid[ns[0]] === pid[ns[1]]) e += 2;
   }
   for (const [a, b] of o.warpEdges) {
+    if (!(pid[a] === pid[b] && Math.abs(pos[a] - pos[b]) === 1)) e += 4;
+  }
+  for (const [a, b] of o.teleportEdges ?? []) {
     if (!(pid[a] === pid[b] && Math.abs(pos[a] - pos[b]) === 1)) e += 4;
   }
   return e;

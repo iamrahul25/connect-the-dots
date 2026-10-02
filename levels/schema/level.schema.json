@@ -18,7 +18,7 @@
     "id": { "type": "string", "pattern": "^(p\\d{2}-l\\d{3}|daily-\\d{4}-\\d{2}-\\d{2})$" },
     "pack": { "type": "integer", "minimum": 0 },
     "index": { "type": "integer", "minimum": 1 },
-    "formatVersion": { "const": 1 },
+    "formatVersion": { "enum": [1, 2], "description": "2 = uses teleporters, tunnels, rotators or locks" },
     "size": {
       "type": "object",
       "required": ["width", "height"],
@@ -52,6 +52,42 @@
           "axis": { "enum": ["row", "col"] },
           "index": { "type": "integer", "minimum": 0 }
         }
+      }
+    },
+    "teleporters": {
+      "type": "array",
+      "description": "Linked gate pairs; entering either gate continues out of the other",
+      "items": {
+        "type": "object",
+        "required": ["a", "b"],
+        "properties": { "a": { "$ref": "#/$defs/cell" }, "b": { "$ref": "#/$defs/cell" } }
+      }
+    },
+    "tunnels": {
+      "type": "array",
+      "description": "Straight one-lane pieces the player rotates; start is the unsolved orientation",
+      "items": {
+        "type": "object",
+        "required": ["cell", "start"],
+        "properties": { "cell": { "$ref": "#/$defs/cell" }, "start": { "enum": ["h", "v"] } }
+      }
+    },
+    "rotators": {
+      "type": "array",
+      "description": "L-shaped pieces named by the two sides they connect",
+      "items": {
+        "type": "object",
+        "required": ["cell", "start"],
+        "properties": { "cell": { "$ref": "#/$defs/cell" }, "start": { "enum": ["ne", "se", "sw", "nw"] } }
+      }
+    },
+    "locks": {
+      "type": "array",
+      "description": "A door opens once a completed path runs through its key",
+      "items": {
+        "type": "object",
+        "required": ["key", "door"],
+        "properties": { "key": { "$ref": "#/$defs/cell" }, "door": { "$ref": "#/$defs/cell" } }
       }
     },
     "solution": {

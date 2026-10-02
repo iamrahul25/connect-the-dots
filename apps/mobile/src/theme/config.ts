@@ -22,6 +22,16 @@ export function packCardAccent(theme: UiTheme, pack: string): string {
   return (raw.packCards as Record<string, string>)[pack] ?? theme.accent.color;
 }
 
+export function teleporterColor(i: number): string {
+  return raw.obstacles.teleporters[i % raw.obstacles.teleporters.length];
+}
+
+export function lockColor(i: number): string {
+  return raw.obstacles.locks[i % raw.obstacles.locks.length];
+}
+
+export const LOCK_ON_COLOR = raw.obstacles.lockOnColor;
+
 export function themeName(id: ThemeId): string {
   return raw.themes[id].name;
 }

@@ -246,6 +246,121 @@ describe('engine', () => {
   });
 });
 
+describe('new mechanics', () => {
+  const count = (p: Puzzle) => {
+    const g = buildGraph(specOf(p));
+    return solveExact(g, endpointNodes(g, p), { maxSolutions: 3 }).solutions.length;
+  };
+
+  it('models tunnels and rotators as one-of orientation nodes', () => {
+    const g = buildGraph({ ...plain(3, 3), tunnels: [[1, 1]], rotators: [[0, 1]] });
+    const cellOf = (n: number) => `${g.nodeRow[n]},${g.nodeCol[n]}`;
+    const [h, v] = nodesAt(g, [1, 1]);
+    expect(g.adj[h].map(cellOf).sort()).toEqual(['1,0', '1,2']);
+    expect(g.adj[v].map(cellOf).sort()).toEqual(['0,1', '0,1', '2,1']);
+    const [ne, se, sw, nw] = nodesAt(g, [0, 1]);
+    expect(g.adj[ne].map(cellOf)).toEqual(['0,2']);
+    expect(g.adj[se].map(cellOf).sort()).toEqual(['0,2', '1,1']);
+    expect(g.adj[sw].map(cellOf).sort()).toEqual(['0,0', '1,1']);
+    expect(g.adj[nw].map(cellOf)).toEqual(['0,0']);
+    expect(g.unitCount).toBe(9);
+  });
+
+  it('tunnels, rotators and locks prune solutions', () => {
+    expect(count(strip)).toBe(2);
+    expect(count({ ...strip, tunnels: [{ cell: [0, 1], start: 'v' }] })).toBe(1);
+    expect(count({ ...strip, rotators: [{ cell: [0, 1], start: 'ne' }] })).toBe(1);
+    expect(count({ ...strip, locks: [{ key: [1, 1], door: [2, 1] }] })).toBe(1);
+    const both = { ...strip, tunnels: [{ cell: [0, 1] as [number, number], start: 'v' as const }], locks: [{ key: [1, 1] as [number, number], door: [2, 1] as [number, number] }] };
+    expect(count(both)).toBe(0);
+  });
+
+  it('forces travel through teleporters', () => {
+    const line: Puzzle = {
+      size: { width: 6, height: 1 },
+      dots: [{ color: 0, start: [0, 0], end: [0, 5] }],
+      walls: [],
+      bridges: [],
+      warps: [],
+    };
+    expect(count(line)).toBe(1);
+    expect(count({ ...line, teleporters: [{ a: [0, 1], b: [0, 4] }] })).toBe(0);
+  });
+
+  it('teleports the drag head and retracts through the gate', () => {
+    const p: Puzzle = {
+      size: { width: 5, height: 1 },
+      dots: [{ color: 0, start: [0, 0], end: [0, 4] }],
+      walls: [],
+      bridges: [],
+      warps: [],
+      teleporters: [{ a: [0, 1], b: [0, 3] }],
+    };
+    const game = new Game(p);
+    game.beginDrag([0, 0]);
+    const ev = game.dragTo([0, 1]);
+    expect(ev.some((e) => e.type === 'teleport')).toBe(true);
+    expect(game.view()[0].map((n) => game.g.nodeCol[n])).toEqual([0, 1, 3]);
+    expect(game.dragTo([0, 4]).some((e) => e.type === 'connect')).toBe(true);
+    game.dragTo([0, 3]);
+    game.dragTo([0, 1]);
+    expect(game.view()[0].map((n) => game.g.nodeCol[n])).toEqual([0]);
+  });
+
+  it('tunnels accept only their current orientation and rotating cuts paths', () => {
+    const p: Puzzle = { ...tiny, tunnels: [{ cell: [0, 1], start: 'v' }] };
+    const game = new Game(p);
+    game.beginDrag([0, 0]);
+    expect(game.dragTo([0, 1])[0].type).toBe('invalid');
+    game.endDrag();
+    expect(game.rotate([0, 1])[0]).toEqual({ type: 'rotate', cell: [0, 1], dir: 'h' });
+    game.beginDrag([0, 0]);
+    game.dragTo([0, 1]);
+    game.dragTo([1, 1]);
+    game.endDrag();
+    expect(game.view()[0].length).toBe(2);
+    const ev = game.rotate([0, 1]);
+    expect(ev.some((e) => e.type === 'cut' && e.pair === 0)).toBe(true);
+    expect(game.view()[0]).toEqual([]);
+    expect(game.orientationAt([0, 1])).toBe('v');
+    game.undo();
+    expect(game.orientationAt([0, 1])).toBe('h');
+    expect(game.view()[0].length).toBe(2);
+  });
+
+  it('opens doors with completed key paths and re-locks them', () => {
+    const p: Puzzle = {
+      ...tiny,
+      dots: [
+        { color: 0, start: [0, 0], end: [0, 2] },
+        { color: 1, start: [2, 0], end: [2, 2] },
+      ],
+      locks: [{ key: [0, 1], door: [2, 1] }],
+    };
+    const game = new Game(p);
+    game.beginDrag([2, 0]);
+    expect(game.dragTo([2, 1])[0].type).toBe('invalid');
+    game.endDrag();
+    game.beginDrag([0, 0]);
+    game.dragTo([0, 1]);
+    const ev = game.dragTo([0, 2]);
+    expect(ev).toContainEqual({ type: 'door', lock: 0, open: true });
+    game.endDrag();
+    game.beginDrag([2, 0]);
+    game.dragTo([2, 1]);
+    game.dragTo([2, 2]);
+    game.endDrag();
+    expect(game.connectedCount()).toBe(2);
+    // Breaking the key path closes the door and cuts the path through it.
+    game.beginDrag([0, 0]);
+    expect(game.doors()).toEqual([false]);
+    expect(game.view()[1].length).toBe(1);
+    game.dragTo([1, 0]);
+    game.endDrag();
+    expect(game.view()[1]).toEqual([]);
+  });
+});
+
 describe('generator', () => {
   it('is deterministic', () => {
     const params = { seed: 7, width: 6, colors: [5, 6] as [number, number] };
@@ -269,6 +384,39 @@ describe('generator', () => {
       const again = generateAttempt({ ...params, seed: 0 }, level.meta.seed);
       expect(again?.puzzle.dots).toEqual(level.dots);
     }
+  });
+
+  it('produces valid, unique levels with the new mechanics', () => {
+    const cases = [
+      { width: 8, colors: [6, 8] as [number, number], teleporters: 1 },
+      { width: 8, colors: [6, 8] as [number, number], tunnels: 2 },
+      { width: 8, colors: [6, 8] as [number, number], rotators: 2 },
+      { width: 8, colors: [6, 8] as [number, number], locks: 1 },
+      { width: 9, colors: [7, 9] as [number, number], walls: 1, bridges: 1, warps: 1, teleporters: 1, tunnels: 1, rotators: 1, locks: 1 },
+    ];
+    cases.forEach((params, s) => {
+      const c = generateLevel({ ...params, seed: 300 + s, maxAttempts: 400 });
+      expect(c).not.toBeNull();
+      const level = toLevel(c!, { id: `n-${s}`, pack: 0, index: s, params: { ...params, seed: 300 + s } });
+      expect(level.formatVersion).toBe(2);
+      expect(validateLevel(level).errors).toEqual([]);
+      expect(level.teleporters!.length).toBe(params.teleporters ?? 0);
+      expect(level.tunnels!.length).toBe(params.tunnels ?? 0);
+      expect(level.rotators!.length).toBe(params.rotators ?? 0);
+      expect(level.locks!.length).toBe(params.locks ?? 0);
+      const again = generateAttempt({ ...params, seed: 0 }, level.meta.seed);
+      expect(again?.puzzle).toEqual(c!.puzzle);
+      // Playing the stored solution through the engine wins.
+      const game = new Game(level);
+      for (const t of [...level.tunnels!, ...level.rotators!]) expect(game.orientationAt(t.cell)).toBe(t.start);
+      let pair = game.hintPair(level.solution);
+      let events: ReturnType<Game['applySolutionPath']> = [];
+      for (let guard = 0; pair !== -1 && guard < 50; guard++) {
+        events = game.applySolutionPath(pair, level.solution[String(pair)]);
+        pair = game.hintPair(level.solution);
+      }
+      expect(events.some((e) => e.type === 'win')).toBe(true);
+    });
   });
 
   it('canonical key is symmetry invariant', () => {

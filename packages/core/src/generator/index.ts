@@ -1,13 +1,25 @@
-import { buildGraph, nodeCell, nodesAt, type BoardGraph, type BoardSpec } from '../graph';
+import {
+  ROTATOR_LAYERS,
+  buildGraph,
+  cellsToNodes,
+  nodeCell,
+  nodesAt,
+  nodesToCells,
+  type BoardGraph,
+  type BoardSpec,
+} from '../graph';
 import { createRng, hashSeed, type Rng } from '../rng';
 import { solveExact } from '../solver/exact';
-import { solveHuman } from '../solver/human';
-import { computeDifficulty } from '../difficulty';
+import { solveHuman, type HumanResult } from '../solver/human';
+import { computeDifficulty, type MechanicsCount } from '../difficulty';
 import { DEFAULT_PALETTE, MAX_COLORS, colorDistance } from '../palette';
-import type { Cell, Difficulty, Level, LevelDot, Puzzle, Warp } from '../types';
+import type { Cell, Difficulty, Level, LevelDot, Puzzle, Rotator, Teleporter, Tunnel, Warp } from '../types';
 import { randomCover } from './cover';
+import { placeOverlays, type Overlays } from './overlays';
 
-export const GENERATOR_VERSION = '1.0.0';
+export const GENERATOR_VERSION = '2.0.0';
+
+type Count = number | [number, number];
 
 export interface GenParams {
   seed: number;
@@ -16,9 +28,13 @@ export interface GenParams {
   colors: [number, number];
   minPathLength?: number;
   maxPathLength?: number;
-  walls?: number | [number, number];
-  bridges?: number | [number, number];
-  warps?: number | [number, number];
+  walls?: Count;
+  bridges?: Count;
+  warps?: Count;
+  teleporters?: Count;
+  tunnels?: Count;
+  rotators?: Count;
+  locks?: Count;
   requireUnique?: boolean;
   targetDifficulty?: [number, number];
   maxSolverTier?: number;
@@ -26,6 +42,8 @@ export interface GenParams {
   timeBudgetMs?: number;
   /** Search budget for the uniqueness check. */
   maxSolverNodes?: number;
+  /** Overlay placements tried per path cover before giving up on it. */
+  overlayTries?: number;
 }
 
 export interface Candidate {
@@ -35,9 +53,11 @@ export interface Candidate {
   solution: Cell[][];
   difficulty: Difficulty;
   seed: number;
+  /** Set when the level has overlays: true if they are needed for a unique logical solve. */
+  loadBearing?: boolean;
 }
 
-export type RejectReason = 'board' | 'cover' | 'not-unique' | 'solver-budget' | 'too-hard' | 'band';
+export type RejectReason = 'board' | 'cover' | 'overlay' | 'not-unique' | 'solver-budget' | 'too-hard' | 'band';
 
 export interface GenStats {
   attempts: number;
@@ -46,12 +66,17 @@ export interface GenStats {
 
 const emptyStats = (): GenStats => ({
   attempts: 0,
-  rejects: { board: 0, cover: 0, 'not-unique': 0, 'solver-budget': 0, 'too-hard': 0, band: 0 },
+  rejects: { board: 0, cover: 0, overlay: 0, 'not-unique': 0, 'solver-budget': 0, 'too-hard': 0, band: 0 },
 });
 
-function rangeValue(rng: Rng, v: number | [number, number] | undefined): number {
+function rangeValue(rng: Rng, v: Count | undefined): number {
   if (v === undefined) return 0;
   return Array.isArray(v) ? rng.range(v[0], v[1]) : v;
+}
+
+/** True when the params use any mechanic beyond walls, bridges and warps. */
+export function usesNewMechanics(p: Pick<GenParams, 'teleporters' | 'tunnels' | 'rotators' | 'locks'>): boolean {
+  return [p.teleporters, p.tunnels, p.rotators, p.locks].some((v) => v !== undefined && v !== 0);
 }
 
 function cellsConnected(W: number, H: number, blocked: boolean[]): boolean {
@@ -78,8 +103,16 @@ function cellsConnected(W: number, H: number, blocked: boolean[]): boolean {
   return count === total;
 }
 
-/** Places warps, then bridges, then walls. Returns null if the layout is impossible. */
-export function randomBoard(rng: Rng, W: number, H: number, walls: number, bridges: number, warps: number): BoardSpec | null {
+/** Places warps, then bridges, then teleporters, then walls. Returns null if the layout is impossible. */
+export function randomBoard(
+  rng: Rng,
+  W: number,
+  H: number,
+  walls: number,
+  bridges: number,
+  warps: number,
+  teleporters = 0,
+): BoardSpec | null {
   const warpList: Warp[] = [];
   const usedRows = new Set<number>();
   const usedCols = new Set<number>();
@@ -107,6 +140,26 @@ export function randomBoard(rng: Rng, W: number, H: number, walls: number, bridg
   }
   if (bridgeList.length < bridges) return null;
 
+  const teleList: Teleporter[] = [];
+  if (teleporters > 0) {
+    const onWarpEdge = ([r, c]: Cell) =>
+      (usedRows.has(r) && (c === 0 || c === W - 1)) || (usedCols.has(c) && (r === 0 || r === H - 1));
+    const busy: Cell[] = [...bridgeList];
+    const clear = (x: Cell) => busy.every(([r, c]) => Math.abs(r - x[0]) + Math.abs(c - x[1]) >= 2);
+    for (let i = 0; i < teleporters; i++) {
+      for (let t = 0; t < 100; t++) {
+        const a: Cell = [rng.int(H), rng.int(W)];
+        const b: Cell = [rng.int(H), rng.int(W)];
+        if (Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) < 4) continue;
+        if (onWarpEdge(a) || onWarpEdge(b) || !clear(a) || !clear(b)) continue;
+        teleList.push({ a, b });
+        busy.push(a, b);
+        break;
+      }
+    }
+    if (teleList.length < teleporters) return null;
+  }
+
   const blocked = new Array<boolean>(W * H).fill(false);
   const protectedCell = new Array<boolean>(W * H).fill(false);
   for (const [r, c] of bridgeList) {
@@ -122,6 +175,7 @@ export function randomBoard(rng: Rng, W: number, H: number, walls: number, bridg
       protectedCell[(H - 1) * W + w.index] = true;
     }
   }
+  for (const t of teleList) for (const [r, c] of [t.a, t.b]) protectedCell[r * W + c] = true;
 
   const wallList: Cell[] = [];
   for (let i = 0; i < walls; i++) {
@@ -153,7 +207,9 @@ export function randomBoard(rng: Rng, W: number, H: number, walls: number, bridg
       placed = true;
     }
   }
-  return { width: W, height: H, walls: wallList, bridges: bridgeList, warps: warpList };
+  const spec: BoardSpec = { width: W, height: H, walls: wallList, bridges: bridgeList, warps: warpList };
+  if (teleList.length) spec.teleporters = teleList;
+  return spec;
 }
 
 function warpEdges(g: BoardGraph, warps: Warp[]): [number, number][] {
@@ -164,14 +220,21 @@ function warpEdges(g: BoardGraph, warps: Warp[]): [number, number][] {
   });
 }
 
+function teleportEdges(g: BoardGraph): [number, number][] {
+  const out: [number, number][] = [];
+  g.partner.forEach((p, n) => p > n && out.push([n, p]));
+  return out;
+}
+
 /** Assigns palette indices so that touching paths get well-separated colors. */
 function assignColors(g: BoardGraph, paths: number[][]): number[] {
   const k = paths.length;
-  const pid = new Int32Array(g.nodeCount);
+  const pid = new Int32Array(g.nodeCount).fill(-1);
   paths.forEach((p, i) => p.forEach((n) => (pid[n] = i)));
   const touch: Set<number>[] = paths.map(() => new Set());
   for (let v = 0; v < g.nodeCount; v++) {
-    for (const n of g.adj[v]) if (pid[n] !== pid[v]) touch[pid[v]].add(pid[n]);
+    if (pid[v] < 0) continue;
+    for (const n of g.adj[v]) if (pid[n] >= 0 && pid[n] !== pid[v]) touch[pid[v]].add(pid[n]);
   }
   const colors = new Array<number>(k).fill(-1);
   const free = new Set(Array.from({ length: k }, (_, i) => i));
@@ -195,9 +258,46 @@ function assignColors(g: BoardGraph, paths: number[][]): number[] {
   return colors;
 }
 
+type Verified = { solutionNodes: number[][]; human: HumanResult } | RejectReason;
+
+/** Uniqueness and tier check on a finished board. */
+function verify(g: BoardGraph, endpoints: [number, number][], fallback: number[][], params: GenParams): Verified {
+  const maxTier = params.maxSolverTier ?? 4;
+  // A logical (deduction-only) solve proves uniqueness without a full search.
+  const human = solveHuman(g, endpoints, { maxTier: 4 });
+  if (human.solved) return human.maxTier > maxTier ? 'too-hard' : { solutionNodes: human.paths!, human };
+  if (maxTier < 5) return 'too-hard';
+  const exact = solveExact(g, endpoints, { maxSolutions: 2, maxNodes: params.maxSolverNodes ?? 400_000 });
+  if (exact.aborted) return 'solver-budget';
+  if (params.requireUnique !== false && exact.solutions.length !== 1) return 'not-unique';
+  return { solutionNodes: exact.solutions[0] ?? fallback, human };
+}
+
+function withOverlays(spec: BoardSpec, ov: Overlays): BoardSpec {
+  return {
+    ...spec,
+    tunnels: ov.tunnels.map((t) => t.cell),
+    rotators: ov.rotators.map((t) => t.cell),
+    locks: ov.locks,
+  };
+}
+
+export function mechanicsOf(p: Puzzle): MechanicsCount {
+  return {
+    walls: p.walls.length,
+    bridges: p.bridges.length,
+    warps: p.warps.length,
+    teleporters: p.teleporters?.length ?? 0,
+    tunnels: p.tunnels?.length ?? 0,
+    rotators: p.rotators?.length ?? 0,
+    locks: p.locks?.length ?? 0,
+  };
+}
+
 /**
- * One deterministic generation attempt: board, path cover, strip to endpoints,
- * uniqueness check, difficulty rating. Returns null (with a reason) on rejection.
+ * One deterministic generation attempt: board, path cover, overlays, strip to
+ * endpoints, uniqueness check, difficulty rating. Returns null (with a reason)
+ * on rejection.
  */
 export function generateAttempt(
   params: GenParams,
@@ -213,22 +313,29 @@ export function generateAttempt(
   const nWalls = rangeValue(rng, params.walls);
   const nBridges = rangeValue(rng, params.bridges);
   const nWarps = rangeValue(rng, params.warps);
+  const nTeleporters = rangeValue(rng, params.teleporters);
+  const counts = {
+    tunnels: rangeValue(rng, params.tunnels),
+    rotators: rangeValue(rng, params.rotators),
+    locks: rangeValue(rng, params.locks),
+  };
 
-  const spec = randomBoard(rng, W, H, nWalls, nBridges, nWarps);
+  const spec = randomBoard(rng, W, H, nWalls, nBridges, nWarps, nTeleporters);
   if (!spec) {
     stats.rejects.board++;
     return null;
   }
-  const g = buildGraph(spec);
+  const g0 = buildGraph(spec);
   const k = Math.min(MAX_COLORS, cMax);
-  const cells = g.nodeCount;
+  const cells = g0.nodeCount;
   const maxLen = params.maxPathLength ?? Math.max(minLen + 2, Math.ceil((cells / Math.max(1, cMin)) * 1.9));
-  const cover = randomCover(g, rng, {
+  const cover = randomCover(g0, rng, {
     kMin: Math.min(cMin, k),
     kMax: k,
     minLen,
     maxLen,
-    warpEdges: warpEdges(g, spec.warps),
+    warpEdges: warpEdges(g0, spec.warps),
+    teleportEdges: teleportEdges(g0),
     maxIterations: Math.max(20000, cells * 400),
   });
   if (!cover) {
@@ -240,45 +347,76 @@ export function generateAttempt(
   const oriented = cover.map((p) => {
     const a = p[0];
     const b = p[p.length - 1];
-    const ka = g.nodeRow[a] * W + g.nodeCol[a];
-    const kb = g.nodeRow[b] * W + g.nodeCol[b];
+    const ka = g0.nodeRow[a] * W + g0.nodeCol[a];
+    const kb = g0.nodeRow[b] * W + g0.nodeCol[b];
     return ka <= kb ? p : [...p].reverse();
   });
-  oriented.sort((x, y) => g.nodeRow[x[0]] * W + g.nodeCol[x[0]] - (g.nodeRow[y[0]] * W + g.nodeCol[y[0]]));
-  const endpoints: [number, number][] = oriented.map((p) => [p[0], p[p.length - 1]]);
+  oriented.sort((x, y) => g0.nodeRow[x[0]] * W + g0.nodeCol[x[0]] - (g0.nodeRow[y[0]] * W + g0.nodeCol[y[0]]));
+  const endpoints0: [number, number][] = oriented.map((p) => [p[0], p[p.length - 1]]);
 
-  // A logical (deduction-only) solve proves uniqueness without a full search.
-  const human = solveHuman(g, endpoints, { maxTier: 4 });
-  let solutionNodes: number[][];
-  if (human.solved) {
-    if (human.maxTier > (params.maxSolverTier ?? 4)) {
-      stats.rejects['too-hard']++;
-      return null;
-    }
-    solutionNodes = human.paths!;
+  let g = g0;
+  let endpoints = endpoints0;
+  let overlays: Overlays | null = null;
+  let loadBearing: boolean | undefined;
+  let result: Verified;
+  if (counts.tunnels + counts.rotators + counts.locks === 0) {
+    result = verify(g0, endpoints0, oriented, params);
   } else {
-    if ((params.maxSolverTier ?? 4) < 5) {
-      stats.rejects['too-hard']++;
-      return null;
+    loadBearing = !solveHuman(g0, endpoints0, { maxTier: params.maxSolverTier ?? 4 }).solved;
+    let altOwner: Int16Array | undefined;
+    if (counts.locks > 0 && loadBearing) {
+      const intended = JSON.stringify(oriented);
+      const alt = solveExact(g0, endpoints0, { maxSolutions: 2, maxNodes: 50_000 }).solutions.find(
+        (s) => JSON.stringify(s) !== intended,
+      );
+      if (alt) {
+        altOwner = new Int16Array(g0.nodeCount).fill(-1);
+        alt.forEach((p, i) => p.forEach((n) => (altOwner![n] = i)));
+      }
     }
-    const exact = solveExact(g, endpoints, { maxSolutions: 2, maxNodes: params.maxSolverNodes ?? 400_000 });
-    if (exact.aborted) {
-      stats.rejects['solver-budget']++;
-      return null;
+    result = 'overlay';
+    const cellPaths = oriented.map((p) => nodesToCells(g0, p));
+    for (let t = 0; t < (params.overlayTries ?? 4) && typeof result === 'string'; t++) {
+      const ov = placeOverlays(g0, oriented, rng, counts, altOwner);
+      if (!ov) break;
+      const g2 = buildGraph(withOverlays(spec, ov));
+      const paths2 = cellPaths.map((c) => cellsToNodes(g2, c)!);
+      const eps2: [number, number][] = paths2.map((p) => [p[0], p[p.length - 1]]);
+      result = verify(g2, eps2, paths2, params);
+      if (typeof result !== 'string') {
+        g = g2;
+        endpoints = eps2;
+        overlays = ov;
+      }
     }
-    if (params.requireUnique !== false && exact.solutions.length !== 1) {
-      stats.rejects['not-unique']++;
-      return null;
-    }
-    solutionNodes = exact.solutions[0] ?? oriented;
+  }
+  if (typeof result === 'string') {
+    stats.rejects[result]++;
+    return null;
+  }
+  const { solutionNodes, human } = result;
+
+  const tunnels: Tunnel[] = (overlays?.tunnels ?? []).map((t) => ({ cell: t.cell, start: t.solved === 'h' ? 'v' : 'h' }));
+  const rotators: Rotator[] = (overlays?.rotators ?? []).map((t) => {
+    const i = ROTATOR_LAYERS.indexOf(t.solved);
+    return { cell: t.cell, start: ROTATOR_LAYERS[(i + 1 + rng.int(3)) % 4] };
+  });
+  const puzzle: Puzzle = {
+    size: { width: W, height: H },
+    dots: [],
+    walls: spec.walls,
+    bridges: spec.bridges,
+    warps: spec.warps,
+  };
+  if (usesNewMechanics(params)) {
+    puzzle.teleporters = spec.teleporters ?? [];
+    puzzle.tunnels = tunnels;
+    puzzle.rotators = rotators;
+    puzzle.locks = overlays?.locks ?? [];
   }
 
   const searchNodes = measureSearch(g, endpoints);
-  const difficulty = computeDifficulty(g, solutionNodes, human, searchNodes, {
-    walls: spec.walls.length,
-    bridges: spec.bridges.length,
-    warps: spec.warps.length,
-  });
+  const difficulty = computeDifficulty(g, solutionNodes, human, searchNodes, mechanicsOf(puzzle));
 
   const colors = assignColors(g, solutionNodes);
   const dots: LevelDot[] = solutionNodes.map((p, i) => ({
@@ -286,19 +424,14 @@ export function generateAttempt(
     start: nodeCell(g, p[0]),
     end: nodeCell(g, p[p.length - 1]),
   }));
-  const puzzle: Puzzle = {
-    size: { width: W, height: H },
-    dots,
-    walls: spec.walls,
-    bridges: spec.bridges,
-    warps: spec.warps,
-  };
+  puzzle.dots = dots;
   return {
     puzzle,
     solutionNodes,
     solution: solutionNodes.map((p) => p.map((n) => nodeCell(g, n))),
     difficulty,
     seed,
+    ...(loadBearing === undefined ? {} : { loadBearing }),
   };
 }
 
@@ -346,11 +479,13 @@ export function toLevel(
   const k = c.puzzle.dots.length;
   const solution: Record<string, Cell[]> = {};
   c.solution.forEach((cells, i) => (solution[String(i)] = cells));
+  const m = mechanicsOf(c.puzzle);
+  const v2 = c.puzzle.teleporters !== undefined;
   return {
     id: info.id,
     pack: info.pack,
     index: info.index,
-    formatVersion: 1,
+    formatVersion: v2 ? 2 : 1,
     ...c.puzzle,
     solution,
     difficulty: c.difficulty,
@@ -361,10 +496,12 @@ export function toLevel(
       params: {
         size: info.params.width,
         colors: info.params.colors,
-        walls: c.puzzle.walls.length,
-        bridges: c.puzzle.bridges.length,
-        warps: c.puzzle.warps.length,
+        walls: m.walls,
+        bridges: m.bridges,
+        warps: m.warps,
+        ...(v2 ? { teleporters: m.teleporters, tunnels: m.tunnels, rotators: m.rotators, locks: m.locks } : {}),
       },
+      ...(c.loadBearing === undefined ? {} : { loadBearing: c.loadBearing }),
     },
   };
 }

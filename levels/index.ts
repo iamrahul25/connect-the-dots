@@ -101,6 +101,106 @@ import p05_l017 from './pack-05/level-017.json';
 import p05_l018 from './pack-05/level-018.json';
 import p05_l019 from './pack-05/level-019.json';
 import p05_l020 from './pack-05/level-020.json';
+import p06_l001 from './pack-06/level-001.json';
+import p06_l002 from './pack-06/level-002.json';
+import p06_l003 from './pack-06/level-003.json';
+import p06_l004 from './pack-06/level-004.json';
+import p06_l005 from './pack-06/level-005.json';
+import p06_l006 from './pack-06/level-006.json';
+import p06_l007 from './pack-06/level-007.json';
+import p06_l008 from './pack-06/level-008.json';
+import p06_l009 from './pack-06/level-009.json';
+import p06_l010 from './pack-06/level-010.json';
+import p06_l011 from './pack-06/level-011.json';
+import p06_l012 from './pack-06/level-012.json';
+import p06_l013 from './pack-06/level-013.json';
+import p06_l014 from './pack-06/level-014.json';
+import p06_l015 from './pack-06/level-015.json';
+import p06_l016 from './pack-06/level-016.json';
+import p06_l017 from './pack-06/level-017.json';
+import p06_l018 from './pack-06/level-018.json';
+import p06_l019 from './pack-06/level-019.json';
+import p06_l020 from './pack-06/level-020.json';
+import p07_l001 from './pack-07/level-001.json';
+import p07_l002 from './pack-07/level-002.json';
+import p07_l003 from './pack-07/level-003.json';
+import p07_l004 from './pack-07/level-004.json';
+import p07_l005 from './pack-07/level-005.json';
+import p07_l006 from './pack-07/level-006.json';
+import p07_l007 from './pack-07/level-007.json';
+import p07_l008 from './pack-07/level-008.json';
+import p07_l009 from './pack-07/level-009.json';
+import p07_l010 from './pack-07/level-010.json';
+import p07_l011 from './pack-07/level-011.json';
+import p07_l012 from './pack-07/level-012.json';
+import p07_l013 from './pack-07/level-013.json';
+import p07_l014 from './pack-07/level-014.json';
+import p07_l015 from './pack-07/level-015.json';
+import p07_l016 from './pack-07/level-016.json';
+import p07_l017 from './pack-07/level-017.json';
+import p07_l018 from './pack-07/level-018.json';
+import p07_l019 from './pack-07/level-019.json';
+import p07_l020 from './pack-07/level-020.json';
+import p08_l001 from './pack-08/level-001.json';
+import p08_l002 from './pack-08/level-002.json';
+import p08_l003 from './pack-08/level-003.json';
+import p08_l004 from './pack-08/level-004.json';
+import p08_l005 from './pack-08/level-005.json';
+import p08_l006 from './pack-08/level-006.json';
+import p08_l007 from './pack-08/level-007.json';
+import p08_l008 from './pack-08/level-008.json';
+import p08_l009 from './pack-08/level-009.json';
+import p08_l010 from './pack-08/level-010.json';
+import p08_l011 from './pack-08/level-011.json';
+import p08_l012 from './pack-08/level-012.json';
+import p08_l013 from './pack-08/level-013.json';
+import p08_l014 from './pack-08/level-014.json';
+import p08_l015 from './pack-08/level-015.json';
+import p08_l016 from './pack-08/level-016.json';
+import p08_l017 from './pack-08/level-017.json';
+import p08_l018 from './pack-08/level-018.json';
+import p08_l019 from './pack-08/level-019.json';
+import p08_l020 from './pack-08/level-020.json';
+import p09_l001 from './pack-09/level-001.json';
+import p09_l002 from './pack-09/level-002.json';
+import p09_l003 from './pack-09/level-003.json';
+import p09_l004 from './pack-09/level-004.json';
+import p09_l005 from './pack-09/level-005.json';
+import p09_l006 from './pack-09/level-006.json';
+import p09_l007 from './pack-09/level-007.json';
+import p09_l008 from './pack-09/level-008.json';
+import p09_l009 from './pack-09/level-009.json';
+import p09_l010 from './pack-09/level-010.json';
+import p09_l011 from './pack-09/level-011.json';
+import p09_l012 from './pack-09/level-012.json';
+import p09_l013 from './pack-09/level-013.json';
+import p09_l014 from './pack-09/level-014.json';
+import p09_l015 from './pack-09/level-015.json';
+import p09_l016 from './pack-09/level-016.json';
+import p09_l017 from './pack-09/level-017.json';
+import p09_l018 from './pack-09/level-018.json';
+import p09_l019 from './pack-09/level-019.json';
+import p09_l020 from './pack-09/level-020.json';
+import p10_l001 from './pack-10/level-001.json';
+import p10_l002 from './pack-10/level-002.json';
+import p10_l003 from './pack-10/level-003.json';
+import p10_l004 from './pack-10/level-004.json';
+import p10_l005 from './pack-10/level-005.json';
+import p10_l006 from './pack-10/level-006.json';
+import p10_l007 from './pack-10/level-007.json';
+import p10_l008 from './pack-10/level-008.json';
+import p10_l009 from './pack-10/level-009.json';
+import p10_l010 from './pack-10/level-010.json';
+import p10_l011 from './pack-10/level-011.json';
+import p10_l012 from './pack-10/level-012.json';
+import p10_l013 from './pack-10/level-013.json';
+import p10_l014 from './pack-10/level-014.json';
+import p10_l015 from './pack-10/level-015.json';
+import p10_l016 from './pack-10/level-016.json';
+import p10_l017 from './pack-10/level-017.json';
+import p10_l018 from './pack-10/level-018.json';
+import p10_l019 from './pack-10/level-019.json';
+import p10_l020 from './pack-10/level-020.json';
 import daily_2026_09 from './daily/2026-09.json';
 import daily_2026_10 from './daily/2026-10.json';
 import daily_2026_11 from './daily/2026-11.json';
@@ -209,6 +309,106 @@ export const levels: Record<string, Level> = {
   'p05-l018': p05_l018 as unknown as Level,
   'p05-l019': p05_l019 as unknown as Level,
   'p05-l020': p05_l020 as unknown as Level,
+  'p06-l001': p06_l001 as unknown as Level,
+  'p06-l002': p06_l002 as unknown as Level,
+  'p06-l003': p06_l003 as unknown as Level,
+  'p06-l004': p06_l004 as unknown as Level,
+  'p06-l005': p06_l005 as unknown as Level,
+  'p06-l006': p06_l006 as unknown as Level,
+  'p06-l007': p06_l007 as unknown as Level,
+  'p06-l008': p06_l008 as unknown as Level,
+  'p06-l009': p06_l009 as unknown as Level,
+  'p06-l010': p06_l010 as unknown as Level,
+  'p06-l011': p06_l011 as unknown as Level,
+  'p06-l012': p06_l012 as unknown as Level,
+  'p06-l013': p06_l013 as unknown as Level,
+  'p06-l014': p06_l014 as unknown as Level,
+  'p06-l015': p06_l015 as unknown as Level,
+  'p06-l016': p06_l016 as unknown as Level,
+  'p06-l017': p06_l017 as unknown as Level,
+  'p06-l018': p06_l018 as unknown as Level,
+  'p06-l019': p06_l019 as unknown as Level,
+  'p06-l020': p06_l020 as unknown as Level,
+  'p07-l001': p07_l001 as unknown as Level,
+  'p07-l002': p07_l002 as unknown as Level,
+  'p07-l003': p07_l003 as unknown as Level,
+  'p07-l004': p07_l004 as unknown as Level,
+  'p07-l005': p07_l005 as unknown as Level,
+  'p07-l006': p07_l006 as unknown as Level,
+  'p07-l007': p07_l007 as unknown as Level,
+  'p07-l008': p07_l008 as unknown as Level,
+  'p07-l009': p07_l009 as unknown as Level,
+  'p07-l010': p07_l010 as unknown as Level,
+  'p07-l011': p07_l011 as unknown as Level,
+  'p07-l012': p07_l012 as unknown as Level,
+  'p07-l013': p07_l013 as unknown as Level,
+  'p07-l014': p07_l014 as unknown as Level,
+  'p07-l015': p07_l015 as unknown as Level,
+  'p07-l016': p07_l016 as unknown as Level,
+  'p07-l017': p07_l017 as unknown as Level,
+  'p07-l018': p07_l018 as unknown as Level,
+  'p07-l019': p07_l019 as unknown as Level,
+  'p07-l020': p07_l020 as unknown as Level,
+  'p08-l001': p08_l001 as unknown as Level,
+  'p08-l002': p08_l002 as unknown as Level,
+  'p08-l003': p08_l003 as unknown as Level,
+  'p08-l004': p08_l004 as unknown as Level,
+  'p08-l005': p08_l005 as unknown as Level,
+  'p08-l006': p08_l006 as unknown as Level,
+  'p08-l007': p08_l007 as unknown as Level,
+  'p08-l008': p08_l008 as unknown as Level,
+  'p08-l009': p08_l009 as unknown as Level,
+  'p08-l010': p08_l010 as unknown as Level,
+  'p08-l011': p08_l011 as unknown as Level,
+  'p08-l012': p08_l012 as unknown as Level,
+  'p08-l013': p08_l013 as unknown as Level,
+  'p08-l014': p08_l014 as unknown as Level,
+  'p08-l015': p08_l015 as unknown as Level,
+  'p08-l016': p08_l016 as unknown as Level,
+  'p08-l017': p08_l017 as unknown as Level,
+  'p08-l018': p08_l018 as unknown as Level,
+  'p08-l019': p08_l019 as unknown as Level,
+  'p08-l020': p08_l020 as unknown as Level,
+  'p09-l001': p09_l001 as unknown as Level,
+  'p09-l002': p09_l002 as unknown as Level,
+  'p09-l003': p09_l003 as unknown as Level,
+  'p09-l004': p09_l004 as unknown as Level,
+  'p09-l005': p09_l005 as unknown as Level,
+  'p09-l006': p09_l006 as unknown as Level,
+  'p09-l007': p09_l007 as unknown as Level,
+  'p09-l008': p09_l008 as unknown as Level,
+  'p09-l009': p09_l009 as unknown as Level,
+  'p09-l010': p09_l010 as unknown as Level,
+  'p09-l011': p09_l011 as unknown as Level,
+  'p09-l012': p09_l012 as unknown as Level,
+  'p09-l013': p09_l013 as unknown as Level,
+  'p09-l014': p09_l014 as unknown as Level,
+  'p09-l015': p09_l015 as unknown as Level,
+  'p09-l016': p09_l016 as unknown as Level,
+  'p09-l017': p09_l017 as unknown as Level,
+  'p09-l018': p09_l018 as unknown as Level,
+  'p09-l019': p09_l019 as unknown as Level,
+  'p09-l020': p09_l020 as unknown as Level,
+  'p10-l001': p10_l001 as unknown as Level,
+  'p10-l002': p10_l002 as unknown as Level,
+  'p10-l003': p10_l003 as unknown as Level,
+  'p10-l004': p10_l004 as unknown as Level,
+  'p10-l005': p10_l005 as unknown as Level,
+  'p10-l006': p10_l006 as unknown as Level,
+  'p10-l007': p10_l007 as unknown as Level,
+  'p10-l008': p10_l008 as unknown as Level,
+  'p10-l009': p10_l009 as unknown as Level,
+  'p10-l010': p10_l010 as unknown as Level,
+  'p10-l011': p10_l011 as unknown as Level,
+  'p10-l012': p10_l012 as unknown as Level,
+  'p10-l013': p10_l013 as unknown as Level,
+  'p10-l014': p10_l014 as unknown as Level,
+  'p10-l015': p10_l015 as unknown as Level,
+  'p10-l016': p10_l016 as unknown as Level,
+  'p10-l017': p10_l017 as unknown as Level,
+  'p10-l018': p10_l018 as unknown as Level,
+  'p10-l019': p10_l019 as unknown as Level,
+  'p10-l020': p10_l020 as unknown as Level,
 };
 
 export const dailyBanks: Record<string, DailyBank> = {
