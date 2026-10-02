@@ -17,14 +17,16 @@ import {
 } from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useDerivedValue, useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
-import { isTeleportStep, isWarpStep, PORTS, stepDirection, type Game } from '@ctd/core';
+import { isTeleportStep, isWarpStep, ROTATOR_LAYERS, stepDirection, TUNNEL_LAYERS, type Game } from '@ctd/core';
 import { BORDER_INSET, cellCenter, cellGapPx, type BoardGeom } from './geometry';
 import { drawEffects, type Effect } from './effects';
+import { ClosedDoor, KeyBadge, KeyMark, OpenDoor, keyPath, padlockPaths, type Padlock } from './LockMarks';
+import { TeleportGate } from './TeleportGate';
+import { TurnPiece } from './TurnPiece';
 import { symbolPath } from './symbols';
-import { withAlpha } from './color';
 import { recordPicture } from '../ui/skiaMemory';
 import { tokens } from '../theme/tokens';
-import { LOCK_ON_COLOR, lockColor, teleporterColor, type DotStyle, type Palette } from '../theme/config';
+import { lockColor, teleporterColor, type DotStyle, type Palette } from '../theme/config';
 import { useTheme } from '../theme/useTheme';
 
 interface Props {
@@ -122,35 +124,22 @@ export function Board(props: Props) {
         return { key: `t${r}-${c}`, x, y, color: teleporterColor(i) };
       }),
     );
-    const keys: { key: string; lock: number; color: string; path: SkPath }[] = [];
-    const doors: { key: string; lock: number; color: string; x: number; y: number; hole: SkPath }[] = [];
+    const keys: { key: string; lock: number; color: string; x: number; y: number; path: SkPath }[] = [];
+    const doors: { key: string; lock: number; color: string; x: number; y: number; padlock: Padlock }[] = [];
     (game.puzzle.locks ?? []).forEach((l, i) => {
       const color = lockColor(i);
       const [kx, ky] = cellCenter(geom, l.key[0], l.key[1]);
-      const k = Skia.PathBuilder.Make();
-      const kr = cell * 0.1;
-      k.addCircle(kx - cell * 0.1, ky, kr);
-      k.moveTo(kx - cell * 0.1 + kr, ky);
-      k.lineTo(kx + cell * 0.22, ky);
-      k.moveTo(kx + cell * 0.12, ky);
-      k.lineTo(kx + cell * 0.12, ky + cell * 0.09);
-      k.moveTo(kx + cell * 0.2, ky);
-      k.lineTo(kx + cell * 0.2, ky + cell * 0.07);
-      keys.push({ key: `k${i}`, lock: i, color, path: k.build() });
+      keys.push({ key: `k${i}`, lock: i, color, x: kx, y: ky, path: keyPath(kx, ky, cell) });
       const [dx, dy] = cellCenter(geom, l.door[0], l.door[1]);
-      const h = Skia.PathBuilder.Make();
-      h.addCircle(dx, dy - cell * 0.05, cell * 0.075);
-      h.moveTo(dx - cell * 0.04, dy - cell * 0.02);
-      h.lineTo(dx - cell * 0.06, dy + cell * 0.14);
-      h.lineTo(dx + cell * 0.06, dy + cell * 0.14);
-      h.lineTo(dx + cell * 0.04, dy - cell * 0.02);
-      h.close();
-      doors.push({ key: `door${i}`, lock: i, color, x: dx - cell / 2, y: dy - cell / 2, hole: h.build() });
+      doors.push({ key: `door${i}`, lock: i, color, x: dx - cell / 2, y: dy - cell / 2, padlock: padlockPaths(dx, dy, cell) });
     });
     const pieces = [
-      ...(game.puzzle.tunnels ?? []).map((t) => t.cell),
-      ...(game.puzzle.rotators ?? []).map((t) => t.cell),
-    ].map(([r, c]) => ({ r, c, x: geom.ox + c * cell, y: geom.oy + r * cell }));
+      ...(game.puzzle.tunnels ?? []).map((t) => ({ cell: t.cell, kind: 'tunnel' as const })),
+      ...(game.puzzle.rotators ?? []).map((t) => ({ cell: t.cell, kind: 'rotator' as const })),
+    ].map(({ cell: [r, c], kind }) => {
+      const [cx, cy] = cellCenter(geom, r, c);
+      return { r, c, cx, cy, kind };
+    });
     return { cells, warps, warpT: t, warpArrows: arrows.build(), lanes, bridges, deck, bridgeRails: rails.build(), gates, keys, doors, pieces };
   }, [geom, g, cell, gap, frameOffset, game.puzzle]);
 
@@ -275,21 +264,13 @@ export function Board(props: Props) {
       const n = nodes[nodes.length - 1];
       head = cellCenter(geom, g.nodeRow[n], g.nodeCol[n]);
     }
-    // Tunnel / rotator grooves follow the piece's current orientation.
-    const groove = Skia.PathBuilder.Make();
-    const reach = staticData.deck / 2 - Math.max(2, cell * 0.07) / 2;
-    staticData.pieces.forEach(({ r, c }) => {
-      const layer = game.orientationAt([r, c]);
-      if (!layer) return;
-      const [cx, cy] = cellCenter(geom, r, c);
-      for (const d of PORTS[layer]) {
-        const [vx, vy] = DIR_VEC[d];
-        groove.moveTo(cx, cy);
-        groove.lineTo(cx + vx * reach, cy + vy * reach);
-      }
+    // Tunnels and rotators are drawn in their base orientation and turned to the current one.
+    const pieceTurns = staticData.pieces.map(({ r, c, kind }) => {
+      const layers: readonly string[] = kind === 'tunnel' ? TUNNEL_LAYERS : ROTATOR_LAYERS;
+      return Math.max(0, layers.indexOf(game.orientationAt([r, c]) ?? ''));
     });
     const doorsOpen = game.doors();
-    return { tints, paths, ghostPaths, overpasses, connected, dragging, head, groove: groove.build(), doorsOpen };
+    return { tints, paths, ghostPaths, overpasses, connected, dragging, head, pieceTurns, doorsOpen };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [version, geom, palette, game]);
 
@@ -426,45 +407,35 @@ export function Board(props: Props) {
               />
             )}
 
-            {/* Teleporter gates: matching colored rings, one pair per color */}
+            {/* Teleporter gates: matching colored portals, one pair per color */}
             {staticData.gates.map((t) => (
-              <Group key={t.key}>
-                <Circle cx={t.x} cy={t.y} r={cell * 0.4} color={withAlpha(t.color, 0.18)} />
-                <Circle cx={t.x} cy={t.y} r={cell * 0.33} color={t.color} style="stroke" strokeWidth={Math.max(2, cell * 0.07)} />
-                <Circle cx={t.x} cy={t.y} r={cell * 0.17} color={t.color} style="stroke" strokeWidth={Math.max(1.5, cell * 0.045)} opacity={warpPulse} />
-              </Group>
+              <TeleportGate key={t.key} x={t.x} y={t.y} cell={cell} color={t.color} clock={clock} pulse={warpPulse} reduceMotion={reduceMotion} />
             ))}
 
             {/* Tunnels and rotators: a raised piece with a groove along its open sides */}
-            {staticData.pieces.map((p) => {
-              const s = staticData.deck;
-              const x = p.x + (cell - s) / 2;
-              const y = p.y + (cell - s) / 2;
-              return (
-                <Group key={`pc${p.r}-${p.c}`}>
-                  <RoundedRect x={x} y={y + cell * 0.07} width={s} height={s} r={cell * 0.18} color={B.bridgeShadow} />
-                  <RoundedRect x={x} y={y} width={s} height={s} r={cell * 0.18} color={B.bridgeBox} />
-                  <RoundedRect x={x} y={y} width={s} height={s} r={cell * 0.18} style="stroke" strokeWidth={Math.max(2, cell * 0.07)} color={B.bridgeBorder} />
-                </Group>
-              );
-            })}
-            {staticData.pieces.length > 0 && (
-              <Path path={dynamic.groove} color={B.bridgeBorder} style="stroke" strokeWidth={pathW * 0.75} strokeCap="butt" strokeJoin="round" />
-            )}
+            {staticData.pieces.map((p, i) => (
+              <TurnPiece
+                key={`pc${p.r}-${p.c}`}
+                kind={p.kind}
+                cx={p.cx}
+                cy={p.cy}
+                cell={cell}
+                deck={staticData.deck}
+                pathW={pathW}
+                turn={dynamic.pieceTurns[i]}
+                reduceMotion={reduceMotion}
+                colors={{ box: B.bridgeBox, border: B.bridgeBorder, shadow: B.bridgeShadow }}
+              />
+            ))}
 
-            {/* Open doors leave a frame the flow passes through */}
+            {/* Key cells get a glowing badge under the flow so they stand out */}
+            {staticData.keys.map((k) => (
+              <KeyBadge key={`kb${k.key}`} x={k.x} y={k.y} cell={cell} color={k.color} dim={dynamic.doorsOpen[k.lock]} />
+            ))}
+
+            {/* Open doors leave a tinted frame the flow passes through */}
             {staticData.doors.map((d) =>
-              dynamic.doorsOpen[d.lock] ? (
-                <RoundedRect
-                  key={d.key}
-                  {...tile(d.x, d.y, cell)}
-                  style="stroke"
-                  strokeWidth={Math.max(2, cell * 0.08)}
-                  color={d.color}
-                >
-                  <DashPathEffect intervals={[cell * 0.12, cell * 0.08]} />
-                </RoundedRect>
-              ) : null,
+              dynamic.doorsOpen[d.lock] ? <OpenDoor key={d.key} rect={tile(d.x, d.y, cell)} cell={cell} color={d.color} /> : null,
             )}
 
             {/* Ghosts of paths cut by the current drag */}
@@ -516,17 +487,11 @@ export function Board(props: Props) {
             {/* Closed doors block the cell; keys sit on top of the flow that collects them */}
             {staticData.doors.map((d) =>
               dynamic.doorsOpen[d.lock] ? null : (
-                <Group key={d.key}>
-                  <RoundedRect {...tile(d.x, d.y, cell)} color={d.color} />
-                  <Path path={d.hole} color={LOCK_ON_COLOR} />
-                </Group>
+                <ClosedDoor key={d.key} rect={tile(d.x, d.y, cell)} cell={cell} color={d.color} padlock={d.padlock} />
               ),
             )}
             {staticData.keys.map((k) => (
-              <Group key={k.key} opacity={dynamic.doorsOpen[k.lock] ? 0.45 : 1}>
-                <Path path={k.path} color={B.background === 'transparent' ? theme.background.color : B.background} style="stroke" strokeWidth={Math.max(3, cell * 0.11)} strokeCap="round" />
-                <Path path={k.path} color={k.color} style="stroke" strokeWidth={Math.max(2, cell * 0.06)} strokeCap="round" />
-              </Group>
+              <KeyMark key={k.key} path={k.path} cell={cell} color={k.color} dim={dynamic.doorsOpen[k.lock]} />
             ))}
 
             {/* Dots */}

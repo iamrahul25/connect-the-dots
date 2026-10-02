@@ -1,13 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useDerivedValue, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import { Canvas, useClock } from '@shopify/react-native-skia';
 import { Ionicons } from '@expo/vector-icons';
 import type { Puzzle } from '@ctd/core';
 import { GlassButton } from '../ui/GlassButton';
 import { HatchedTile } from '../ui/HatchedTile';
+import { ClosedDoor, KeyBadge, KeyMark, keyPath, padlockPaths } from '../board/LockMarks';
+import { TeleportGate } from '../board/TeleportGate';
+import { TurnPiece } from '../board/TurnPiece';
+import { useSettings } from '../store/settings';
 import { fonts, tokens } from '../theme/tokens';
-import { LOCK_ON_COLOR, lockColor, teleporterColor, type DotStyle, type Palette } from '../theme/config';
-import { withAlpha } from '../board/color';
+import { lockColor, teleporterColor, type DotStyle, type Palette } from '../theme/config';
 import { makeStyles, useTheme } from '../theme/useTheme';
 
 export type ObstacleKind = 'walls' | 'bridges' | 'warps' | 'teleporters' | 'tunnels' | 'rotators' | 'locks';
@@ -32,22 +36,22 @@ const INFO: Record<ObstacleKind, { name: string; looks: string; rule: string }> 
   },
   teleporters: {
     name: 'Teleporters',
-    looks: 'Pairs of glowing rings in matching colors.',
+    looks: 'Pairs of swirling portals in matching colors.',
     rule: 'Enter one ring and the flow jumps to its twin, then keeps going from there. Works both ways.',
   },
   tunnels: {
     name: 'Tunnels',
-    looks: 'A raised piece with a straight groove.',
+    looks: 'A raised piece with a straight groove and a small turn arrow.',
     rule: 'Flows only pass along the groove. Tap it to turn it a quarter; turning it cuts any flow inside.',
   },
   rotators: {
     name: 'Rotators',
-    looks: 'A raised piece with an L-shaped groove.',
+    looks: 'A round dial with an L-shaped groove and a small turn arrow.',
     rule: 'Flows turn the corner along the groove. Tap it to rotate it clockwise; rotating cuts any flow inside.',
   },
   locks: {
     name: 'Keys & Doors',
-    looks: 'A key and a solid door tile in the same color.',
+    looks: 'A key on a glowing badge and a padlocked door tile in the same color.',
     rule: 'Connect a flow through the key to open its door. The door must then be filled; breaking that flow locks it again.',
   },
 };
@@ -98,8 +102,8 @@ export function ObstacleInfo({ puzzle, palette, onClose }: Props) {
                 {k === 'bridges' && <BridgePreview across={color(1)} over={color(2)} />}
                 {k === 'warps' && <WarpPreview color={color(3)} />}
                 {k === 'teleporters' && <TeleportPreview color={color(4)} />}
-                {k === 'tunnels' && <PiecePreview ports={['left', 'right']} color={color(5)} />}
-                {k === 'rotators' && <PiecePreview ports={['down', 'right']} color={color(6)} />}
+                {k === 'tunnels' && <PiecePreview kind="tunnel" color={color(5)} />}
+                {k === 'rotators' && <PiecePreview kind="rotator" color={color(6)} />}
                 {k === 'locks' && <LockPreview color={color(7)} />}
                 <View style={{ flex: 1 }}>
                   <View style={styles.nameRow}>
@@ -250,32 +254,28 @@ function WarpPreview({ color }: { color: DotStyle }) {
   );
 }
 
-function Ring({ at, color }: { at: Pt; color: string }) {
-  const d = C * 0.7;
+/** A Skia layer over the plate's cells, for previews drawn with the board's own components. */
+function Sketch({ rows, cols, children }: { rows: number; cols: number; children: React.ReactNode }) {
   return (
-    <View
-      style={{
-        position: 'absolute',
-        left: (at[1] + 0.5) * C - d / 2,
-        top: (at[0] + 0.5) * C - d / 2,
-        width: d,
-        height: d,
-        borderRadius: d / 2,
-        borderWidth: 2.5,
-        borderColor: color,
-        backgroundColor: withAlpha(color, 0.18),
-      }}
-    />
+    <Canvas style={{ position: 'absolute', left: 0, top: 0, width: cols * C, height: rows * C }} pointerEvents="none">
+      {children}
+    </Canvas>
   );
 }
 
 function TeleportPreview({ color }: { color: DotStyle }) {
   const gate = teleporterColor(0);
+  const reduceMotion = useSettings((s) => s.reduceMotion);
+  const clock = useClock();
+  const pulse = useDerivedValue(() => (reduceMotion ? 0.8 : 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(clock.value / 450))), [reduceMotion]);
   return (
     <Plate rows={1} cols={5}>
       <Tiles rows={1} cols={5} />
-      <Ring at={[0, 1]} color={gate} />
-      <Ring at={[0, 3]} color={gate} />
+      <Sketch rows={1} cols={5}>
+        {[1, 3].map((c) => (
+          <TeleportGate key={c} x={(c + 0.5) * C} y={0.5 * C} cell={C} color={gate} clock={clock} pulse={pulse} reduceMotion={reduceMotion} />
+        ))}
+      </Sketch>
       <Pipe from={[0, 0]} to={[0, 1]} color={color} />
       <Pipe from={[0, 3]} to={[0, 4]} color={color} />
       <Dot at={[0, 0]} color={color} />
@@ -284,38 +284,26 @@ function TeleportPreview({ color }: { color: DotStyle }) {
   );
 }
 
-const PORT_VEC = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] } as const;
-
-function PiecePreview({ ports, color }: { ports: (keyof typeof PORT_VEC)[]; color: DotStyle }) {
-  const styles = useStyles();
+function PiecePreview({ kind, color }: { kind: 'tunnel' | 'rotator'; color: DotStyle }) {
   const { board } = useTheme();
-  const groove = C * tokens.pathWidthRatio * 1.7;
-  const reach = C * 0.38;
-  const ends = ports.map((p) => [1 + PORT_VEC[p][0], 1 + PORT_VEC[p][1]] as Pt);
+  // Tunnel left + right; rotator turned once from up + right to down + right.
+  const ends: Pt[] = kind === 'tunnel' ? [[1, 0], [1, 2]] : [[2, 1], [1, 2]];
   return (
     <Plate rows={3} cols={3}>
       <Tiles rows={3} cols={3} />
-      <View style={[styles.bridge, styles.bridgeShadow]} />
-      <View style={styles.bridge} />
-      {ports.map((p) => {
-        const [dr, dc] = PORT_VEC[p];
-        const cx = 1.5 * C;
-        const cy = 1.5 * C;
-        return (
-          <View
-            key={p}
-            style={{
-              position: 'absolute',
-              left: Math.min(cx, cx + dc * reach) - groove / 2,
-              top: Math.min(cy, cy + dr * reach) - groove / 2,
-              width: Math.abs(dc * reach) + groove,
-              height: Math.abs(dr * reach) + groove,
-              borderRadius: groove / 2,
-              backgroundColor: board.bridgeRail,
-            }}
-          />
-        );
-      })}
+      <Sketch rows={3} cols={3}>
+        <TurnPiece
+          kind={kind}
+          cx={1.5 * C}
+          cy={1.5 * C}
+          cell={C}
+          deck={C * 0.76}
+          pathW={C * tokens.pathWidthRatio}
+          turn={kind === 'tunnel' ? 0 : 1}
+          reduceMotion
+          colors={{ box: board.bridgeBox, border: board.bridgeBorder, shadow: board.bridgeShadow }}
+        />
+      </Sketch>
       {ends.map((e, i) => (
         <Pipe key={i} from={e} to={[1, 1]} color={color} />
       ))}
@@ -327,31 +315,23 @@ function PiecePreview({ ports, color }: { ports: (keyof typeof PORT_VEC)[]; colo
 }
 
 function LockPreview({ color }: { color: DotStyle }) {
+  const { board } = useTheme();
   const lock = lockColor(0);
+  const shapes = useMemo(() => ({ key: keyPath(1.5 * C, 0.5 * C, C), padlock: padlockPaths(1.5 * C, 1.5 * C, C) }), []);
+  const door = { x: C + 1.5, y: C + 1.5, width: C - 3, height: C - 3, r: C * board.cellRadius };
   return (
     <Plate rows={2} cols={3}>
       <Tiles rows={2} cols={3} />
+      <Sketch rows={2} cols={3}>
+        <KeyBadge x={1.5 * C} y={0.5 * C} cell={C} color={lock} />
+        <ClosedDoor rect={door} cell={C} color={lock} padlock={shapes.padlock} />
+      </Sketch>
       <Pipe from={[0, 0]} to={[0, 2]} color={color} />
       <Dot at={[0, 0]} color={color} />
       <Dot at={[0, 2]} color={color} />
-      <View style={{ position: 'absolute', left: C, top: 0, width: C, height: C, alignItems: 'center', justifyContent: 'center' }}>
-        <Ionicons name="key" size={C * 0.6} color={lock} />
-      </View>
-      <View
-        style={{
-          position: 'absolute',
-          left: C + 1.5,
-          top: C + 1.5,
-          width: C - 3,
-          height: C - 3,
-          borderRadius: C * 0.15,
-          backgroundColor: lock,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Ionicons name="lock-closed" size={C * 0.5} color={LOCK_ON_COLOR} />
-      </View>
+      <Sketch rows={2} cols={3}>
+        <KeyMark path={shapes.key} cell={C} color={lock} />
+      </Sketch>
     </Plate>
   );
 }

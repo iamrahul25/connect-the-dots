@@ -21,7 +21,7 @@ const DETAILS: Record<number, { grid: string; feature?: string }> = {
   2: { grid: '7×7 – 8×8', feature: 'Walls' },
   3: { grid: '8×8 – 9×9', feature: 'Bridges' },
   4: { grid: '9×9 – 10×10', feature: 'Warps' },
-  5: { grid: '11×11 – 12×12', feature: 'Everything' },
+  5: { grid: '11×11 – 12×12', feature: 'All 3 obstacles' },
   6: { grid: '8×8 – 9×9', feature: 'Teleporters' },
   7: { grid: '9×9 – 10×10', feature: 'Tunnels' },
   8: { grid: '10×10 – 11×11', feature: 'Rotators' },
