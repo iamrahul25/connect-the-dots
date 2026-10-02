@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import type { Level } from '@ctd/core';
 import type { Palette } from '../theme/config';
 import { useTheme } from '../theme/useTheme';
+import { HatchedTile } from './HatchedTile';
 
 const EMPTY = 0;
 const WALL = 1;
@@ -37,19 +38,23 @@ export const MiniBoard = memo(function MiniBoard({
     for (const [r, c] of [d.start, d.end]) dot[r * W + c] = color;
   }
 
-  const bar = Math.max(1.5, pad * 0.45);
+  const bar = Math.max(2, pad * 0.6);
   const warpBars: { left: number; top: number; width: number; height: number }[] = [];
+  const lanes: { left: number; top: number; width: number; height: number }[] = [];
   for (const w of level.warps) {
     if (w.axis === 'row') {
-      const top = pad + w.index * cell + cell * 0.18;
-      warpBars.push({ left: pad - bar - 1, top, width: bar, height: cell * 0.64 });
-      warpBars.push({ left: pad + W * cell + 1, top, width: bar, height: cell * 0.64 });
+      const top = pad + w.index * cell + cell * 0.1;
+      warpBars.push({ left: pad - bar - 0.5, top, width: bar, height: cell * 0.8 });
+      warpBars.push({ left: pad + W * cell + 0.5, top, width: bar, height: cell * 0.8 });
+      lanes.push({ left: pad, top: pad + w.index * cell, width: W * cell, height: cell });
     } else {
-      const left = pad + w.index * cell + cell * 0.18;
-      warpBars.push({ left, top: pad - bar - 1, width: cell * 0.64, height: bar });
-      warpBars.push({ left, top: pad + H * cell + 1, width: cell * 0.64, height: bar });
+      const left = pad + w.index * cell + cell * 0.1;
+      warpBars.push({ left, top: pad - bar - 0.5, width: cell * 0.8, height: bar });
+      warpBars.push({ left, top: pad + H * cell + 0.5, width: cell * 0.8, height: bar });
+      lanes.push({ left: pad + w.index * cell, top: pad, width: cell, height: H * cell });
     }
   }
+  const hatch = cell >= 8;
 
   return (
     <View style={{ width: W * cell + pad * 2, height: H * cell + pad * 2 }}>
@@ -69,18 +74,25 @@ export const MiniBoard = memo(function MiniBoard({
       <View style={{ position: 'absolute', left: pad, top: pad, width: W * cell, height: H * cell, flexDirection: 'row', flexWrap: 'wrap' }}>
         {kind.map((k, i) => (
           <View key={i} style={{ width: cell, height: cell, padding: gap }}>
-            <View
-              style={{
-                flex: 1,
-                borderRadius: cell * board.cellRadius,
-                backgroundColor: dot[i] ?? (k === WALL ? board.cellWall : board.cellEmpty),
-                borderWidth: k === BRIDGE ? Math.max(0.75, cell * 0.1) : k === EMPTY && !dot[i] ? outline : 0,
-                borderColor: k === BRIDGE ? board.bridgeBorder : board.border,
-              }}
-            />
+            {k === WALL && !dot[i] && hatch ? (
+              <HatchedTile size={cell - gap * 2} radius={cell * board.cellRadius} color={board.cellWall} stripe={board.wallStripe} />
+            ) : (
+              <View
+                style={{
+                  flex: 1,
+                  borderRadius: cell * board.cellRadius,
+                  backgroundColor: dot[i] ?? (k === WALL ? board.cellWall : k === BRIDGE ? board.bridgeBox : board.cellEmpty),
+                  borderWidth: k === BRIDGE ? Math.max(1, cell * 0.12) : k === EMPTY && !dot[i] ? outline : 0,
+                  borderColor: k === BRIDGE ? board.bridgeBorder : board.border,
+                }}
+              />
+            )}
           </View>
         ))}
       </View>
+      {lanes.map((l, i) => (
+        <View key={`l${i}`} style={{ position: 'absolute', ...l, backgroundColor: board.warpTint }} />
+      ))}
       {warpBars.map((b, i) => (
         <View key={`w${i}`} style={{ position: 'absolute', ...b, borderRadius: bar, backgroundColor: board.warp }} />
       ))}

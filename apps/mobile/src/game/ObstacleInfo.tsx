@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import type { Puzzle } from '@ctd/core';
 import { GlassButton } from '../ui/GlassButton';
+import { HatchedTile } from '../ui/HatchedTile';
 import { fonts, tokens } from '../theme/tokens';
 import type { DotStyle, Palette } from '../theme/config';
 import { makeStyles, useTheme } from '../theme/useTheme';
@@ -14,17 +16,17 @@ const KINDS: ObstacleKind[] = ['walls', 'bridges', 'warps'];
 const INFO: Record<ObstacleKind, { name: string; looks: string; rule: string }> = {
   walls: {
     name: 'Walls',
-    looks: 'Solid, darker tiles.',
+    looks: 'Dark tiles with diagonal stripes.',
     rule: 'Flows can’t pass through them, so route around. Walls don’t need filling.',
   },
   bridges: {
     name: 'Bridges',
-    looks: 'Raised tiles with an outline.',
+    looks: 'Raised tiles with a bold outline and side rails.',
     rule: 'Two flows cross here: one straight across, one straight over. No turning on a bridge, and both lanes must be filled.',
   },
   warps: {
     name: 'Warps',
-    looks: 'Colored bars on opposite edges of a row or column.',
+    looks: 'Glowing gates with arrows at both ends of a tinted row or column.',
     rule: 'Drag a flow off one bar and it re-enters from the matching bar on the other side.',
   },
 };
@@ -94,6 +96,8 @@ export function ObstacleInfo({ puzzle, palette, onClose }: Props) {
 
 const C = 28;
 const PAD = 12;
+const WARP_T = 8;
+const WARP_GLOW = 3;
 type Pt = [row: number, col: number];
 
 function Plate({ rows, cols, children }: { rows: number; cols: number; children: React.ReactNode }) {
@@ -107,11 +111,18 @@ function Plate({ rows, cols, children }: { rows: number; cols: number; children:
 
 function Tiles({ rows, cols, walls = [] }: { rows: number; cols: number; walls?: Pt[] }) {
   const styles = useStyles();
+  const { board } = useTheme();
   const out: React.ReactNode[] = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      const wall = walls.some(([wr, wc]) => wr === r && wc === c);
-      out.push(<View key={`${r}-${c}`} style={[styles.tile, { left: c * C + 1.5, top: r * C + 1.5 }, wall && styles.wall]} />);
+      const pos = { position: 'absolute', left: c * C + 1.5, top: r * C + 1.5 } as const;
+      out.push(
+        walls.some(([wr, wc]) => wr === r && wc === c) ? (
+          <HatchedTile key={`${r}-${c}`} size={C - 3} radius={C * board.cellRadius} color={board.cellWall} stripe={board.wallStripe} style={pos} />
+        ) : (
+          <View key={`${r}-${c}`} style={[styles.tile, pos]} />
+        ),
+      );
     }
   }
   return <>{out}</>;
@@ -176,7 +187,11 @@ function BridgePreview({ across, over }: { across: DotStyle; over: DotStyle }) {
     <Plate rows={3} cols={3}>
       <Tiles rows={3} cols={3} />
       <Pipe from={[1, 0]} to={[1, 2]} color={across} />
-      <View style={styles.bridge} />
+      <View style={[styles.bridge, styles.bridgeShadow]} />
+      <View style={styles.bridge}>
+        <View style={[styles.rail, { left: '14%' }]} />
+        <View style={[styles.rail, { right: '14%' }]} />
+      </View>
       <Pipe from={[0, 1]} to={[2, 1]} color={over} />
       <Dot at={[1, 0]} color={across} />
       <Dot at={[1, 2]} color={across} />
@@ -188,12 +203,18 @@ function BridgePreview({ across, over }: { across: DotStyle; over: DotStyle }) {
 
 function WarpPreview({ color }: { color: DotStyle }) {
   const styles = useStyles();
-  const bar = { top: C * 0.18, height: C * 0.64 };
+  const { board } = useTheme();
   return (
     <Plate rows={1} cols={4}>
       <Tiles rows={1} cols={4} />
-      <View style={[styles.warp, bar, { left: -9 }]} />
-      <View style={[styles.warp, bar, { left: 4 * C + 3 }]} />
+      <View style={styles.lane} />
+      {(['left', 'right'] as const).map((side) => (
+        <View key={side} style={[styles.warpGlow, { left: (side === 'left' ? -4 : 4 * C + 4) - WARP_T / 2 - WARP_GLOW }]}>
+          <View style={styles.warp}>
+            <Ionicons name={side === 'left' ? 'chevron-back' : 'chevron-forward'} size={WARP_T + 2} color={board.warpArrow} />
+          </View>
+        </View>
+      ))}
       <Pipe from={[0, 2]} to={[0, 3.25]} color={color} />
       <Pipe from={[0, -0.25]} to={[0, 0]} color={color} />
       <Dot at={[0, 2]} color={color} />
@@ -246,17 +267,20 @@ const useStyles = makeStyles((t) => ({
     borderRadius: C * t.board.cellRadius,
     backgroundColor: t.board.cellEmpty,
   },
-  wall: { backgroundColor: t.board.cellWall },
   bridge: {
     position: 'absolute',
-    left: C + C * 0.14,
-    top: C + C * 0.14,
-    width: C * 0.72,
-    height: C * 0.72,
-    borderRadius: C * 0.16,
+    left: C + C * 0.12,
+    top: C + C * 0.12,
+    width: C * 0.76,
+    height: C * 0.76,
+    borderRadius: C * 0.18,
     backgroundColor: t.board.bridgeBox,
-    borderWidth: 1.5,
+    borderWidth: 2.5,
     borderColor: t.board.bridgeBorder,
   },
-  warp: { position: 'absolute', width: 6, borderRadius: 3, backgroundColor: t.board.warp },
+  bridgeShadow: { top: C + C * 0.12 + 2, backgroundColor: t.board.bridgeShadow, borderWidth: 0 },
+  rail: { position: 'absolute', top: '16%', bottom: '16%', width: 1.5, borderRadius: 1, backgroundColor: t.board.bridgeRail },
+  lane: { position: 'absolute', left: 1.5, top: 1.5, width: 4 * C - 3, height: C - 3, borderRadius: C * t.board.cellRadius, backgroundColor: t.board.warpTint },
+  warpGlow: { position: 'absolute', top: C * 0.1 - WARP_GLOW, padding: WARP_GLOW, borderRadius: WARP_T, backgroundColor: t.board.warpGlow },
+  warp: { width: WARP_T, height: C * 0.8, borderRadius: WARP_T / 2, backgroundColor: t.board.warp, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
 }));

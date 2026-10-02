@@ -3,8 +3,10 @@ import { Platform, StyleSheet, View } from 'react-native';
 import {
   Canvas,
   Circle,
+  ClipOp,
   DashPathEffect,
   Group,
+  PaintStyle,
   Path,
   Picture,
   RoundedRect,
@@ -40,6 +42,8 @@ interface Props {
 }
 
 const DIR_VEC = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] } as const;
+const CLIP_INTERSECT = ClipOp.Intersect;
+const STROKE = PaintStyle.Stroke;
 
 export function Board(props: Props) {
   const { game, version, geom, palette, colorblind, reduceMotion, fx, intro, shake } = props;
@@ -65,27 +69,58 @@ export function Board(props: Props) {
         cells.push(geom.ox + c * cell, geom.oy + r * cell, cell, d, g.isWall[i] ? 1 : 0);
       }
     }
+    // Warp gates sit on the board frame, each with a chevron pointing out of the board; the lane they join is tinted.
     const warps: { x: number; y: number; w: number; h: number }[] = [];
-    const t = Math.max(4, geom.pad * 0.32);
+    const lanes: { x: number; y: number; w: number; h: number }[] = [];
+    const t = Math.max(6, geom.pad * 0.55);
+    const len = cell * 0.8;
+    const arrows = Skia.PathBuilder.Make();
+    const gate = (cx: number, cy: number, dx: number, dy: number) => {
+      const w = dx ? t : len;
+      const h = dx ? len : t;
+      warps.push({ x: cx - w / 2, y: cy - h / 2, w, h });
+      const a = t * 0.3;
+      arrows.moveTo(cx - dx * a * 0.5 + dy * a, cy - dy * a * 0.5 + dx * a);
+      arrows.lineTo(cx + dx * a * 0.5, cy + dy * a * 0.5);
+      arrows.lineTo(cx - dx * a * 0.5 - dy * a, cy - dy * a * 0.5 - dx * a);
+    };
+    const left = geom.ox + gap - frameOffset;
+    const right = geom.ox + geom.W * cell - gap + frameOffset;
+    const top = geom.oy + gap - frameOffset;
+    const bottom = geom.oy + geom.H * cell - gap + frameOffset;
     g.warpRows.forEach((on, r) => {
       if (!on) return;
-      const y = geom.oy + r * cell + cell * 0.18;
-      warps.push({ x: geom.ox - t - 3, y, w: t, h: cell * 0.64 });
-      warps.push({ x: geom.ox + geom.W * cell + 3, y, w: t, h: cell * 0.64 });
+      const cy = geom.oy + (r + 0.5) * cell;
+      gate(left, cy, -1, 0);
+      gate(right, cy, 1, 0);
+      lanes.push({ x: geom.ox + gap, y: geom.oy + r * cell + gap, w: geom.W * cell - gap * 2, h: cell - gap * 2 });
     });
     g.warpCols.forEach((on, c) => {
       if (!on) return;
-      const x = geom.ox + c * cell + cell * 0.18;
-      warps.push({ x, y: geom.oy - t - 3, w: cell * 0.64, h: t });
-      warps.push({ x, y: geom.oy + geom.H * cell + 3, w: cell * 0.64, h: t });
+      const cx = geom.ox + (c + 0.5) * cell;
+      gate(cx, top, 0, -1);
+      gate(cx, bottom, 0, 1);
+      lanes.push({ x: geom.ox + c * cell + gap, y: geom.oy + gap, w: cell - gap * 2, h: geom.H * cell - gap * 2 });
     });
     const bridges: { x: number; y: number; r: number; c: number }[] = [];
-    game.puzzle.bridges.forEach(([r, c]) => bridges.push({ x: geom.ox + c * cell, y: geom.oy + r * cell, r, c }));
-    return { cells, warps, bridges };
-  }, [geom, g, cell, game.puzzle]);
+    const rails = Skia.PathBuilder.Make();
+    const deck = cell * 0.76;
+    game.puzzle.bridges.forEach(([r, c]) => {
+      const x = geom.ox + c * cell;
+      const y = geom.oy + r * cell;
+      bridges.push({ x, y, r, c });
+      for (const f of [0.2, 0.8]) {
+        const rx = x + (cell - deck) / 2 + deck * f;
+        rails.moveTo(rx, y + (cell - deck) / 2 + deck * 0.16);
+        rails.lineTo(rx, y + (cell - deck) / 2 + deck * 0.84);
+      }
+    });
+    return { cells, warps, warpT: t, warpArrows: arrows.build(), lanes, bridges, deck, bridgeRails: rails.build() };
+  }, [geom, g, cell, gap, frameOffset, game.puzzle]);
 
   const emptyColor = B.cellEmpty;
   const wallColor = B.cellWall;
+  const stripeColor = B.wallStripe;
   const prevCells = useSharedValue<SkPicture | null>(null);
   const cellsPicture = useDerivedValue(() => {
     const k = intro.value;
@@ -93,21 +128,40 @@ export function Board(props: Props) {
     return recordPicture(prevCells, (canvas) => {
       const paint = Skia.Paint();
       paint.setAntiAlias(true);
+      const stripe = Skia.Paint();
+      stripe.setAntiAlias(true);
+      stripe.setStyle(STROKE);
       const empty = Skia.Color(emptyColor);
       const wall = Skia.Color(wallColor);
+      const stripeC = Skia.Color(stripeColor);
+      stripe.setColor(stripeC);
       for (let i = 0; i < data.length; i += 5) {
         const appear = Math.min(1, Math.max(0, k * 1.8 - data[i + 3] * 0.8));
         if (appear <= 0) continue;
         const inset = gap + (1 - appear) * data[i + 2] * 0.3;
         const s = data[i + 2] - inset * 2;
-        const c = data[i + 4] === 1 ? wall : empty;
+        const x = data[i] + inset;
+        const y = data[i + 1] + inset;
+        const isWall = data[i + 4] === 1;
+        const c = isWall ? wall : empty;
         paint.setColor(c);
         paint.setAlphaf(c[3] * appear);
-        canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(data[i] + inset, data[i + 1] + inset, s, s), radius, radius), paint);
+        const rrect = Skia.RRectXY(Skia.XYWHRect(x, y, s, s), radius, radius);
+        canvas.drawRRect(rrect, paint);
+        if (isWall) {
+          const step = s / 3;
+          stripe.setStrokeWidth(step * 0.4);
+          stripe.setAlphaf(stripeC[3] * appear);
+          canvas.save();
+          canvas.clipRRect(rrect, CLIP_INTERSECT, true);
+          for (let d = -s + step / 2; d < s; d += step) canvas.drawLine(x + d, y + s, x + d + s, y, stripe);
+          canvas.restore();
+        }
       }
       paint.dispose();
+      stripe.dispose();
     });
-  }, [staticData, gap, radius, emptyColor, wallColor]);
+  }, [staticData, gap, radius, emptyColor, wallColor, stripeColor]);
 
   // ---- Dynamic layers (depend on game state) --------------------------------
   const dynamic = useMemo(() => {
@@ -203,6 +257,10 @@ export function Board(props: Props) {
     () => (reduceMotion ? dotR : dotR * (1 + 0.05 * Math.sin(clock.value / 380))),
     [dotR, reduceMotion],
   );
+  const warpPulse = useDerivedValue(
+    () => (reduceMotion ? 0.8 : 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(clock.value / 450))),
+    [reduceMotion],
+  );
   const prevFx = useSharedValue<SkPicture | null>(null);
   const fxPicture = useDerivedValue(() => {
     clock.value;
@@ -294,10 +352,39 @@ export function Board(props: Props) {
               </Group>
             ))}
 
-            {/* Warp portals */}
+            {/* Warp lanes and gates */}
+            {staticData.lanes.map((l, i) => (
+              <RoundedRect key={`l${i}`} x={l.x} y={l.y} width={l.w} height={l.h} r={radius} color={B.warpTint} />
+            ))}
+            <Group opacity={warpPulse}>
+              {staticData.warps.map((w, i) => {
+                const glow = staticData.warpT * 0.45;
+                return (
+                  <RoundedRect
+                    key={`wg${i}`}
+                    x={w.x - glow}
+                    y={w.y - glow}
+                    width={w.w + glow * 2}
+                    height={w.h + glow * 2}
+                    r={Math.min(w.w, w.h) / 2 + glow}
+                    color={B.warpGlow}
+                  />
+                );
+              })}
+            </Group>
             {staticData.warps.map((w, i) => (
               <RoundedRect key={`w${i}`} x={w.x} y={w.y} width={w.w} height={w.h} r={Math.min(w.w, w.h) / 2} color={B.warp} />
             ))}
+            {staticData.warps.length > 0 && (
+              <Path
+                path={staticData.warpArrows}
+                color={B.warpArrow}
+                style="stroke"
+                strokeWidth={Math.max(1.2, staticData.warpT * 0.18)}
+                strokeCap="round"
+                strokeJoin="round"
+              />
+            )}
 
             {/* Ghosts of paths cut by the current drag */}
             {dynamic.ghostPaths.map((p) => (
@@ -310,13 +397,37 @@ export function Board(props: Props) {
               <Path key={p.key} path={p.path} color={p.color} opacity={B.lineOpacity} style="stroke" strokeWidth={pathW} strokeCap="round" strokeJoin="round" />
             ))}
 
-            {/* Bridges: raised tile, vertical path on top */}
-            {staticData.bridges.map((b) => (
-              <Group key={`b${b.r}-${b.c}`}>
-                <RoundedRect x={b.x + cell * 0.14} y={b.y + cell * 0.14} width={cell * 0.72} height={cell * 0.72} r={cell * 0.16} color={B.bridgeBox} />
-                <RoundedRect x={b.x + cell * 0.14} y={b.y + cell * 0.14} width={cell * 0.72} height={cell * 0.72} r={cell * 0.16} style="stroke" strokeWidth={1.5} color={B.bridgeBorder} />
-              </Group>
-            ))}
+            {/* Bridges: raised deck with rails along the over lane, vertical path on top */}
+            {staticData.bridges.map((b) => {
+              const s = staticData.deck;
+              const x = b.x + (cell - s) / 2;
+              const y = b.y + (cell - s) / 2;
+              return (
+                <Group key={`b${b.r}-${b.c}`}>
+                  <RoundedRect x={x} y={y + cell * 0.07} width={s} height={s} r={cell * 0.18} color={B.bridgeShadow} />
+                  <RoundedRect x={x} y={y} width={s} height={s} r={cell * 0.18} color={B.bridgeBox} />
+                </Group>
+              );
+            })}
+            {staticData.bridges.length > 0 && (
+              <Path path={staticData.bridgeRails} color={B.bridgeRail} style="stroke" strokeWidth={Math.max(1.5, cell * 0.05)} strokeCap="round" />
+            )}
+            {staticData.bridges.map((b) => {
+              const s = staticData.deck;
+              return (
+                <RoundedRect
+                  key={`bo${b.r}-${b.c}`}
+                  x={b.x + (cell - s) / 2}
+                  y={b.y + (cell - s) / 2}
+                  width={s}
+                  height={s}
+                  r={cell * 0.18}
+                  style="stroke"
+                  strokeWidth={Math.max(2, cell * 0.07)}
+                  color={B.bridgeBorder}
+                />
+              );
+            })}
             {dynamic.overpasses.map((p) => (
               <Path key={p.key} path={p.path} color={p.color} opacity={B.lineOpacity} style="stroke" strokeWidth={pathW} strokeCap="round" />
             ))}
