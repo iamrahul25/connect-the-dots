@@ -42,14 +42,17 @@ export default function PackScreen() {
     );
   }
 
+  const { s } = layout;
   const cols = layout.tablet ? 5 : 4;
+  const gap = s(12);
+  const footerH = s(26);
   const contentW = layout.contentWidth('wide');
-  const tile = Math.floor((contentW - (cols - 1) * 12) / cols);
-  const numSize = Math.round(Math.min(48, Math.max(28, tile * 0.32)));
-  const detailSize = Math.round(Math.min(18, Math.max(13, tile * 0.115)));
+  const tile = Math.floor((contentW - (cols - 1) * gap) / cols);
+  const numSize = Math.round(Math.min(s(48), Math.max(s(24), tile * 0.32)));
+  const detailSize = Math.round(Math.min(s(18), Math.max(s(12), tile * 0.115)));
 
   return (
-    <Screen title={pack.name} subtitle={`${packStars(levels, pack.id)} / ${maxStars(pack.id)} ★`} back scroll width="wide" contentStyle={styles.grid}>
+    <Screen title={pack.name} subtitle={`${packStars(levels, pack.id)} / ${maxStars(pack.id)} ★`} back scroll width="wide" contentStyle={[styles.grid, { gap }]}>
       {pack.levels.map((lid) => {
         const level = getLevel(lid);
         if (!level) return null;
@@ -66,7 +69,7 @@ export default function PackScreen() {
               styles.tile,
               {
                 width: tile,
-                height: tile + 26,
+                height: tile + footerH,
                 borderColor: current ? accent : theme.box.border,
                 backgroundColor: current
                   ? mix(theme.box.background, accent, 0.14)
@@ -78,7 +81,7 @@ export default function PackScreen() {
             ]}
           >
             {rec ? (
-              <MiniBoard level={level} size={tile - 26} palette={palette} />
+              <MiniBoard level={level} size={tile - footerH} palette={palette} />
             ) : unlocked ? (
               <View style={styles.center}>
                 <Text style={[styles.num, { color: theme.text.primary, fontSize: numSize }]}>{globalNumber(lid)}</Text>
@@ -88,10 +91,10 @@ export default function PackScreen() {
                 {inProgress[lid] && <View style={[styles.dot, { backgroundColor: accent }]} />}
               </View>
             ) : (
-              <Ionicons name="lock-closed" size={22} color={theme.icon.locked} />
+              <Ionicons name="lock-closed" size={s(22)} color={theme.icon.locked} />
             )}
             <View style={styles.footer}>
-              {rec ? <Stars count={rec.stars} size={12} /> : <Text style={[styles.footerText, { fontSize: detailSize }]}>{unlocked ? '' : globalNumber(lid)}</Text>}
+              {rec ? <Stars count={rec.stars} size={s(12)} /> : <Text style={[styles.footerText, { fontSize: detailSize }]}>{unlocked ? '' : globalNumber(lid)}</Text>}
             </View>
           </Pressable>
         );
@@ -100,14 +103,14 @@ export default function PackScreen() {
   );
 }
 
-const useStyles = makeStyles((t) => ({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  tile: { borderRadius: 18, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', paddingTop: 10 },
+const useStyles = makeStyles((t, s) => ({
+  grid: { flexDirection: 'row', flexWrap: 'wrap' },
+  tile: { borderRadius: s(18), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', paddingTop: s(10) },
   center: { alignItems: 'center', justifyContent: 'center', flex: 1 },
   num: { fontFamily: fonts.titleBold },
   size: { fontFamily: fonts.body, color: t.text.secondary, marginTop: 2 },
-  dot: { width: 8, height: 8, borderRadius: 4, marginTop: 6 },
-  footer: { height: 24, justifyContent: 'center' },
+  dot: { width: s(8), height: s(8), borderRadius: s(4), marginTop: s(6) },
+  footer: { height: s(24), justifyContent: 'center' },
   footerText: { fontFamily: fonts.body, color: t.text.muted },
-  empty: { fontFamily: fonts.body, color: t.text.secondary, textAlign: 'center', marginTop: 40 },
+  empty: { fontFamily: fonts.body, fontSize: s(15), color: t.text.secondary, textAlign: 'center', marginTop: s(40) },
 }));

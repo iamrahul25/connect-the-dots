@@ -27,15 +27,15 @@ export function useToast() {
   return { show, node };
 }
 
-const useStyles = makeStyles((t) => ({
+const useStyles = makeStyles((t, s) => ({
   toast: {
     position: 'absolute',
     alignSelf: 'center',
     top: '46%',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+    paddingHorizontal: s(18),
+    paddingVertical: s(10),
     borderRadius: 999,
     backgroundColor: t.box.toast,
   },
-  text: { fontFamily: fonts.bodyBold, fontSize: 15, color: t.box.toastText },
+  text: { fontFamily: fonts.bodyBold, fontSize: s(15), color: t.box.toastText },
 }));

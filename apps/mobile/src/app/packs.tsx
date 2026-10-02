@@ -33,16 +33,17 @@ export default function Packs() {
   const styles = useStyles();
   const layout = useLayout();
   const insets = useSafeAreaInsets();
+  const { s } = layout;
   const stripW = layout.width - insets.left - insets.right;
-  const cardW = layout.tablet ? 400 : Math.min(320, stripW - 72);
-  const room = layout.height - insets.top - insets.bottom - layout.landscapeClearance - 150;
-  const cardH = Math.max(340, Math.min(room, layout.tablet ? 540 : 440));
+  const cardW = Math.min(s(320), stripW - 72);
+  const room = layout.height - insets.top - insets.bottom - layout.landscapeClearance - s(150);
+  const cardH = Math.max(s(320), Math.min(room, s(440)));
   const stars = totalStars(levels);
-  const pad = clamp(cardW * 0.075, 20, 30);
-  const medallion = clamp(Math.min(cardW * 0.46, cardH * 0.32), 104, 180);
-  const nameSize = clamp(cardW * 0.115, 30, 46);
-  const gridSize = clamp(cardW * 0.048, 14, 18);
-  const metaSize = clamp(cardW * 0.043, 13, 16);
+  const pad = clamp(cardW * 0.075, s(18), s(30));
+  const medallion = clamp(Math.min(cardW * 0.46, cardH * 0.32), s(96), s(180));
+  const nameSize = clamp(cardW * 0.115, s(28), s(46));
+  const gridSize = clamp(cardW * 0.048, s(13), s(18));
+  const metaSize = clamp(cardW * 0.043, s(12), s(16));
 
   useFocusEffect(
     React.useCallback(() => {
@@ -51,13 +52,13 @@ export default function Packs() {
   );
 
   return (
-    <Screen title="Level Packs" subtitle={`${stars} ★ collected`} back center width="full">
+    <Screen title="Level Packs" subtitle={`${stars} ★ collected`} back scroll center width="full">
       <ScrollView
         horizontal
-        snapToInterval={cardW + 16}
+        snapToInterval={cardW + s(16)}
         decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: (stripW - cardW) / 2, gap: 16, alignItems: 'center' }}
+        contentContainerStyle={{ paddingHorizontal: (stripW - cardW) / 2, gap: s(16), alignItems: 'center' }}
         style={{ flexGrow: 0, marginHorizontal: -layout.gutter }}
       >
         {manifest.packs.map((p) => {
@@ -105,7 +106,7 @@ export default function Packs() {
                     </View>
                     {!unlocked && (
                       <View style={[styles.lockBadge, { borderColor: theme.box.background }]}>
-                        <Ionicons name="lock-closed" size={16} color={theme.icon.locked} />
+                        <Ionicons name="lock-closed" size={s(16)} color={theme.icon.locked} />
                       </View>
                     )}
                   </View>
@@ -161,44 +162,44 @@ export default function Packs() {
   );
 }
 
-const useStyles = makeStyles((t) => ({
+const useStyles = makeStyles((t, s) => ({
   card: {
-    borderRadius: 30,
+    borderRadius: s(30),
     alignItems: 'center',
     borderWidth: 1.5,
     overflow: 'hidden',
     backgroundColor: t.box.background,
   },
-  packNo: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999 },
-  packNoText: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2.5, color: t.text.primary },
-  hero: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', paddingVertical: 12 },
+  packNo: { paddingHorizontal: s(12), paddingVertical: s(5), borderRadius: 999 },
+  packNoText: { fontFamily: fonts.bodyBold, fontSize: s(12), letterSpacing: 2.5, color: t.text.primary },
+  hero: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', paddingVertical: s(12) },
   halo: { position: 'absolute', opacity: 0.08 },
   medallion: { alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
   lockBadge: {
     position: 'absolute',
-    right: 4,
-    bottom: 4,
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    right: s(4),
+    bottom: s(4),
+    width: s(34),
+    height: s(34),
+    borderRadius: s(17),
     borderWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: t.box.pill,
   },
-  info: { alignSelf: 'stretch', alignItems: 'center', gap: 8 },
+  info: { alignSelf: 'stretch', alignItems: 'center', gap: s(8) },
   packName: { fontFamily: fonts.titleBold, color: t.text.primary, textAlign: 'center' },
-  detailRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 8 },
+  detailRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: s(8) },
   grid: { fontFamily: fonts.body, color: t.text.secondary },
-  chip: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 },
+  chip: { paddingHorizontal: s(10), paddingVertical: s(3), borderRadius: 999 },
   chipText: { fontFamily: fonts.bodyBold, color: t.text.primary },
-  footer: { alignSelf: 'stretch', marginTop: 22, gap: 10 },
-  progressTrack: { height: 8, borderRadius: 4, backgroundColor: t.progress.track, overflow: 'hidden' },
-  progressFill: { height: 8, borderRadius: 4 },
+  footer: { alignSelf: 'stretch', marginTop: s(22), gap: s(10) },
+  progressTrack: { height: s(8), borderRadius: s(4), backgroundColor: t.progress.track, overflow: 'hidden' },
+  progressFill: { height: s(8), borderRadius: s(4) },
   statsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  starStat: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  starStat: { flexDirection: 'row', alignItems: 'center', gap: s(4) },
   meta: { fontFamily: fonts.body, color: t.text.secondary },
-  locked: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: t.box.pill },
+  locked: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: s(14), paddingVertical: s(10), borderRadius: s(16), backgroundColor: t.box.pill },
   lockedText: { textAlign: 'center' },
-  hint: { fontFamily: fonts.body, fontSize: 13, color: t.text.muted, textAlign: 'center', marginTop: 18 },
+  hint: { fontFamily: fonts.body, fontSize: s(13), color: t.text.muted, textAlign: 'center', marginTop: s(18) },
 }));

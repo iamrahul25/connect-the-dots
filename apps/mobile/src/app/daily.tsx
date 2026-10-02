@@ -9,6 +9,7 @@ import { Stars } from '../ui/Stars';
 import { fonts } from '../theme/tokens';
 import { musicFor } from '../theme/packs';
 import { makeStyles, useTheme } from '../theme/useTheme';
+import { useScale } from '../theme/scale';
 import { withAlpha } from '../board/color';
 import { useProgress } from '../store/progress';
 import { audio } from '../services/audio';
@@ -19,7 +20,8 @@ const DIFFICULTY = ['10×10 · Expert', '6×6 · Easy', '7×7 · Easy+', '7×7 �
 export default function Daily() {
   const theme = useTheme();
   const styles = useStyles();
-  const daily = useProgress((s) => s.daily);
+  const { s } = useScale();
+  const daily = useProgress((st) => st.daily);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const todayKey = dateKey(today);
@@ -58,14 +60,14 @@ export default function Daily() {
       <View style={[styles.todayCard, { borderColor: withAlpha(theme.accent.color, 0.45) }]}>
         <Text style={styles.todayLabel}>TODAY · {WEEKDAY_NAMES[today.getDay()].toUpperCase()}</Text>
         <Text style={styles.todayDiff}>{DIFFICULTY[today.getDay()]}</Text>
-        {todayDone && <Stars count={daily.completed[todayKey].stars} size={20} />}
+        {todayDone && <Stars count={daily.completed[todayKey].stars} size={s(20)} />}
         <GlassButton
           label={todayDone ? 'Play again' : 'Play today'}
           icon="play"
           variant="primary"
           size="lg"
           onPress={() => router.push(`/play/daily-${todayKey}`)}
-          style={{ marginTop: 16, alignSelf: 'stretch' }}
+          style={styles.playToday}
         />
       </View>
 
@@ -105,7 +107,7 @@ export default function Daily() {
                       ]}
                     >
                       <Text style={[styles.dayText, done && { color: cal.solvedText }, future && { color: cal.future }]}>{d.getDate()}</Text>
-                      {done && <Ionicons name="checkmark" size={10} color={cal.solvedText} style={styles.check} />}
+                      {done && <Ionicons name="checkmark" size={s(10)} color={cal.solvedText} style={styles.check} />}
                     </Pressable>
                   </View>
                 );
@@ -120,56 +122,58 @@ export default function Daily() {
 
 function Stat({ icon, color, value, label }: { icon: keyof typeof Ionicons.glyphMap; color: string; value: number; label: string }) {
   const styles = useStyles();
+  const { s } = useScale();
   return (
     <View style={styles.stat}>
-      <Ionicons name={icon} size={22} color={color} />
+      <Ionicons name={icon} size={s(22)} color={color} />
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   );
 }
 
-const useStyles = makeStyles((t) => ({
-  streakRow: { flexDirection: 'row', gap: 10 },
+const useStyles = makeStyles((t, s) => ({
+  streakRow: { flexDirection: 'row', gap: s(10) },
   stat: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 12,
-    borderRadius: 18,
+    paddingVertical: s(12),
+    borderRadius: s(18),
     backgroundColor: t.box.background,
     borderWidth: 1,
     borderColor: t.box.border,
   },
-  statValue: { fontFamily: fonts.titleBold, fontSize: 24, color: t.text.primary, marginTop: 2 },
-  statLabel: { fontFamily: fonts.body, fontSize: 11, color: t.text.secondary, textTransform: 'uppercase', letterSpacing: 1 },
+  statValue: { fontFamily: fonts.titleBold, fontSize: s(24), color: t.text.primary, marginTop: 2 },
+  statLabel: { fontFamily: fonts.body, fontSize: s(11), color: t.text.secondary, textTransform: 'uppercase', letterSpacing: 1 },
   todayCard: {
-    marginTop: 14,
-    padding: 20,
-    borderRadius: 24,
+    marginTop: s(14),
+    padding: s(20),
+    borderRadius: s(24),
     alignItems: 'center',
     backgroundColor: t.box.background,
     borderWidth: 1.5,
-    gap: 4,
+    gap: s(4),
   },
-  todayLabel: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2, color: t.text.secondary },
-  todayDiff: { fontFamily: fonts.titleBold, fontSize: 26, color: t.text.primary },
-  calendar: { marginTop: 14, padding: 12, borderRadius: 24, backgroundColor: t.box.surface, borderWidth: 1, borderColor: t.box.border },
+  todayLabel: { fontFamily: fonts.bodyBold, fontSize: s(12), letterSpacing: 2, color: t.text.secondary },
+  todayDiff: { fontFamily: fonts.titleBold, fontSize: s(26), color: t.text.primary },
+  playToday: { marginTop: s(16), alignSelf: 'stretch' },
+  calendar: { marginTop: s(14), padding: s(12), borderRadius: s(24), backgroundColor: t.box.surface, borderWidth: 1, borderColor: t.box.border },
   monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  month: { fontFamily: fonts.title, fontSize: 18, color: t.text.primary },
-  week: { flexDirection: 'row', marginTop: 6 },
-  dow: { flex: 1, textAlign: 'center', fontFamily: fonts.bodyBold, fontSize: 12, color: t.text.muted },
-  days: { marginTop: 6 },
+  month: { fontFamily: fonts.title, fontSize: s(18), color: t.text.primary },
+  week: { flexDirection: 'row', marginTop: s(6) },
+  dow: { flex: 1, textAlign: 'center', fontFamily: fonts.bodyBold, fontSize: s(12), color: t.text.muted },
+  days: { marginTop: s(6) },
   weekRow: { flexDirection: 'row' },
-  day: { flex: 1, aspectRatio: 1, padding: 3 },
+  day: { flex: 1, aspectRatio: 1, padding: s(3) },
   dayInner: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: s(12),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'transparent',
     backgroundColor: t.calendar.day,
   },
-  dayText: { fontFamily: fonts.bodyBold, fontSize: 14, color: t.calendar.dayText },
-  check: { position: 'absolute', bottom: 3 },
+  dayText: { fontFamily: fonts.bodyBold, fontSize: s(14), color: t.calendar.dayText },
+  check: { position: 'absolute', bottom: s(3) },
 }));

@@ -5,12 +5,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { Canvas, Circle, Group, Path } from '@shopify/react-native-skia';
 import { Screen } from '../ui/Screen';
 import { GlassButton } from '../ui/GlassButton';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useLayout } from '../ui/layout';
 import { fonts } from '../theme/tokens';
 import { withAlpha } from '../board/color';
 import { symbolPath } from '../board/symbols';
 import { resolveTheme, THEME_IDS, themeName, type ThemeId } from '../theme/config';
 import { makeStyles, usePalette, useTheme } from '../theme/useTheme';
+import { useScale } from '../theme/scale';
 import { useSettings, type SettingsState } from '../store/settings';
 import { useProgress } from '../store/progress';
 import { haptics } from '../services/haptics';
@@ -46,8 +48,9 @@ const DEV_ROWS: Row[] = [
 function ToggleRow({ row, divider }: { row: Row; divider: boolean }) {
   const theme = useTheme();
   const styles = useStyles();
-  const value = useSettings((s) => s[row.key]);
-  const set = useSettings((s) => s.set);
+  const { s } = useScale();
+  const value = useSettings((st) => st[row.key]);
+  const set = useSettings((st) => st.set);
   return (
     <Pressable
       onPress={() => {
@@ -59,7 +62,7 @@ function ToggleRow({ row, divider }: { row: Row; divider: boolean }) {
       accessibilityState={{ checked: value }}
     >
       <View style={styles.iconWrap}>
-        <Ionicons name={row.icon} size={20} color={theme.icon.default} />
+        <Ionicons name={row.icon} size={s(20)} color={theme.icon.default} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={styles.label}>{row.label}</Text>
@@ -79,6 +82,7 @@ function ToggleRow({ row, divider }: { row: Row; divider: boolean }) {
 function ThemeCard({ id, selected, compact, onPress }: { id: ThemeId; selected: boolean; compact: boolean; onPress: () => void }) {
   const current = useTheme();
   const styles = useStyles();
+  const { s } = useScale();
   const preview = resolveTheme(id);
   const meta = THEME_META[id];
   const l = preview.landscape;
@@ -110,11 +114,11 @@ function ThemeCard({ id, selected, compact, onPress }: { id: ThemeId; selected: 
           <View style={[styles.trunk, { backgroundColor: l.trunkDark }]} />
         </View>
         <View style={[styles.seasonBadge, { backgroundColor: preview.accent.color }]}>
-          <Ionicons name={meta.icon} size={14} color={preview.accent.onColor} />
+          <Ionicons name={meta.icon} size={s(14)} color={preview.accent.onColor} />
         </View>
         {selected && (
           <View style={[styles.themeCheck, { backgroundColor: current.accent.color }]}>
-            <Ionicons name="checkmark" size={14} color={current.accent.onColor} />
+            <Ionicons name="checkmark" size={s(14)} color={current.accent.onColor} />
           </View>
         )}
       </View>
@@ -134,22 +138,25 @@ function ThemeCard({ id, selected, compact, onPress }: { id: ThemeId; selected: 
 function PalettePreview() {
   const theme = useTheme();
   const palette = usePalette();
-  const colorblind = useSettings((s) => s.colorblind);
+  const colorblind = useSettings((st) => st.colorblind);
+  const { s } = useScale();
   const [width, setWidth] = useState(0);
-  const r = SWATCH / 2;
-  const perRow = Math.max(1, Math.floor((width + SWATCH_GAP) / (SWATCH + SWATCH_GAP)));
+  const swatch = s(SWATCH);
+  const gap = s(SWATCH_GAP);
+  const r = swatch / 2;
+  const perRow = Math.max(1, Math.floor((width + gap) / (swatch + gap)));
   const rows = Math.ceil(palette.length / perRow);
-  const height = rows * SWATCH + (rows - 1) * SWATCH_GAP;
+  const height = rows * swatch + (rows - 1) * gap;
   return (
-    <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={{ height: width > 0 ? height : SWATCH }}>
+    <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={{ height: width > 0 ? height : swatch }}>
       {width > 0 && (
         <Canvas style={{ width, height }}>
           {palette.map((d, i) => {
             const row = Math.floor(i / perRow);
             const inRow = Math.min(perRow, palette.length - row * perRow);
-            const rowWidth = inRow * SWATCH + (inRow - 1) * SWATCH_GAP;
-            const cx = (width - rowWidth) / 2 + (i % perRow) * (SWATCH + SWATCH_GAP) + r;
-            const cy = row * (SWATCH + SWATCH_GAP) + r;
+            const rowWidth = inRow * swatch + (inRow - 1) * gap;
+            const cx = (width - rowWidth) / 2 + (i % perRow) * (swatch + gap) + r;
+            const cy = row * (swatch + gap) + r;
             return (
               <Group key={d.slot}>
                 <Circle cx={cx} cy={cy} r={r} color={d.dot} />
@@ -214,39 +221,34 @@ export default function Settings() {
 
       <View style={styles.buttons}>
         <GlassButton label="Credits" icon="heart" onPress={() => router.push('/credits')} />
-        {confirm ? (
-          <View style={styles.confirm}>
-            <Text style={styles.sub}>Erase all stars, hints and streaks?</Text>
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
-              <GlassButton label="Cancel" size="sm" onPress={() => setConfirm(false)} />
-              <GlassButton
-                label="Reset"
-                size="sm"
-                variant="primary"
-                accent={theme.status.danger}
-                onPress={() => {
-                  useProgress.getState().reset();
-                  haptics.warning();
-                  setConfirm(false);
-                }}
-              />
-            </View>
-          </View>
-        ) : (
-          <GlassButton label="Reset progress" icon="trash" variant="ghost" onPress={() => setConfirm(true)} />
-        )}
+        <GlassButton label="Reset progress" icon="trash" iconColor={theme.status.danger} onPress={() => setConfirm(true)} />
       </View>
+
+      <ConfirmDialog
+        visible={confirm}
+        icon="trash"
+        title="Reset progress?"
+        message="This erases all your stars, hints and daily streaks. It can't be undone."
+        confirmLabel="Reset"
+        danger
+        onCancel={() => setConfirm(false)}
+        onConfirm={() => {
+          useProgress.getState().reset();
+          haptics.warning();
+          setConfirm(false);
+        }}
+      />
     </Screen>
   );
 }
 
-const useStyles = makeStyles((t) => ({
-  themes: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+const useStyles = makeStyles((t, s) => ({
+  themes: { flexDirection: 'row', flexWrap: 'wrap', gap: s(10) },
   themeCard: {
     flexGrow: 1,
     flexBasis: '45%',
-    padding: 6,
-    borderRadius: 20,
+    padding: s(6),
+    borderRadius: s(20),
     borderWidth: 1.5,
     shadowColor: t.box.shadow,
     shadowOpacity: 1,
@@ -254,31 +256,30 @@ const useStyles = makeStyles((t) => ({
     shadowOffset: { width: 0, height: 3 },
   },
   themeCardRow: { flexBasis: '22%' },
-  themeCardSelected: { borderWidth: 3, padding: 4.5 },
-  scene: { height: 76, borderRadius: 14, overflow: 'hidden' },
-  sun: { position: 'absolute', top: 10, right: '30%', width: 22, height: 22, borderRadius: 11, opacity: 0.85 },
+  themeCardSelected: { borderWidth: 3, padding: s(6) - 1.5 },
+  scene: { height: s(76), borderRadius: s(14), overflow: 'hidden' },
+  sun: { position: 'absolute', top: s(10), right: '30%', width: s(22), height: s(22), borderRadius: s(11), opacity: 0.85 },
   hill: { position: 'absolute', borderRadius: 999 },
-  hillFar: { width: 170, height: 170, left: '-30%', bottom: -132, opacity: 0.75 },
-  hillMid: { width: 150, height: 150, right: '-35%', bottom: -118, opacity: 0.9 },
-  hillNear: { width: 220, height: 220, left: '-10%', bottom: -200 },
-  tree: { position: 'absolute', bottom: 12, alignItems: 'center' },
-  treeSmall: { bottom: 14 },
-  leaf: { width: 12, height: 20, borderRadius: 6 },
-  leafSmall: { width: 10, height: 15, borderRadius: 5 },
-  trunk: { width: 2, height: 7, borderRadius: 1 },
-  seasonBadge: { position: 'absolute', top: 8, left: 8, width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  themeInfo: { paddingHorizontal: 8, paddingTop: 8, paddingBottom: 6, gap: 2 },
-  themeName: { fontFamily: fonts.title, fontSize: 17 },
-  themeTagline: { fontFamily: fonts.body, fontSize: 12 },
-  themeCheck: { position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  group: { borderRadius: 22, backgroundColor: t.box.background, borderWidth: 1, borderColor: t.box.border, overflow: 'hidden' },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 14 },
+  hillFar: { width: s(170), height: s(170), left: '-30%', bottom: -s(132), opacity: 0.75 },
+  hillMid: { width: s(150), height: s(150), right: '-35%', bottom: -s(118), opacity: 0.9 },
+  hillNear: { width: s(220), height: s(220), left: '-10%', bottom: -s(200) },
+  tree: { position: 'absolute', bottom: s(12), alignItems: 'center' },
+  treeSmall: { bottom: s(14) },
+  leaf: { width: s(12), height: s(20), borderRadius: s(6) },
+  leafSmall: { width: s(10), height: s(15), borderRadius: s(5) },
+  trunk: { width: 2, height: s(7), borderRadius: 1 },
+  seasonBadge: { position: 'absolute', top: s(8), left: s(8), width: s(26), height: s(26), borderRadius: s(13), alignItems: 'center', justifyContent: 'center' },
+  themeInfo: { paddingHorizontal: s(8), paddingTop: s(8), paddingBottom: s(6), gap: 2 },
+  themeName: { fontFamily: fonts.title, fontSize: s(17) },
+  themeTagline: { fontFamily: fonts.body, fontSize: s(12) },
+  themeCheck: { position: 'absolute', top: s(8), right: s(8), width: s(24), height: s(24), borderRadius: s(12), alignItems: 'center', justifyContent: 'center' },
+  group: { borderRadius: s(22), backgroundColor: t.box.background, borderWidth: 1, borderColor: t.box.border, overflow: 'hidden' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: s(14), paddingHorizontal: s(16), paddingVertical: s(14) },
   divider: { borderTopWidth: 1, borderTopColor: t.box.border },
-  iconWrap: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: withAlpha(t.accent.color, 0.22) },
-  label: { fontFamily: fonts.title, fontSize: 17, color: t.text.primary },
-  sub: { fontFamily: fonts.body, fontSize: 13, color: t.text.secondary },
-  section: { fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 2, color: t.text.muted, marginTop: 22, marginBottom: 8, textTransform: 'uppercase' },
-  palette: { padding: 16 },
-  buttons: { marginTop: 24, gap: 12, alignItems: 'center' },
-  confirm: { alignItems: 'center', padding: 14, borderRadius: 18, backgroundColor: withAlpha(t.status.danger, 0.1) },
+  iconWrap: { width: s(36), height: s(36), borderRadius: s(12), alignItems: 'center', justifyContent: 'center', backgroundColor: withAlpha(t.accent.color, 0.22) },
+  label: { fontFamily: fonts.title, fontSize: s(17), color: t.text.primary },
+  sub: { fontFamily: fonts.body, fontSize: s(13), color: t.text.secondary },
+  section: { fontFamily: fonts.bodyBold, fontSize: s(12), letterSpacing: 2, color: t.text.muted, marginTop: s(22), marginBottom: s(8), textTransform: 'uppercase' },
+  palette: { padding: s(16) },
+  buttons: { marginTop: s(24), gap: s(12), alignItems: 'center' },
 }));

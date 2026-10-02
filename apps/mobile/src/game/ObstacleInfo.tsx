@@ -223,15 +223,15 @@ function WarpPreview({ color }: { color: DotStyle }) {
   );
 }
 
-const useStyles = makeStyles((t) => ({
+const useStyles = makeStyles((t, s) => ({
   backdrop: { backgroundColor: t.box.overlay },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
   card: {
     width: '100%',
-    maxWidth: 440,
+    maxWidth: s(440),
     maxHeight: '90%',
-    borderRadius: 28,
-    padding: 22,
+    borderRadius: s(28),
+    padding: s(22),
     alignItems: 'center',
     backgroundColor: t.box.surface,
     borderWidth: 1,
@@ -242,23 +242,23 @@ const useStyles = makeStyles((t) => ({
     shadowOffset: { width: 0, height: 16 },
     elevation: 12,
   },
-  title: { fontFamily: fonts.titleBold, fontSize: 28, color: t.text.primary },
-  subtitle: { fontFamily: fonts.body, fontSize: 13, color: t.text.secondary, marginBottom: 16, textAlign: 'center' },
+  title: { fontFamily: fonts.titleBold, fontSize: s(28), color: t.text.primary },
+  subtitle: { fontFamily: fonts.body, fontSize: s(13), color: t.text.secondary, marginBottom: s(16), textAlign: 'center' },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    padding: 12,
-    borderRadius: 18,
+    gap: s(14),
+    padding: s(12),
+    borderRadius: s(18),
     backgroundColor: t.box.background,
     borderWidth: 1,
     borderColor: t.box.border,
   },
-  nameRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-  name: { fontFamily: fonts.title, fontSize: 18, color: t.text.primary },
-  count: { fontFamily: fonts.bodyBold, fontSize: 13, color: t.text.secondary },
-  looks: { fontFamily: fonts.bodyBold, fontSize: 13, color: t.board.warp, marginTop: 2 },
-  rule: { fontFamily: fonts.body, fontSize: 13, color: t.text.secondary, marginTop: 2 },
+  nameRow: { flexDirection: 'row', alignItems: 'baseline', gap: s(6) },
+  name: { fontFamily: fonts.title, fontSize: s(18), color: t.text.primary },
+  count: { fontFamily: fonts.bodyBold, fontSize: s(13), color: t.text.secondary },
+  looks: { fontFamily: fonts.bodyBold, fontSize: s(13), color: t.board.warp, marginTop: 2 },
+  rule: { fontFamily: fonts.body, fontSize: s(13), color: t.text.secondary, marginTop: 2 },
   plate: { borderRadius: 12, backgroundColor: t.background.color },
   tile: {
     position: 'absolute',

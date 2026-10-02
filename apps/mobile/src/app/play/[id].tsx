@@ -113,7 +113,7 @@ function DailyPlay({ dateKey }: { dateKey: string }) {
   );
 }
 
-const useStyles = makeStyles((t) => ({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  msg: { fontFamily: fonts.body, fontSize: 15, color: t.text.secondary, textAlign: 'center', marginTop: 24 },
+const useStyles = makeStyles((t, s) => ({
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: s(16) },
+  msg: { fontFamily: fonts.body, fontSize: s(15), color: t.text.secondary, textAlign: 'center', marginTop: s(24) },
 }));

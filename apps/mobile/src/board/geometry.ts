@@ -39,6 +39,13 @@ export function makeGeom(W: number, H: number, size: number, frame?: { borderWid
   };
 }
 
+/** Outer width of the board frame Board draws (or of the tile grid when there's no border). */
+export function frameWidth(g: BoardGeom, cellGap: number, borderWidth: number): number {
+  const gridW = g.W * g.cell;
+  if (borderWidth <= 0) return gridW;
+  return gridW - cellGapPx(g.cell, cellGap) * 2 + (BORDER_INSET + borderWidth) * 2;
+}
+
 export function cellCenter(g: BoardGeom, r: number, c: number): [number, number] {
   return [g.ox + (c + 0.5) * g.cell, g.oy + (r + 0.5) * g.cell];
 }

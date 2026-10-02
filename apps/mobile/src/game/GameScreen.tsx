@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, Text, View } from 'react-native';
+import { Platform, Text, View, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Game, sameCell, type Cell, type GameEvent, type Level } from '@ctd/core';
 import { Board } from '../board/Board';
-import { cellAtRaw, cellCenter, clampCell, makeGeom } from '../board/geometry';
+import { cellAtRaw, cellCenter, clampCell, frameWidth, makeGeom } from '../board/geometry';
 import type { Effect, EffectInput } from '../board/effects';
-import { GlassButton } from '../ui/GlassButton';
+import { BUTTON_H, GlassButton } from '../ui/GlassButton';
 import { useToast } from '../ui/Toast';
 import { LANDSCAPE_H } from '../ui/Background';
 import { useLayout } from '../ui/layout';
@@ -39,6 +39,16 @@ export interface GameScreenProps {
 const IDLE_MS = 45_000;
 /** Keeps the bottom controls above the tallest trees of the background landscape. */
 const CONTROLS_LIFT = Math.round(LANDSCAPE_H * 0.6);
+const HEADER_H = 60;
+/** Minimum space kept between the board and the HUD above it / the controls below it. */
+const BOARD_GAP = 16;
+const HUD_GAP = 10;
+/** Narrowest HUD tile (base size) that still fits its icon; below this the icons are hidden. */
+const HUD_ICON_MIN_W = 100;
+/** Side inset of the controls row, as a fraction of the board width. */
+const CONTROLS_INSET = 0.08;
+/** Base max width of each Undo / Hint button, so they don't stretch into bars on tablets. */
+const CONTROL_MAX_W = 220;
 /** How far (in cells) the pointer must pass a warp edge before wrapping, so jitter on the edge can't bounce. */
 const WARP_MARGIN = 0.35;
 
@@ -48,7 +58,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
-  const { width, height, gutter } = useLayout();
+  const { gutter, s } = useLayout();
   const { colorblind, reduceMotion, idleHints } = useSettings();
   const hints = useProgress((s) => s.hints);
   const unlimitedHints = useSettings((s) => __DEV__ && s.unlimitedHints);
@@ -68,14 +78,32 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
   const hasObstacles = obstaclesIn(level).length > 0;
   const wonRef = useRef(false);
 
-  const boardSize = Math.floor(
-    Math.max(240, Math.min(width - insets.left - insets.right - gutter * 2, height - insets.top - insets.bottom - 230 - CONTROLS_LIFT, tokens.maxBoardWidth)),
-  );
+  // HUD, board and controls form one vertically centered stack. The board takes whatever the
+  // stage leaves after the measured HUD, controls and gaps, so changes to the surrounding UI
+  // can never push it into its neighbours.
+  const [stage, setStage] = useState<{ w: number; h: number } | null>(null);
+  const [hudH, setHudH] = useState(0);
+  const [controlsH, setControlsH] = useState(0);
+  const onStageLayout = useCallback((e: LayoutChangeEvent) => {
+    const { width: w, height: h } = e.nativeEvent.layout;
+    setStage((a) => (a && a.w === w && a.h === h ? a : { w, h }));
+  }, []);
+  const onHudLayout = useCallback((e: LayoutChangeEvent) => setHudH(e.nativeEvent.layout.height), []);
+  const onControlsLayout = useCallback((e: LayoutChangeEvent) => setControlsH(e.nativeEvent.layout.height), []);
+  const measured = stage !== null && hudH > 0 && controlsH > 0;
+  const boardSize = measured
+    ? Math.floor(Math.max(0, Math.min(stage.w, stage.h - hudH - controlsH - s(BOARD_GAP) * 2, s(tokens.maxBoardWidth))))
+    : 0;
   const { borderWidth, cellGap } = theme.board;
   const geom = useMemo(
     () => makeGeom(level.size.width, level.size.height, boardSize, level.warps.length ? undefined : { borderWidth, cellGap }),
     [level, boardSize, borderWidth, cellGap],
   );
+  // Top (HUD) and bottom (controls) sections match the drawn board frame, so the three read as one column.
+  const boardFrameW = boardSize > 0 ? Math.round(frameWidth(geom, cellGap, borderWidth)) : 0;
+  const sectionWidth = boardFrameW > 0 ? boardFrameW : '100%';
+  const controlsInset = Math.round(boardFrameW * CONTROLS_INSET);
+  const compactHud = boardFrameW > 0 && (boardFrameW - s(HUD_GAP) * 2) / 3 < s(HUD_ICON_MIN_W);
 
   const fx = useSharedValue<Effect[]>([]);
   const intro = useSharedValue(0);
@@ -444,7 +472,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
       style={[
         styles.root,
         {
-          paddingTop: insets.top + 8,
+          paddingTop: insets.top + gutter - s(HEADER_H - BUTTON_H.sm) / 2,
           paddingBottom: insets.bottom + 12 + CONTROLS_LIFT,
           paddingLeft: insets.left + gutter,
           paddingRight: insets.right + gutter,
@@ -464,35 +492,39 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
         <GlassButton icon="refresh" size="sm" onPress={onRestart} accessibilityLabel="Restart level" />
       </View>
 
-      <View style={styles.boardWrap}>
-        <View style={styles.hud}>
-          <Hud icon="swap-horizontal" iconColor={theme.icon.moves} label="Moves" value={`${game.moves}`} />
-          <Hud icon="git-network" iconColor={theme.icon.flows} label="Flows" value={`${connected}/${game.pairCount}`} />
-          <Hud icon="water" iconColor={theme.icon.fill} label="Fill" value={`${Math.round(fill * 100)}%`} />
+      <View style={styles.stage} onLayout={onStageLayout}>
+        <View style={[styles.hud, { width: sectionWidth }]} onLayout={onHudLayout}>
+          <Hud icon="swap-horizontal" iconColor={theme.icon.moves} label="Moves" value={`${game.moves}`} compact={compactHud} />
+          <Hud icon="git-network" iconColor={theme.icon.flows} label="Flows" value={`${connected}/${game.pairCount}`} compact={compactHud} />
+          <Hud icon="water" iconColor={theme.icon.fill} label="Fill" value={`${Math.round(fill * 100)}%`} compact={compactHud} />
         </View>
 
-        <Board
-          game={game}
-          version={version}
-          geom={geom}
-          palette={palette}
-          colorblind={colorblind}
-          reduceMotion={reduceMotion}
-          fx={fx}
-          intro={intro}
-          shake={shake}
-          onDown={onDown}
-          onMove={onMove}
-          onUp={onUp}
-        />
-      </View>
-
-      <View style={styles.controls}>
-        <GlassButton icon="arrow-undo" label="Undo" onPress={onUndo} disabled={!game.canUndo()} />
-        <GlassButton icon="bulb" label="Hint" variant="primary" onPress={onHint} badge={unlimitedHints ? '∞' : hints} />
-        {hasObstacles && (
-          <GlassButton icon="information-circle" iconColor={theme.icon.info} onPress={() => setInfoOpen(true)} accessibilityLabel="Obstacle info" />
+        {boardSize > 0 && (
+          <View style={styles.board}>
+            <Board
+              game={game}
+              version={version}
+              geom={geom}
+              palette={palette}
+              colorblind={colorblind}
+              reduceMotion={reduceMotion}
+              fx={fx}
+              intro={intro}
+              shake={shake}
+              onDown={onDown}
+              onMove={onMove}
+              onUp={onUp}
+            />
+          </View>
         )}
+
+        <View style={[styles.controls, { width: sectionWidth, paddingHorizontal: controlsInset }]} onLayout={onControlsLayout}>
+          <GlassButton icon="arrow-undo" label="Undo" onPress={onUndo} disabled={!game.canUndo()} style={styles.controlButton} />
+          <GlassButton icon="bulb" label="Hint" variant="primary" onPress={onHint} badge={unlimitedHints ? '∞' : hints} style={styles.controlButton} />
+          {hasObstacles && (
+            <GlassButton icon="information-circle" iconColor={theme.icon.info} onPress={() => setInfoOpen(true)} accessibilityLabel="Obstacle info" />
+          )}
+        </View>
       </View>
 
       {toast.node}
@@ -522,17 +554,22 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
 type IconName = keyof typeof Ionicons.glyphMap;
 
 function HudIcon({ icon, color }: { icon: IconName; color: string }) {
-  return <Ionicons name={icon} size={28} color={color} />;
+  const { s } = useLayout();
+  return <Ionicons name={icon} size={s(28)} color={color} />;
 }
 
-function Hud({ icon, iconColor, label, value }: { icon: IconName; iconColor: string; label: string; value: string }) {
+function Hud({ icon, iconColor, label, value, compact }: { icon: IconName; iconColor: string; label: string; value: string; compact: boolean }) {
   const styles = useStyles();
   return (
     <View style={styles.hudItem}>
-      <HudIcon icon={icon} color={iconColor} />
+      {!compact && <HudIcon icon={icon} color={iconColor} />}
       <View style={{ flexShrink: 1 }}>
-        <Text style={styles.hudLabel}>{label}</Text>
-        <Text style={styles.hudValue}>{value}</Text>
+        <Text style={styles.hudLabel} numberOfLines={1}>
+          {label}
+        </Text>
+        <Text style={styles.hudValue} numberOfLines={1}>
+          {value}
+        </Text>
       </View>
     </View>
   );
@@ -543,26 +580,30 @@ export function goBackOr(path: string) {
   else router.replace(path as never);
 }
 
-const useStyles = makeStyles((t) => ({
+const useStyles = makeStyles((t, s) => ({
   root: { flex: 1, alignItems: 'center' },
-  header: { flexDirection: 'row', alignItems: 'center', width: '100%', height: 60 },
+  header: { flexDirection: 'row', alignItems: 'center', width: '100%', height: s(HEADER_H) },
   titleWrap: { flex: 1, alignItems: 'center' },
-  title: { fontFamily: fonts.titleBold, fontSize: 24, color: t.text.primary, letterSpacing: 0.3 },
-  titlePill: { marginTop: 2, paddingHorizontal: 12, paddingVertical: 1, borderRadius: tokens.radius.pill, backgroundColor: t.box.pill },
-  subtitle: { fontFamily: fonts.bodyBold, fontSize: 11, letterSpacing: 1, color: t.box.pillText },
-  hud: { flexDirection: 'row', justifyContent: 'center', gap: 10, width: '100%', maxWidth: tokens.maxBoardWidth, marginBottom: 16 },
+  title: { fontFamily: fonts.titleBold, fontSize: s(24), color: t.text.primary, letterSpacing: 0.3 },
+  titlePill: { marginTop: 2, paddingHorizontal: s(12), paddingVertical: 1, borderRadius: tokens.radius.pill, backgroundColor: t.box.pill },
+  subtitle: { fontFamily: fonts.bodyBold, fontSize: s(11), letterSpacing: 1, color: t.box.pillText },
+  hud: { flexDirection: 'row', gap: s(HUD_GAP) },
   hudItem: {
-    minWidth: 110,
+    flex: 1,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderRadius: 20,
+    justifyContent: 'center',
+    gap: s(8),
+    paddingHorizontal: s(12),
+    paddingVertical: s(12),
+    borderRadius: s(20),
     backgroundColor: t.box.hud,
   },
-  hudLabel: { fontFamily: fonts.body, fontSize: 13, color: t.text.secondary },
-  hudValue: { fontFamily: fonts.title, fontSize: 20, lineHeight: 22, color: t.text.primary },
-  boardWrap: { flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' },
-  controls: { flexDirection: 'row', gap: 14, justifyContent: 'center', alignItems: 'center' },
+  hudLabel: { fontFamily: fonts.body, fontSize: s(13), color: t.text.secondary },
+  hudValue: { fontFamily: fonts.title, fontSize: s(20), lineHeight: s(22), color: t.text.primary },
+  stage: { flex: 1, minHeight: 0, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
+  board: { marginVertical: s(BOARD_GAP) },
+  controls: { flexDirection: 'row', gap: s(14), justifyContent: 'center', alignItems: 'center' },
+  controlButton: { flex: 1, maxWidth: s(CONTROL_MAX_W) },
 }));
