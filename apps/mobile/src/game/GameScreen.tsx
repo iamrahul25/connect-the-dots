@@ -51,6 +51,8 @@ const CONTROLS_INSET = 0.08;
 const CONTROL_MAX_W = 220;
 /** How far (in cells) the pointer must pass a warp edge before wrapping, so jitter on the edge can't bounce. */
 const WARP_MARGIN = 0.35;
+/** Half-size (in cells) of the zone around a cell's center the pointer must reach to retract a finished line onto it. */
+const RETRACT_ZONE = 0.3;
 
 const sameCellPair = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
 
@@ -393,12 +395,24 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
         vy = y;
       }
 
-      const target = clampCell(gg, cellAtRaw(gg, vx + tele.dx, vy + tele.dy));
+      const px = vx + tele.dx;
+      const py = vy + tele.dy;
+      const target = clampCell(gg, cellAtRaw(gg, px, py));
       if (lastTarget.current && sameCellPair(lastTarget.current, target)) return;
+
+      const path = gm.view()[gm.dragging];
+      const onPath = path.some((n) => sameCell(g, n, target));
+      const complete = gm.isComplete(gm.dragging);
+      if (complete && onPath) {
+        // Release jitter or an off-board pointer clamped onto the line must not break a finished
+        // connection: it only retracts once the pointer is well inside one of its cells.
+        const [cx, cy] = cellCenter(gg, target[0], target[1]);
+        const zone = gg.cell * RETRACT_ZONE;
+        if (Math.abs(px - cx) > zone || Math.abs(py - cy) > zone) return;
+      }
       lastTarget.current = target;
 
       const events: GameEvent[] = [];
-      const path = gm.view()[gm.dragging];
       // With the pointer offset, the only way back through a teleporter is the finger returning to the
       // path before the entry gate when it can't move forward from the exit.
       const backThroughGate = () => {
@@ -407,9 +421,9 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
         const j = path.findIndex((n) => sameCell(g, n, real));
         if (j >= 0 && j < tele.entry) events.push(...gm.dragTo(real));
       };
-      if (path.some((n) => sameCell(g, n, target))) {
+      if (onPath) {
         events.push(...gm.dragTo(target));
-      } else {
+      } else if (!complete) {
         // Walk cell by cell toward the pointer so fast swipes never skip cells.
         for (let guard = 0; guard < 64; guard++) {
           const [r, c] = headOf();
@@ -420,7 +434,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
           const secondary: Cell | null = dr !== 0 && dc !== 0 ? (Math.abs(dr) >= Math.abs(dc) ? [r, c + Math.sign(dc)] : [r + Math.sign(dr), c]) : null;
           let ev = gm.dragTo(primary);
           if ((ev.length === 0 || ev[0].type === 'invalid') && secondary) {
-            const alt = gm.dragTo(secondary);
+            const alt = gm.dragTo(secondary, true);
             if (alt.length && alt[0].type !== 'invalid') ev = alt;
           }
           if (ev.length === 0) break;
@@ -582,11 +596,11 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
 
       <View style={styles.stage} onLayout={onStageLayout}>
         <View style={[styles.hud, { width: sectionWidth }]} onLayout={onHudLayout}>
-          <Hud icon="swap-horizontal" iconColor={theme.icon.moves} label="Moves" value={`${game.moves}`} compact={compactHud} />
-          <Hud icon="git-network" iconColor={theme.icon.flows} label="Flows" value={`${connected}/${game.pairCount}`} compact={compactHud} />
+          <Hud icon="footsteps" iconColor={theme.icon.streak} label="Moves" value={`${game.moves}`} compact={compactHud} />
+          <Hud icon="link" iconColor={theme.icon.hint} label="Flows" value={`${connected}/${game.pairCount}`} compact={compactHud} />
           <Hud
-            icon="water"
-            iconColor={theme.icon.fill}
+            icon="color-fill"
+            iconColor={theme.icon.success}
             label="Fill"
             value={`${Math.round(fill * 100)}%`}
             compact={compactHud}
@@ -721,8 +735,10 @@ const useStyles = makeStyles((t, s) => ({
     gap: s(8),
     paddingHorizontal: s(12),
     paddingVertical: s(12),
-    borderRadius: s(20),
-    backgroundColor: t.box.hud,
+    borderRadius: s(18),
+    backgroundColor: t.box.background,
+    borderWidth: 1,
+    borderColor: t.box.border,
     overflow: 'hidden',
   },
   hudTrack: { position: 'absolute', left: s(14), right: s(14), bottom: s(6), height: s(4), borderRadius: s(2), backgroundColor: t.box.pill },

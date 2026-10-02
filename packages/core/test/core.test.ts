@@ -178,6 +178,17 @@ describe('engine', () => {
     expect(game.view()[0].length).toBe(2);
   });
 
+  it('ignores retracting steps when extendOnly is set', () => {
+    const game = new Game(strip);
+    game.beginDrag([0, 0]);
+    game.dragTo([0, 1]);
+    game.dragTo([0, 2]);
+    expect(game.isComplete(0)).toBe(true);
+    expect(game.dragTo([0, 1], true)).toEqual([]);
+    expect(game.isComplete(0)).toBe(true);
+    expect(game.dragTo([0, 1]).some((e) => e.type === 'disconnect')).toBe(true);
+  });
+
   it('cuts other paths and restores them on retract', () => {
     const game = new Game(tiny);
     game.beginDrag([0, 2]);

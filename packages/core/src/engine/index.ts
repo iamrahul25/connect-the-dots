@@ -308,8 +308,11 @@ export class Game {
     return path.some((n) => this.doorLock[n] !== -1 && !open[this.doorLock[n]]);
   }
 
-  /** Moves the drag head toward `cell`. The caller feeds cells one step at a time. */
-  dragTo(cell: Cell): GameEvent[] {
+  /**
+   * Moves the drag head toward `cell`. The caller feeds cells one step at a time.
+   * With `extendOnly`, a step that would retract onto the path is ignored.
+   */
+  dragTo(cell: Cell, extendOnly = false): GameEvent[] {
     const d = this.drag;
     if (!d) return [];
     const path = d.path;
@@ -332,6 +335,7 @@ export class Game {
     }
 
     const idx = path.indexOf(n);
+    if (idx >= 0 && extendOnly) return [];
     if (idx >= 0) {
       d.path = this.trimGate(path.slice(0, idx + 1));
       events.push({ type: 'retract', pair: d.pair });
