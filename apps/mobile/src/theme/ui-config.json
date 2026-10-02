@@ -1,13 +1,14 @@
 {
   "$comment": [
     "Central UI color config. Pick a theme by key; \"defaultTheme\" is used until the player chooses one.",
-    "dots[i] / colorblindDots[i] replace palette index i of @ctd/core DEFAULT_PALETTE; \"slot\" names that index. The \"white\" slot is a dark neutral because white is invisible on light themes.",
+    "dots[i] / colorblindDots[i] replace palette index i of @ctd/core DEFAULT_PALETTE; \"slot\" names that index. The \"white\" slot is a dark neutral because white is invisible on light themes; the dark Night theme uses a real light neutral there, and its colorblind \"pink\" slot is light instead of #333333 for the same reason.",
+    "On the Night theme landscape.sun is drawn as the moon.",
     "Every screen and pack uses the selected theme's colors as-is, except the pack cards on the Packs screen.",
     "packCards.<packId> is that card's accent (border, glow, icon, progress); a pack without an entry uses the theme accent.",
     "board.cellRadius / board.cellGap are fractions of one cell's size (0.22 = corners rounded by 22% of the cell; 0 = square, 0.5 = circle). They apply to the game board, logo, level previews and obstacle help.",
     "Landscape layer opacity (sun, far/mid hills) belongs to the illustration, not to these colors."
   ],
-  "defaultTheme": "autumn",
+  "defaultTheme": "summer",
   "packCards": {
     "dawn": "#FFBE00",
     "lagoon": "#14B8A6",
@@ -23,7 +24,7 @@
       "landscape": { "sun": "#E8B07E", "hillFar": "#EFA364", "hillMid": "#E88F46", "hillNear": "#DE7A2E", "trunk": "#682F10", "trunkDark": "#5D260B", "leaf": "#B35223", "leafDark": "#9C441E", "leafDeep": "#8B3613" },
       "accent": { "color": "#FFBE00", "onColor": "#4A2800", "shadow": "rgba(255,190,0,0.35)" },
       "text": { "primary": "#382218", "statusBar": "#2A170F", "secondary": "#7B675A", "muted": "#A8968A", "disabled": "#C9BBAF", "onBadge": "#FFFFFF" },
-      "icon": { "default": "#382218", "moves": "#000000", "time": "#F15C22", "star": "#FFB800", "streak": "#F15C22", "success": "#00C33A", "danger": "#ED1C24", "info": "#008BFF", "locked": "#A8968A", "hint": "#F5A300", "flows": "#000000", "fill": "#000000" },
+      "icon": { "default": "#382218", "moves": "#000000", "time": "#F15C22", "star": "#FFB800", "streak": "#F15C22", "success": "#00C33A", "danger": "#ED1C24", "info": "#008BFF", "locked": "#A8968A", "hint": "#F5A300", "flows": "#000000", "fill": "#000000", "heart": "#FF2E88" },
       "box": {
         "background": "#F5E9DC",
         "hud": "#F6D8BC",
@@ -98,7 +99,7 @@
       "landscape": { "sun": "#FFFFFF", "hillFar": "#C8DAEB", "hillMid": "#DEEAF5", "hillNear": "#FFFFFF", "trunk": "#4A3B35", "trunkDark": "#3A2D28", "leaf": "#2F6B5A", "leafDark": "#285C4D", "leafDeep": "#1F4A3E" },
       "accent": { "color": "#3D9BE9", "onColor": "#FFFFFF", "shadow": "rgba(61,155,233,0.35)" },
       "text": { "primary": "#1E2D3D", "statusBar": "#14202C", "secondary": "#5E7185", "muted": "#93A3B3", "disabled": "#C2CDD8", "onBadge": "#FFFFFF" },
-      "icon": { "default": "#1E2D3D", "moves": "#000000", "time": "#7A6FE0", "star": "#F5B700", "streak": "#FF7A45", "success": "#1FAF6E", "danger": "#E5384F", "info": "#3D9BE9", "locked": "#93A3B3", "hint": "#F5B700", "flows": "#000000", "fill": "#000000" },
+      "icon": { "default": "#1E2D3D", "moves": "#000000", "time": "#7A6FE0", "star": "#F5B700", "streak": "#FF7A45", "success": "#1FAF6E", "danger": "#E5384F", "info": "#3D9BE9", "locked": "#93A3B3", "hint": "#F5B700", "flows": "#000000", "fill": "#000000", "heart": "#FF2E88" },
       "box": {
         "background": "#E2EBF4",
         "hud": "#D2DFEC",
@@ -173,7 +174,7 @@
       "landscape": { "sun": "#FFD678", "hillFar": "#B2DE96", "hillMid": "#8CCC6E", "hillNear": "#79BF5A", "trunk": "#6B4A32", "trunkDark": "#5A3C27", "leaf": "#F7A8C4", "leafDark": "#EE8DB0", "leafDeep": "#E0729B" },
       "accent": { "color": "#6CC24A", "onColor": "#1E3615", "shadow": "rgba(108,194,74,0.35)" },
       "text": { "primary": "#24331F", "statusBar": "#1A2616", "secondary": "#637358", "muted": "#98A68E", "disabled": "#C6D0BE", "onBadge": "#FFFFFF" },
-      "icon": { "default": "#24331F", "moves": "#000000", "time": "#4FA3D9", "star": "#FFB800", "streak": "#FF7A45", "success": "#3DAA4F", "danger": "#E5384F", "info": "#4FA3D9", "locked": "#98A68E", "hint": "#F5A300", "flows": "#000000", "fill": "#000000" },
+      "icon": { "default": "#24331F", "moves": "#000000", "time": "#4FA3D9", "star": "#FFB800", "streak": "#FF7A45", "success": "#3DAA4F", "danger": "#E5384F", "info": "#4FA3D9", "locked": "#98A68E", "hint": "#F5A300", "flows": "#000000", "fill": "#000000", "heart": "#FF2E88" },
       "box": {
         "background": "#E8F3E0",
         "hud": "#D8EACB",
@@ -248,7 +249,7 @@
       "landscape": { "sun": "#FFC43C", "hillFar": "#6EC8E6", "hillMid": "#46AFD7", "hillNear": "#F2D59A", "trunk": "#7A5230", "trunkDark": "#634224", "leaf": "#3FAE5A", "leafDark": "#33964C", "leafDeep": "#2A7F3F" },
       "accent": { "color": "#FF9F1C", "onColor": "#472D08", "shadow": "rgba(255,159,28,0.35)" },
       "text": { "primary": "#2E2416", "statusBar": "#211A0F", "secondary": "#7A6A50", "muted": "#AD9E84", "disabled": "#D4C8B2", "onBadge": "#FFFFFF" },
-      "icon": { "default": "#2E2416", "moves": "#000000", "time": "#1FA2D6", "star": "#FFB800", "streak": "#FF5E3A", "success": "#25B35A", "danger": "#F03A47", "info": "#1FA2D6", "locked": "#AD9E84", "hint": "#E8A400", "flows": "#000000", "fill": "#000000" },
+      "icon": { "default": "#2E2416", "moves": "#000000", "time": "#1FA2D6", "star": "#FFB800", "streak": "#FF5E3A", "success": "#25B35A", "danger": "#F03A47", "info": "#1FA2D6", "locked": "#AD9E84", "hint": "#E8A400", "flows": "#000000", "fill": "#000000", "heart": "#FF2E88" },
       "box": {
         "background": "#FCEFD4",
         "hud": "#F6E1B8",
@@ -314,6 +315,81 @@
         { "slot": "indigo", "dot": "#4E8FB0", "line": "#4E8FB0", "cellFill": "rgba(78,143,176,0.13)" },
         { "slot": "white", "dot": "#B8860B", "line": "#B8860B", "cellFill": "rgba(184,134,11,0.13)" },
         { "slot": "bronze", "dot": "#9467BD", "line": "#9467BD", "cellFill": "rgba(148,103,189,0.13)" }
+      ]
+    },
+    "night": {
+      "name": "Night",
+      "statusBar": "light",
+      "background": { "color": "#1B2333" },
+      "landscape": { "sun": "#DCE6F5", "hillFar": "#34425E", "hillMid": "#29354D", "hillNear": "#1F2939", "trunk": "#121926", "trunkDark": "#0E141F", "leaf": "#18212F", "leafDark": "#141C29", "leafDeep": "#101722" },
+      "accent": { "color": "#4DA3FF", "onColor": "#FFFFFF", "shadow": "rgba(77,163,255,0.35)" },
+      "text": { "primary": "#F1F5FB", "statusBar": "#FFFFFF", "secondary": "#A9B4C6", "muted": "#7A879C", "disabled": "#4F5B70", "onBadge": "#FFFFFF" },
+      "icon": { "default": "#E6ECF5", "moves": "#7FD3FF", "time": "#F5A524", "star": "#FFD43B", "streak": "#FF8A4C", "success": "#2FD067", "danger": "#FF5C5C", "info": "#4DA3FF", "locked": "#6B7890", "hint": "#FFD43B", "flows": "#7FD3FF", "fill": "#7FD3FF", "heart": "#FF5FA2" },
+      "box": {
+        "background": "#232D3F",
+        "hud": "#263247",
+        "border": "rgba(255,255,255,0.06)",
+        "shadow": "rgba(0,0,0,0.35)",
+        "pill": "#2C3850",
+        "pillText": "#B3BFD1",
+        "surface": "#253043",
+        "overlay": "rgba(6,10,18,0.6)",
+        "toast": "#E6ECF5",
+        "toastText": "#1B2333"
+      },
+      "button": { "background": "#2A3549", "icon": "#E6ECF5", "label": "#E6ECF5", "shadow": "rgba(0,0,0,0.3)", "outline": "#56637A", "badge": "#F03E3E", "badgeText": "#FFFFFF" },
+      "board": {
+        "background": "#1D2636",
+        "border": "#2C3850",
+        "borderWidth": 2,
+        "cellEmpty": "rgba(64,82,112,0.45)",
+        "cellWall": "#0F1522",
+        "wallStripe": "rgba(130,150,185,0.18)",
+        "bridgeBox": "#33405A",
+        "bridgeBorder": "#6F86AD",
+        "bridgeRail": "#4A5B7A",
+        "bridgeShadow": "rgba(0,0,0,0.4)",
+        "warp": "#A78BFA",
+        "warpGlow": "rgba(167,139,250,0.55)",
+        "warpTint": "rgba(167,139,250,0.12)",
+        "warpArrow": "#FFFFFF",
+        "pointerRing": "rgba(230,238,250,0.4)",
+        "colorblindSymbol": "rgba(12,18,30,0.75)",
+        "lineOpacity": 0.9,
+        "cellRadius": 0.16,
+        "cellGap": 0.04
+      },
+      "progress": { "track": "#2C3850", "fill": "#4DA3FF" },
+      "star": { "filled": "#FFD43B", "empty": "#36425A" },
+      "calendar": { "day": "#263247", "dayText": "#E6ECF5", "today": "#4DA3FF", "solved": "#2FD067", "solvedText": "#FFFFFF", "future": "#4A5670" },
+      "status": { "success": "#2FD067", "warning": "#F5A524", "danger": "#FF5C5C" },
+      "dots": [
+        { "slot": "red", "dot": "#FF6B6B", "line": "#F25C5C", "cellFill": "rgba(255,107,107,0.22)" },
+        { "slot": "blue", "dot": "#4DB3FF", "line": "#3B8BF0", "cellFill": "rgba(77,179,255,0.22)" },
+        { "slot": "green", "dot": "#2FD067", "line": "#28B85A", "cellFill": "rgba(47,208,103,0.22)" },
+        { "slot": "yellow", "dot": "#FFD93D", "line": "#F2C230", "cellFill": "rgba(255,217,61,0.22)" },
+        { "slot": "purple", "dot": "#B47CFF", "line": "#A066F5", "cellFill": "rgba(180,124,255,0.22)" },
+        { "slot": "orange", "dot": "#FF9142", "line": "#F57F2E", "cellFill": "rgba(255,145,66,0.22)" },
+        { "slot": "cyan", "dot": "#2DD4E6", "line": "#1FBFD1", "cellFill": "rgba(45,212,230,0.22)" },
+        { "slot": "pink", "dot": "#FF6FB5", "line": "#F25AA3", "cellFill": "rgba(255,111,181,0.22)" },
+        { "slot": "lime", "dot": "#A3E048", "line": "#90CC38", "cellFill": "rgba(163,224,72,0.22)" },
+        { "slot": "indigo", "dot": "#7B83FF", "line": "#6870F0", "cellFill": "rgba(123,131,255,0.22)" },
+        { "slot": "white", "dot": "#E6ECF5", "line": "#C9D3E3", "cellFill": "rgba(230,236,245,0.18)" },
+        { "slot": "bronze", "dot": "#D49A5A", "line": "#C2884A", "cellFill": "rgba(212,154,90,0.22)" }
+      ],
+      "colorblindDots": [
+        { "slot": "red", "dot": "#E69F00", "line": "#E69F00", "cellFill": "rgba(230,159,0,0.22)" },
+        { "slot": "blue", "dot": "#56B4E9", "line": "#56B4E9", "cellFill": "rgba(86,180,233,0.22)" },
+        { "slot": "green", "dot": "#009E73", "line": "#009E73", "cellFill": "rgba(0,158,115,0.22)" },
+        { "slot": "yellow", "dot": "#F0E442", "line": "#F0E442", "cellFill": "rgba(240,228,66,0.22)" },
+        { "slot": "purple", "dot": "#2B8FD6", "line": "#2B8FD6", "cellFill": "rgba(43,143,214,0.22)" },
+        { "slot": "orange", "dot": "#D55E00", "line": "#D55E00", "cellFill": "rgba(213,94,0,0.22)" },
+        { "slot": "cyan", "dot": "#CC79A7", "line": "#CC79A7", "cellFill": "rgba(204,121,167,0.22)" },
+        { "slot": "pink", "dot": "#F0F0F0", "line": "#F0F0F0", "cellFill": "rgba(240,240,240,0.18)" },
+        { "slot": "lime", "dot": "#999999", "line": "#999999", "cellFill": "rgba(153,153,153,0.22)" },
+        { "slot": "indigo", "dot": "#4E8FB0", "line": "#4E8FB0", "cellFill": "rgba(78,143,176,0.22)" },
+        { "slot": "white", "dot": "#B8860B", "line": "#B8860B", "cellFill": "rgba(184,134,11,0.22)" },
+        { "slot": "bronze", "dot": "#9467BD", "line": "#9467BD", "cellFill": "rgba(148,103,189,0.22)" }
       ]
     }
   }

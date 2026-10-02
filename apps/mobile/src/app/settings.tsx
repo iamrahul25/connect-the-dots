@@ -19,12 +19,16 @@ import { haptics } from '../services/haptics';
 
 const SWATCH = 30;
 const SWATCH_GAP = 10;
+/** Must match the themeCard / themeCardRow widths and gaps below. */
+const THEME_COLS = 3;
+const THEME_COLS_TABLET = 5;
 
 const THEME_META: Record<ThemeId, { icon: keyof typeof Ionicons.glyphMap; tagline: string }> = {
   autumn: { icon: 'leaf', tagline: 'Warm & cozy' },
   winter: { icon: 'snow', tagline: 'Cool & crisp' },
   spring: { icon: 'flower', tagline: 'Fresh & floral' },
   summer: { icon: 'sunny', tagline: 'Bright & sunny' },
+  night: { icon: 'moon', tagline: 'Dark & calm' },
 };
 
 type Key = Exclude<keyof SettingsState, 'set' | 'theme'>;
@@ -79,7 +83,7 @@ function ToggleRow({ row, divider }: { row: Row; divider: boolean }) {
   );
 }
 
-function ThemeCard({ id, selected, compact, onPress }: { id: ThemeId; selected: boolean; compact: boolean; onPress: () => void }) {
+function ThemeCard({ id, selected, compact, rowEnd, onPress }: { id: ThemeId; selected: boolean; compact: boolean; rowEnd: boolean; onPress: () => void }) {
   const current = useTheme();
   const styles = useStyles();
   const { s } = useScale();
@@ -95,6 +99,7 @@ function ThemeCard({ id, selected, compact, onPress }: { id: ThemeId; selected: 
       style={({ pressed }) => [
         styles.themeCard,
         compact && styles.themeCardRow,
+        !rowEnd && (compact ? styles.themeCardRowGap : styles.themeCardGap),
         { backgroundColor: preview.box.surface, borderColor: selected ? current.accent.color : preview.box.border },
         selected && styles.themeCardSelected,
         pressed && { transform: [{ scale: 0.96 }] },
@@ -182,12 +187,13 @@ export default function Settings() {
     <Screen title="Settings" back scroll>
       <Text style={[styles.section, { marginTop: 0 }]}>Theme</Text>
       <View style={styles.themes}>
-        {THEME_IDS.map((id) => (
+        {THEME_IDS.map((id, i) => (
           <ThemeCard
             key={id}
             id={id}
             selected={id === themeId}
             compact={tablet}
+            rowEnd={(i + 1) % (tablet ? THEME_COLS_TABLET : THEME_COLS) === 0}
             onPress={() => {
               set({ theme: id });
               haptics.selection();
@@ -220,7 +226,7 @@ export default function Settings() {
       </View>
 
       <View style={styles.buttons}>
-        <GlassButton label="Credits" icon="heart" onPress={() => router.push('/credits')} />
+        <GlassButton label="Credits" icon="heart" iconColor={theme.icon.heart} onPress={() => router.push('/credits')} />
         <GlassButton label="Reset progress" icon="trash" iconColor={theme.status.danger} onPress={() => setConfirm(true)} />
       </View>
 
@@ -243,10 +249,9 @@ export default function Settings() {
 }
 
 const useStyles = makeStyles((t, s) => ({
-  themes: { flexDirection: 'row', flexWrap: 'wrap', gap: s(10) },
+  themes: { flexDirection: 'row', flexWrap: 'wrap', rowGap: s(10) },
   themeCard: {
-    flexGrow: 1,
-    flexBasis: '45%',
+    width: '32%',
     padding: s(6),
     borderRadius: s(20),
     borderWidth: 1.5,
@@ -255,7 +260,9 @@ const useStyles = makeStyles((t, s) => ({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 3 },
   },
-  themeCardRow: { flexBasis: '22%' },
+  themeCardGap: { marginRight: '2%' },
+  themeCardRow: { width: '18.8%' },
+  themeCardRowGap: { marginRight: '1.5%' },
   themeCardSelected: { borderWidth: 3, padding: s(6) - 1.5 },
   scene: { height: s(76), borderRadius: s(14), overflow: 'hidden' },
   sun: { position: 'absolute', top: s(10), right: '30%', width: s(22), height: s(22), borderRadius: s(11), opacity: 0.85 },
@@ -281,5 +288,5 @@ const useStyles = makeStyles((t, s) => ({
   sub: { fontFamily: fonts.body, fontSize: s(13), color: t.text.secondary },
   section: { fontFamily: fonts.bodyBold, fontSize: s(12), letterSpacing: 2, color: t.text.muted, marginTop: s(22), marginBottom: s(8), textTransform: 'uppercase' },
   palette: { padding: s(16) },
-  buttons: { marginTop: s(24), gap: s(12), alignItems: 'center' },
+  buttons: { marginTop: s(24), gap: s(12) },
 }));

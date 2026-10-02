@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Platform, Text, View, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
-import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Game, sameCell, type Cell, type GameEvent, type Level } from '@ctd/core';
 import { Board } from '../board/Board';
@@ -573,11 +572,6 @@ function Hud({ icon, iconColor, label, value, compact }: { icon: IconName; iconC
       </View>
     </View>
   );
-}
-
-export function goBackOr(path: string) {
-  if (router.canGoBack()) router.back();
-  else router.replace(path as never);
 }
 
 const useStyles = makeStyles((t, s) => ({

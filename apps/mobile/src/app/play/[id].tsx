@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { parseDateKey, WEEKDAY_NAMES, type Level } from '@ctd/core';
-import { GameScreen, goBackOr } from '../../game/GameScreen';
+import { GameScreen } from '../../game/GameScreen';
 import { Screen } from '../../ui/Screen';
 import { fonts } from '../../theme/tokens';
 import { makeStyles, useTheme } from '../../theme/useTheme';
@@ -54,7 +54,7 @@ function PackPlay({ id }: { id: string }) {
         if (next && isLevelUnlocked(useProgress.getState().levels, next)) router.replace(`/play/${next}`);
         else router.replace(`/pack/${pack.id}`);
       }}
-      onLevels={() => goBackOr(`/pack/${pack.id}`)}
+      onLevels={() => router.dismissTo(`/pack/${pack.id}`)}
     />
   );
 }
@@ -108,7 +108,7 @@ function DailyPlay({ dateKey }: { dateKey: string }) {
       pack="daily"
       nextLabel="Calendar"
       onNext={() => router.replace('/daily')}
-      onLevels={() => goBackOr('/daily')}
+      onLevels={() => router.dismissTo('/daily')}
     />
   );
 }
