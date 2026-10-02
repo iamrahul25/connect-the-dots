@@ -282,12 +282,6 @@ export function Board(props: Props) {
   }, [dynamic.head, headX, headY, headOn]);
   const headColor = dynamic.dragging >= 0 ? styleOf(dynamic.dragging).line : theme.text.primary;
 
-  const pointerX = useSharedValue(0);
-  const pointerY = useSharedValue(0);
-  const showHalo = Platform.OS !== 'web' && cell < 30;
-  const haloY = useDerivedValue(() => pointerY.value - cell * 1.8);
-  const haloOpacity = useDerivedValue(() => (showHalo ? headOn.value : 0));
-
   const boardTransform = useDerivedValue(() => {
     const s = 0.92 + 0.08 * Math.min(1, intro.value);
     return [
@@ -307,18 +301,10 @@ export function Board(props: Props) {
         .minDistance(0)
         .shouldCancelWhenOutside(false)
         .runOnJS(true)
-        .onBegin((e) => {
-          pointerX.value = e.x;
-          pointerY.value = e.y;
-          onDown(e.x, e.y);
-        })
-        .onUpdate((e) => {
-          pointerX.value = e.x;
-          pointerY.value = e.y;
-          onMove(e.x, e.y);
-        })
+        .onBegin((e) => onDown(e.x, e.y))
+        .onUpdate((e) => onMove(e.x, e.y))
         .onFinalize(() => onUp()),
-    [onDown, onMove, onUp, pointerX, pointerY],
+    [onDown, onMove, onUp],
   );
 
   const tile = (x: number, y: number, s: number) => ({ x: x + gap, y: y + gap, width: s - gap * 2, height: s - gap * 2, r: radius });
@@ -449,13 +435,6 @@ export function Board(props: Props) {
             </Group>
 
             <Picture picture={fxPicture} />
-          </Group>
-
-          {/* Finger halo on dense boards so the head is not hidden under the finger */}
-          <Group opacity={haloOpacity}>
-            <Circle cx={pointerX} cy={haloY} r={cell * 1.2} color={theme.box.surface} opacity={0.9} />
-            <Circle cx={pointerX} cy={haloY} r={cell * 1.2} color={B.pointerRing} style="stroke" strokeWidth={1.5} />
-            <Circle cx={pointerX} cy={haloY} r={cell * 0.55} color={headColor} />
           </Group>
         </Canvas>
       </View>

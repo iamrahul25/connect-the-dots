@@ -23,8 +23,6 @@ export type GameEvent =
 
 interface Snapshot {
   paths: number[][];
-  moves: number;
-  lastPair: number;
 }
 
 interface Drag {
@@ -220,7 +218,7 @@ export class Game {
     const next = d.view.map((p) => (p.length === 1 ? [] : p));
     const changed = next.some((p, i) => !samePath(p, this.committed[i]));
     if (!changed) return [];
-    this.undoStack.push({ paths: this.committed, moves: this.moves, lastPair: this.lastPair });
+    this.undoStack.push({ paths: this.committed });
     if (d.pair !== this.lastPair) this.moves++;
     this.lastPair = d.pair;
     this.committed = next;
@@ -235,13 +233,14 @@ export class Game {
     return this.undoStack.length > 0;
   }
 
+  /** Undo counts as a move and breaks the same-pair streak, so the next drag always counts too. */
   undo(): boolean {
     const s = this.undoStack.pop();
     if (!s) return false;
     this.drag = null;
     this.committed = s.paths;
-    this.moves = s.moves;
-    this.lastPair = s.lastPair;
+    this.moves++;
+    this.lastPair = -1;
     return true;
   }
 
@@ -260,7 +259,7 @@ export class Game {
     if (!nodes) return [];
     this.drag = null;
     const set = new Set(nodes);
-    this.undoStack.push({ paths: this.committed, moves: this.moves, lastPair: this.lastPair });
+    this.undoStack.push({ paths: this.committed });
     this.committed = this.committed.map((p, i) => {
       if (i === pair) return nodes;
       for (let j = 0; j < p.length; j++) if (set.has(p[j])) return j <= 1 ? [] : p.slice(0, j);

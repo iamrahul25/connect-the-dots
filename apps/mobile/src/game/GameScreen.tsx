@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, Text, View, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Game, sameCell, type Cell, type GameEvent, type Level } from '@ctd/core';
 import { Board } from '../board/Board';
@@ -495,7 +495,15 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
         <View style={[styles.hud, { width: sectionWidth }]} onLayout={onHudLayout}>
           <Hud icon="swap-horizontal" iconColor={theme.icon.moves} label="Moves" value={`${game.moves}`} compact={compactHud} />
           <Hud icon="git-network" iconColor={theme.icon.flows} label="Flows" value={`${connected}/${game.pairCount}`} compact={compactHud} />
-          <Hud icon="water" iconColor={theme.icon.fill} label="Fill" value={`${Math.round(fill * 100)}%`} compact={compactHud} />
+          <Hud
+            icon="water"
+            iconColor={theme.icon.fill}
+            label="Fill"
+            value={`${Math.round(fill * 100)}%`}
+            compact={compactHud}
+            progress={fill}
+            reduceMotion={reduceMotion}
+          />
         </View>
 
         {boardSize > 0 && (
@@ -557,7 +565,24 @@ function HudIcon({ icon, color }: { icon: IconName; color: string }) {
   return <Ionicons name={icon} size={s(28)} color={color} />;
 }
 
-function Hud({ icon, iconColor, label, value, compact }: { icon: IconName; iconColor: string; label: string; value: string; compact: boolean }) {
+function Hud({
+  icon,
+  iconColor,
+  label,
+  value,
+  compact,
+  progress,
+  reduceMotion,
+}: {
+  icon: IconName;
+  iconColor: string;
+  label: string;
+  value: string;
+  compact: boolean;
+  /** 0..1; renders a progress bar along the bottom edge when set. */
+  progress?: number;
+  reduceMotion?: boolean;
+}) {
   const styles = useStyles();
   return (
     <View style={styles.hudItem}>
@@ -570,6 +595,22 @@ function Hud({ icon, iconColor, label, value, compact }: { icon: IconName; iconC
           {value}
         </Text>
       </View>
+      {progress !== undefined && <HudProgress progress={progress} color={iconColor} reduceMotion={!!reduceMotion} />}
+    </View>
+  );
+}
+
+function HudProgress({ progress, color, reduceMotion }: { progress: number; color: string; reduceMotion: boolean }) {
+  const styles = useStyles();
+  const p = useSharedValue(progress);
+  useEffect(() => {
+    const clamped = Math.max(0, Math.min(1, progress));
+    p.value = reduceMotion ? clamped : withTiming(clamped, { duration: 250 });
+  }, [progress, reduceMotion, p]);
+  const fillStyle = useAnimatedStyle(() => ({ width: `${p.value * 100}%` }));
+  return (
+    <View style={styles.hudTrack} pointerEvents="none">
+      <Animated.View style={[styles.hudTrackFill, { backgroundColor: color }, fillStyle]} />
     </View>
   );
 }
@@ -593,7 +634,10 @@ const useStyles = makeStyles((t, s) => ({
     paddingVertical: s(12),
     borderRadius: s(20),
     backgroundColor: t.box.hud,
+    overflow: 'hidden',
   },
+  hudTrack: { position: 'absolute', left: s(14), right: s(14), bottom: s(6), height: s(4), borderRadius: s(2), backgroundColor: t.box.pill },
+  hudTrackFill: { height: '100%', borderRadius: s(2) },
   hudLabel: { fontFamily: fonts.body, fontSize: s(13), color: t.text.secondary },
   hudValue: { fontFamily: fonts.title, fontSize: s(20), lineHeight: s(22), color: t.text.primary },
   stage: { flex: 1, minHeight: 0, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },

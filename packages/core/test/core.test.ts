@@ -220,8 +220,29 @@ describe('engine', () => {
     game.beginDrag([0, 0]);
     game.dragTo([1, 0]);
     game.endDrag();
+    expect(game.moves).toBe(1);
     expect(game.undo()).toBe(true);
     expect(game.view()[0]).toEqual([]);
+    expect(game.moves).toBe(2);
+    expect(game.undo()).toBe(false);
+    expect(game.moves).toBe(2);
+  });
+
+  it('counts a same-pair drag after undo as a new move', () => {
+    const game = new Game(tiny);
+    game.beginDrag([0, 0]);
+    game.dragTo([1, 0]);
+    game.endDrag();
+    game.beginDrag([1, 0]);
+    game.dragTo([1, 1]);
+    game.endDrag();
+    expect(game.moves).toBe(1);
+    game.undo();
+    expect(game.moves).toBe(2);
+    game.beginDrag([1, 0]);
+    game.dragTo([1, 1]);
+    game.endDrag();
+    expect(game.moves).toBe(3);
   });
 });
 

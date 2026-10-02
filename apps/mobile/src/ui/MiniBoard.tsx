@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { View } from 'react-native';
+import { PixelRatio, View } from 'react-native';
 import type { Level } from '@ctd/core';
 import type { Palette } from '../theme/config';
 import { useTheme } from '../theme/useTheme';
@@ -25,7 +25,9 @@ export const MiniBoard = memo(function MiniBoard({
   const { board, box } = useTheme();
   const { width: W, height: H } = level.size;
   const pad = Math.max(3, Math.round(size * 0.05));
-  const cell = (size - pad * 2) / Math.max(W, H);
+  // Whole device pixels per cell, so Android's pixel rounding can't make cells drift or overflow.
+  const ratio = PixelRatio.get();
+  const cell = Math.max(1, Math.floor(((size - pad * 2) / Math.max(W, H)) * ratio)) / ratio;
   const gap = cell > 6 ? 0.5 : 0;
   const outline = Math.max(0.5, Math.min(1, cell * 0.05));
 
@@ -71,9 +73,9 @@ export const MiniBoard = memo(function MiniBoard({
           borderColor: board.border,
         }}
       />
-      <View style={{ position: 'absolute', left: pad, top: pad, width: W * cell, height: H * cell, flexDirection: 'row', flexWrap: 'wrap' }}>
+      <View style={{ position: 'absolute', left: pad, top: pad, width: W * cell, height: H * cell }}>
         {kind.map((k, i) => (
-          <View key={i} style={{ width: cell, height: cell, padding: gap }}>
+          <View key={i} style={{ position: 'absolute', left: (i % W) * cell, top: Math.floor(i / W) * cell, width: cell, height: cell, padding: gap }}>
             {k === WALL && !dot[i] && hatch ? (
               <HatchedTile size={cell - gap * 2} radius={cell * board.cellRadius} color={board.cellWall} stripe={board.wallStripe} />
             ) : (
