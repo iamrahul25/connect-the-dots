@@ -77,14 +77,57 @@ When the build finishes, EAS prints a download link for the `.apk`. Open it on y
 
 Requires JDK 17 and the Android SDK (`ANDROID_HOME` set), for example via Android Studio.
 
-```bash
-cd apps/mobile
-npx expo prebuild -p android
-cd android
-./gradlew assembleRelease
+Release builds are signed with your upload keystore. Add these to `~/.gradle/gradle.properties` (on Windows: `C:\Users\<you>\.gradle\gradle.properties`):
+
+```properties
+MYAPP_UPLOAD_STORE_FILE=C:/Users/<you>/.android-keys/upload.keystore
+MYAPP_UPLOAD_KEY_ALIAS=my-key-alias
+MYAPP_UPLOAD_STORE_PASSWORD=...
+MYAPP_UPLOAD_KEY_PASSWORD=...
 ```
 
-The APK is written to `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`. It is signed with the debug key, which is fine for sideloading and testing. For the Play Store, set up your own signing key first.
+Then, from the repo root:
+
+```bash
+npm run preflight-apk    # check toolchain, dependencies and signing without building
+npm run release-apk      # signed release APK -> release/app-release.apk
+npm run test-apk         # debug APK -> release/app-debug.apk (no keystore needed)
+```
+
+`release-apk` runs the pre-flight checks, `npm install` and `gradlew assembleRelease`, then copies the APK into the `release/` folder at the repo root.
+
+> **Windows: `hermesc.exe was blocked by your organization's Device Guard policy`.** Smart App Control is blocking the unsigned Hermes compiler from npm. Turn it off in Windows Security → App & browser control → Smart App Control settings, then build again. You can also build with EAS (Option 1) or inside WSL instead.
+
+### Install and test on an emulator
+
+The commands below use `adb` and `emulator` from the Android SDK (`platform-tools` and `emulator` folders). Add both folders to your `PATH`.
+
+```bash
+# 1. start an emulator (or open one from Android Studio's Device Manager)
+emulator -list-avds              # list your virtual devices
+emulator -avd Pixel_10           # start one by name
+
+# 2. check the emulator is connected (it should show as "device")
+adb devices
+
+# 3. install the APK (-r replaces an existing install and keeps its data)
+adb install -r release/app-release.apk
+
+# 4. launch the app
+adb shell monkey -p com.connectthedots.game 1
+
+# 5. watch JavaScript logs and crashes while you play
+adb logcat ReactNativeJS:V AndroidRuntime:E *:S
+```
+
+If the install fails with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, a build signed with a different key (such as a debug build) is already installed. Uninstall it first:
+
+```bash
+adb uninstall com.connectthedots.game
+adb install release/app-release.apk
+```
+
+With more than one device or emulator connected, pick one with `-s`, for example `adb -s emulator-5554 install -r release/app-release.apk`. To install on a real phone, turn on USB debugging in Developer options, connect it over USB, and run the same commands.
 
 ## Project structure
 
