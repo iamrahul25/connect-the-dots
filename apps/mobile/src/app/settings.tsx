@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Platform, Pressable, Switch, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
 import { Ionicons } from '@expo/vector-icons';
 import { Canvas, Circle, Group, Path } from '@shopify/react-native-skia';
 import { Screen } from '../ui/Screen';
 import { GlassButton } from '../ui/GlassButton';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { ImportSaveDialog } from '../ui/ImportSaveDialog';
+import { useToast } from '../ui/Toast';
 import { useLayout } from '../ui/layout';
 import { fonts } from '../theme/tokens';
 import { withAlpha } from '../board/color';
@@ -16,6 +19,7 @@ import { useScale } from '../theme/scale';
 import { useSettings, type SettingsState } from '../store/settings';
 import { useProgress } from '../store/progress';
 import { haptics } from '../services/haptics';
+import { applySaveData, exportSaveData } from '../services/saveData';
 
 const SWATCH = 30;
 const SWATCH_GAP = 10;
@@ -79,6 +83,32 @@ function ToggleRow({ row, divider }: { row: Row; divider: boolean }) {
         thumbColor="#FFFFFF"
         {...(Platform.OS === 'web' ? { activeThumbColor: '#FFFFFF' } : {})}
       />
+    </Pressable>
+  );
+}
+
+function ActionRow({ icon, label, sub, divider, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; sub: string; divider: boolean; onPress: () => void }) {
+  const theme = useTheme();
+  const styles = useStyles();
+  const { s } = useScale();
+  return (
+    <Pressable
+      onPress={() => {
+        haptics.selection();
+        onPress();
+      }}
+      style={({ pressed }) => [styles.row, divider && styles.divider, pressed && { opacity: 0.6 }]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <View style={styles.iconWrap}>
+        <Ionicons name={icon} size={s(20)} color={theme.icon.default} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.sub}>{sub}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={s(18)} color={theme.text.muted} />
     </Pressable>
   );
 }
@@ -181,74 +211,119 @@ export default function Settings() {
   const themeId = useSettings((s) => s.theme);
   const set = useSettings((s) => s.set);
   const [confirm, setConfirm] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importKey, setImportKey] = useState(0);
   const { tablet } = useLayout();
+  const toast = useToast();
+
+  const exportSave = async () => {
+    try {
+      await Clipboard.setStringAsync(exportSaveData());
+      haptics.success();
+      toast.show('Save data copied to clipboard');
+    } catch {
+      haptics.warning();
+      toast.show("Couldn't copy save data", 2400);
+    }
+  };
 
   return (
-    <Screen title="Settings" back scroll>
-      <Text style={[styles.section, { marginTop: 0 }]}>Theme</Text>
-      <View style={styles.themes}>
-        {THEME_IDS.map((id, i) => (
-          <ThemeCard
-            key={id}
-            id={id}
-            selected={id === themeId}
-            compact={tablet}
-            rowEnd={(i + 1) % (tablet ? THEME_COLS_TABLET : THEME_COLS) === 0}
+    <View style={styles.root}>
+      <Screen title="Settings" back scroll>
+        <Text style={[styles.section, { marginTop: 0 }]}>Theme</Text>
+        <View style={styles.themes}>
+          {THEME_IDS.map((id, i) => (
+            <ThemeCard
+              key={id}
+              id={id}
+              selected={id === themeId}
+              compact={tablet}
+              rowEnd={(i + 1) % (tablet ? THEME_COLS_TABLET : THEME_COLS) === 0}
+              onPress={() => {
+                set({ theme: id });
+                haptics.selection();
+              }}
+            />
+          ))}
+        </View>
+
+        <Text style={styles.section}>Preferences</Text>
+        <View style={styles.group}>
+          {ROWS.filter((r) => !r.native || Platform.OS !== 'web').map((r, i) => (
+            <ToggleRow key={r.key} row={r} divider={i > 0} />
+          ))}
+        </View>
+
+        {__DEV__ && (
+          <>
+            <Text style={styles.section}>Developer</Text>
+            <View style={styles.group}>
+              {DEV_ROWS.map((r, i) => (
+                <ToggleRow key={r.key} row={r} divider={i > 0} />
+              ))}
+            </View>
+          </>
+        )}
+
+        <Text style={styles.section}>Palette preview</Text>
+        <View style={[styles.group, styles.palette]}>
+          <PalettePreview />
+        </View>
+
+        <Text style={styles.section}>Save data</Text>
+        <View style={styles.group}>
+          <ActionRow icon="cloud-upload" label="Export save data" sub="Copy your progress and settings to the clipboard" divider={false} onPress={exportSave} />
+          <ActionRow
+            icon="cloud-download"
+            label="Import save data"
+            sub="Paste a save to restore your progress"
+            divider
             onPress={() => {
-              set({ theme: id });
-              haptics.selection();
+              setImportKey((k) => k + 1);
+              setImporting(true);
             }}
           />
-        ))}
-      </View>
+        </View>
 
-      <Text style={styles.section}>Preferences</Text>
-      <View style={styles.group}>
-        {ROWS.filter((r) => !r.native || Platform.OS !== 'web').map((r, i) => (
-          <ToggleRow key={r.key} row={r} divider={i > 0} />
-        ))}
-      </View>
+        <View style={styles.buttons}>
+          <GlassButton label="Credits" icon="heart" iconColor={theme.icon.heart} onPress={() => router.push('/credits')} />
+          <GlassButton label="Reset progress" icon="trash" iconColor={theme.status.danger} onPress={() => setConfirm(true)} />
+        </View>
 
-      {__DEV__ && (
-        <>
-          <Text style={styles.section}>Developer</Text>
-          <View style={styles.group}>
-            {DEV_ROWS.map((r, i) => (
-              <ToggleRow key={r.key} row={r} divider={i > 0} />
-            ))}
-          </View>
-        </>
-      )}
+        <ConfirmDialog
+          visible={confirm}
+          icon="trash"
+          title="Reset progress?"
+          message="This erases all your stars, hints and daily streaks. It can't be undone."
+          confirmLabel="Reset"
+          danger
+          onCancel={() => setConfirm(false)}
+          onConfirm={() => {
+            useProgress.getState().reset();
+            haptics.warning();
+            setConfirm(false);
+          }}
+        />
 
-      <Text style={styles.section}>Palette preview</Text>
-      <View style={[styles.group, styles.palette]}>
-        <PalettePreview />
-      </View>
-
-      <View style={styles.buttons}>
-        <GlassButton label="Credits" icon="heart" iconColor={theme.icon.heart} onPress={() => router.push('/credits')} />
-        <GlassButton label="Reset progress" icon="trash" iconColor={theme.status.danger} onPress={() => setConfirm(true)} />
-      </View>
-
-      <ConfirmDialog
-        visible={confirm}
-        icon="trash"
-        title="Reset progress?"
-        message="This erases all your stars, hints and daily streaks. It can't be undone."
-        confirmLabel="Reset"
-        danger
-        onCancel={() => setConfirm(false)}
-        onConfirm={() => {
-          useProgress.getState().reset();
-          haptics.warning();
-          setConfirm(false);
-        }}
-      />
-    </Screen>
+        <ImportSaveDialog
+          key={importKey}
+          visible={importing}
+          onCancel={() => setImporting(false)}
+          onImport={(data) => {
+            applySaveData(data);
+            haptics.success();
+            setImporting(false);
+            toast.show('Save data imported');
+          }}
+        />
+      </Screen>
+      {toast.node}
+    </View>
   );
 }
 
 const useStyles = makeStyles((t, s) => ({
+  root: { flex: 1 },
   themes: { flexDirection: 'row', flexWrap: 'wrap', rowGap: s(10) },
   themeCard: {
     width: '32%',
