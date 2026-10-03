@@ -4,10 +4,10 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const SIGNING_PROPS = [
-  'MYAPP_UPLOAD_STORE_FILE',
-  'MYAPP_UPLOAD_KEY_ALIAS',
-  'MYAPP_UPLOAD_STORE_PASSWORD',
-  'MYAPP_UPLOAD_KEY_PASSWORD',
+  'CTD_UPLOAD_STORE_FILE',
+  'CTD_UPLOAD_KEY_ALIAS',
+  'CTD_UPLOAD_STORE_PASSWORD',
+  'CTD_UPLOAD_KEY_PASSWORD',
 ];
 const MIN_JAVA_MAJOR = 17;
 const RULE = '═'.repeat(50);
@@ -154,10 +154,10 @@ function checkProject(ctx, report) {
   }
 
   if (target === 'release') {
-    if (appGradle.includes('MYAPP_UPLOAD_STORE_FILE')) {
+    if (appGradle.includes('CTD_UPLOAD_STORE_FILE')) {
       report.pass('Release signing config wired into build.gradle');
     } else {
-      report.fail('android/app/build.gradle has no MYAPP_UPLOAD_* release signing config', [
+      report.fail('android/app/build.gradle has no CTD_UPLOAD_* release signing config', [
         'plugins/withAndroidReleaseSigning.js was not applied.',
         PREBUILD_HINT,
       ]);
@@ -272,13 +272,13 @@ function checkSigning(ctx, report) {
     ]);
     return;
   }
-  report.pass(`MYAPP_UPLOAD_* properties (from ${props.MYAPP_UPLOAD_STORE_FILE.label})`);
+  report.pass(`CTD_UPLOAD_* properties (from ${props.CTD_UPLOAD_STORE_FILE.label})`);
 
-  const alias = props.MYAPP_UPLOAD_KEY_ALIAS.value;
-  const storePass = props.MYAPP_UPLOAD_STORE_PASSWORD.value;
-  const keyPass = props.MYAPP_UPLOAD_KEY_PASSWORD.value;
+  const alias = props.CTD_UPLOAD_KEY_ALIAS.value;
+  const storePass = props.CTD_UPLOAD_STORE_PASSWORD.value;
+  const keyPass = props.CTD_UPLOAD_KEY_PASSWORD.value;
   // Gradle's file() in the app module resolves relative paths against android/app.
-  const keystorePath = path.resolve(appDir, props.MYAPP_UPLOAD_STORE_FILE.value);
+  const keystorePath = path.resolve(appDir, props.CTD_UPLOAD_STORE_FILE.value);
 
   if (!fs.existsSync(keystorePath) || !fs.statSync(keystorePath).isFile()) {
     report.fail(`Keystore not found: ${keystorePath}`, [
@@ -292,7 +292,7 @@ function checkSigning(ctx, report) {
   report.pass(`Keystore exists (${keystorePath})`);
   if (!path.relative(androidDir, keystorePath).startsWith('..')) {
     report.warn('Keystore is inside android/, which `expo prebuild --clean` deletes', [
-      'Move it outside the project and set MYAPP_UPLOAD_STORE_FILE to its absolute path (forward slashes).',
+      'Move it outside the project and set CTD_UPLOAD_STORE_FILE to its absolute path (forward slashes).',
     ]);
   }
 
@@ -311,7 +311,7 @@ function checkSigning(ctx, report) {
   const listOutput = outputOf(list);
   if (list.status !== 0) {
     if (/password was incorrect|password verification failed/i.test(listOutput)) {
-      report.fail('MYAPP_UPLOAD_STORE_PASSWORD is wrong for this keystore');
+      report.fail('CTD_UPLOAD_STORE_PASSWORD is wrong for this keystore');
     } else if (/does not exist/i.test(listOutput)) {
       const aliases = listAliases(keytool, keystorePath, env);
       report.fail(
@@ -325,9 +325,9 @@ function checkSigning(ctx, report) {
     }
     return;
   }
-  report.pass(`Keystore opens and alias "${alias}" exists`);
-
   const owner = listOutput.match(/Owner:\s*(.+)/i)?.[1]?.trim() ?? '';
+  report.pass(`Keystore opens and alias "${alias}" exists (${owner || 'unknown owner'})`);
+
   if (/CN=Android Debug/i.test(owner)) {
     report.fail('Keystore contains the Android debug certificate', 'Play Console rejects debug-signed builds.');
   }
@@ -339,13 +339,13 @@ function checkSigning(ctx, report) {
   );
   if (/not supported for PKCS12/i.test(certreq.stderr || '')) {
     // keytool silently swaps in the store password here, but Gradle uses the key password as-is and fails.
-    report.fail('MYAPP_UPLOAD_KEY_PASSWORD differs from MYAPP_UPLOAD_STORE_PASSWORD on a PKCS12 keystore', [
+    report.fail('CTD_UPLOAD_KEY_PASSWORD differs from CTD_UPLOAD_STORE_PASSWORD on a PKCS12 keystore', [
       'PKCS12 keystores created by keytool use the store password for the key too.',
     ]);
   } else if (certreq.status === 0) {
     report.pass('Key password unlocks the private key');
   } else {
-    report.fail('MYAPP_UPLOAD_KEY_PASSWORD cannot unlock the private key', outputOf(certreq).split('\n')[0]);
+    report.fail('CTD_UPLOAD_KEY_PASSWORD cannot unlock the private key', outputOf(certreq).split('\n')[0]);
   }
 }
 

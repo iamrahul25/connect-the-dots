@@ -77,14 +77,32 @@ When the build finishes, EAS prints a download link for the `.apk`. Open it on y
 
 Requires JDK 17 and the Android SDK (`ANDROID_HOME` set), for example via Android Studio.
 
-Release builds are signed with your upload keystore. Add these to `~/.gradle/gradle.properties` (on Windows: `C:\Users\<you>\.gradle\gradle.properties`):
+Release builds are signed with this app's own upload keystore. Create it once (keep it outside the repo and back it up). Run this in PowerShell, because keytool's password prompt doesn't always work in Git Bash. Choose a strong password when asked and save it in a password manager:
+
+```powershell
+keytool -genkeypair -v -storetype PKCS12 -keystore C:/Users/<you>/.android-keys/connect-the-dots-upload.keystore -alias connect-the-dots -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Connect the Dots, OU=Mobile, O=<your name or studio>, C=<country code>"
+```
+
+Then add the signing properties to your user-level Gradle properties file. On Windows it is `C:\Users\<you>\.gradle\gradle.properties`, and on macOS/Linux `~/.gradle/gradle.properties`. Open it from PowerShell:
+
+```powershell
+notepad $env:USERPROFILE\.gradle\gradle.properties
+```
+
+- If Notepad asks to create the file, say yes. The file only exists after something has written to it.
+- To find it in File Explorer, paste `%USERPROFILE%\.gradle` into the address bar. Turn on **View → Show → File name extensions**, otherwise the file shows as just `gradle`.
+- If the file already has lines for other apps (for example `MYAPP_UPLOAD_*`), leave them. Add these lines below them:
 
 ```properties
-MYAPP_UPLOAD_STORE_FILE=C:/Users/<you>/.android-keys/upload.keystore
-MYAPP_UPLOAD_KEY_ALIAS=my-key-alias
-MYAPP_UPLOAD_STORE_PASSWORD=...
-MYAPP_UPLOAD_KEY_PASSWORD=...
+CTD_UPLOAD_STORE_FILE=C:/Users/<you>/.android-keys/connect-the-dots-upload.keystore
+CTD_UPLOAD_KEY_ALIAS=connect-the-dots
+CTD_UPLOAD_STORE_PASSWORD=<your keystore password>
+CTD_UPLOAD_KEY_PASSWORD=<your keystore password>
 ```
+
+Use forward slashes in the path. For a PKCS12 keystore, both password lines hold the same password you typed in keytool. This file holds your keystore password, so never copy it into the repo.
+
+> This project reads `CTD_UPLOAD_*`, not the common `MYAPP_UPLOAD_*` names. `gradle.properties` in your home folder applies to every Android project on the machine, so separate names stop this app from being signed with another app's key.
 
 Then, from the repo root:
 
@@ -128,6 +146,122 @@ adb install release/app-release.apk
 ```
 
 With more than one device or emulator connected, pick one with `-s`, for example `adb -s emulator-5554 install -r release/app-release.apk`. To install on a real phone, turn on USB debugging in Developer options, connect it over USB, and run the same commands.
+
+## Publish to Google Play (signed AAB)
+
+Google Play takes an Android App Bundle (`.aab`), not an APK. It must be signed with your upload keystore, set up the same way as for a local release APK (the `CTD_UPLOAD_*` properties in `~/.gradle/gradle.properties`, see [Option 2](#option-2-local-build)).
+
+### Quick reference (Windows, PowerShell)
+
+One-time setup: open your user-level Gradle properties file and add the signing lines (keep any lines that are already there for other apps):
+
+```powershell
+notepad $env:USERPROFILE\.gradle\gradle.properties
+```
+
+```properties
+CTD_UPLOAD_STORE_FILE=C:/Users/conne/.android-keys/connect-the-dots-upload.keystore
+CTD_UPLOAD_KEY_ALIAS=connect-the-dots
+CTD_UPLOAD_STORE_PASSWORD=<your keystore password>
+CTD_UPLOAD_KEY_PASSWORD=<your keystore password>
+```
+
+Every release, starting from the repo root (if you are in `apps/mobile/android`, run `cd ../../..` first):
+
+```powershell
+npm run preflight-apk -w mobile
+cd apps/mobile/android
+./gradlew.bat bundleRelease
+keytool -printcert -jarfile app/build/outputs/bundle/release/app-release.aab
+
+# open the folder with the signed AAB, ready to upload
+explorer C:\all-projects\connect-the-dots\apps\mobile\android\app\build\outputs\bundle\release
+```
+
+`keytool` must show `Owner: CN=Connect the Dots, ...`. The file to upload is `app-release.aab` in that folder. The details of each step are below.
+
+### Package name
+
+The package name (Play Console calls it the application ID) is **`com.connectthedots.game`**. It is set in `apps/mobile/app.json` under `expo.android.package`, and prebuild copies it into `applicationId` in `apps/mobile/android/app/build.gradle`.
+
+Once you upload the first build to Play Console, the package name is permanent. It must also be unique across Google Play. If Play says it is already taken, change it before the first upload (see below).
+
+**Check that the AAB has the right package name.** Run these from `apps/mobile/android`:
+
+```powershell
+# what the build is configured with (Git Bash: grep applicationId app/build.gradle)
+Select-String -Path app/build.gradle -Pattern "applicationId"
+
+# what is actually inside the AAB, using bundletool
+java -jar C:/path/to/bundletool-all.jar dump manifest --bundle=app/build/outputs/bundle/release/app-release.aab --xpath=/manifest/@package
+```
+
+Both should print `com.connectthedots.game`, and it must match the package name of your app in Play Console. Download bundletool once, as `bundletool-all-<version>.jar`, from [github.com/google/bundletool/releases](https://github.com/google/bundletool/releases). `npm run preflight-apk` also warns if `app.json` and `build.gradle` disagree.
+
+**Change the package name** (only before the first upload):
+
+1. In `apps/mobile/app.json`, set `expo.android.package` to the new name, for example `com.yourname.connectthedots`. Use lowercase letters, digits, underscores and dots, with at least two parts. Update `expo.ios.bundleIdentifier` too if you want both platforms to match.
+2. Regenerate the Android project. Run this from `apps/mobile`:
+
+   ```bash
+   npx expo prebuild --platform android --clean
+   ```
+
+   `--clean` deletes and recreates `android/`. That's safe here: the folder is generated and gitignored, the signing setup is re-applied by `plugins/withAndroidReleaseSigning.js`, and the keystore lives outside the project.
+3. Rebuild the AAB and run the checks above again. Both commands should now print the new name.
+
+### 1. Build the signed AAB
+
+From the repo root (works in Git Bash and PowerShell):
+
+```bash
+npm run preflight-apk          # optional: checks the keystore and passwords, and shows the certificate owner
+cd apps/mobile/android
+./gradlew.bat bundleRelease     # macOS/Linux: ./gradlew bundleRelease
+```
+
+When you see `BUILD SUCCESSFUL`, the signed bundle is at:
+
+```
+apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
+```
+
+With the repo cloned to `C:\all-projects\connect-the-dots`, the full path is `C:\all-projects\connect-the-dots\apps\mobile\android\app\build\outputs\bundle\release\app-release.aab`. Open the folder in File Explorer from PowerShell:
+
+```powershell
+explorer C:\all-projects\connect-the-dots\apps\mobile\android\app\build\outputs\bundle\release
+```
+
+In the Play Console upload dialog, paste that folder path into the file picker's address bar and pick `app-release.aab`. Each `bundleRelease` overwrites this file, so check the signature (step 2) after every build before uploading.
+
+To build in the cloud instead, run `eas build -p android --profile production` from `apps/mobile`. When EAS asks for Android credentials, give it your existing upload keystore. Don't let it generate a new one.
+
+> If the build fails with `hermesc.exe was blocked by your organization's Device Guard policy`, see the Windows note under [Option 2](#option-2-local-build). Retrying sometimes works.
+
+### 2. Check that the AAB is signed
+
+Stay in `apps/mobile/android`. The paths below are relative to that folder and give `NoSuchFileException` if you run them from the repo root.
+
+```bash
+# verify the signature
+jarsigner -verify app/build/outputs/bundle/release/app-release.aab
+
+# show the signing certificate and its fingerprints
+keytool -printcert -jarfile app/build/outputs/bundle/release/app-release.aab
+```
+
+- `jar verified.` means the bundle is signed. `jar is unsigned.` means the `CTD_UPLOAD_*` properties were not picked up, so fix them and rebuild.
+- Check that `keytool` shows `Owner: CN=Connect the Dots, ...`. Any other owner means the build used a different app's keystore.
+- The warnings printed after `jar verified.` are normal for an upload-key-signed `.aab` and can be ignored: `certificate chain is invalid` / `PKIX path building failed`, `signer certificate is self-signed`, `signatures that do not include a timestamp`, `POSIX file permission`, `Manifest is missing when reading via JarInputStream`, and `Entry ... is signed in JarFile but is not signed in JarInputStream`. Add `-verbose -certs` only if you want the full per-file listing, which is very long.
+- `keytool` prints the certificate `Owner` and its `SHA1` and `SHA256` fingerprints. In Play Console, go to **Test and release → App integrity → App signing**. The SHA-256 must match the **Upload key certificate**. For the first upload of a new app, Play registers this key as the upload key.
+
+### 3. Upload to Play Console
+
+1. Bump the version first. Every upload needs a higher `versionCode` than the last one. Set `expo.android.versionCode` (and `expo.version` for the visible version name) in `apps/mobile/app.json`, then run `npx expo prebuild --platform android` in `apps/mobile` so `android/` picks it up.
+2. In Play Console, open your app, go to **Testing** (internal, closed, or open) or **Production**, and choose **Create new release**.
+3. Upload `app-release.aab`, add release notes, and roll out.
+
+Play re-signs the app with its own app signing key before delivering it to users. Keep the upload keystore and its passwords backed up somewhere safe. If you lose them, you have to ask Google to reset the upload key.
 
 ## Project structure
 
