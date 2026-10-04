@@ -15,7 +15,7 @@
   },
   "properties": {
     "$schema": { "type": "string" },
-    "id": { "type": "string", "pattern": "^(p\\d{2}-l\\d{3}|daily-\\d{4}-\\d{2}-\\d{2})$" },
+    "id": { "type": "string", "pattern": "^(p\\d{2}-l\\d{3}|daily-\\d{4}-\\d{2}-\\d{2}-(easy|medium|hard))$" },
     "pack": { "type": "integer", "minimum": 0 },
     "index": { "type": "integer", "minimum": 1 },
     "formatVersion": { "enum": [1, 2], "description": "2 = uses teleporters, tunnels, rotators or locks" },

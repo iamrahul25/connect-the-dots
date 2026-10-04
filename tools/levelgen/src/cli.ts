@@ -1,12 +1,16 @@
 import path from 'node:path';
 import {
+  DAILY_TIER_SPECS,
+  DAILY_TIERS,
   dailyParams,
   emptyStats,
   generateLevel,
   hashSeed,
+  obstacleCount,
   toLevel,
   validateLevel,
   type DailyBank,
+  type DailyTier,
   type GenParams,
   type Level,
 } from '@ctd/core';
@@ -106,19 +110,37 @@ function cmdValidate(target: string) {
   if (bad) process.exit(1);
 }
 
+const DAILY_RETRIES = 12;
+
+function generateDaily(key: string, tier: DailyTier, index: number): Level {
+  const [lo, hi] = DAILY_TIER_SPECS[tier].obstacles;
+  for (let attempt = 0; attempt < DAILY_RETRIES; attempt++) {
+    const params = dailyParams(key, tier, attempt);
+    const c = generateLevel(params);
+    // The board builder can silently place fewer walls/bridges than asked for.
+    if (!c || obstacleCount(c.puzzle) < lo || obstacleCount(c.puzzle) > hi) continue;
+    return toLevel(c, { id: `daily-${key}-${tier}`, pack: 0, index, params });
+  }
+  throw new Error(`daily ${key} ${tier} failed after ${DAILY_RETRIES} param sets`);
+}
+
 function cmdDaily(flags: Record<string, string | true>) {
   const month = String(flags.month ?? '');
   if (!/^\d{4}-\d{2}$/.test(month)) throw new Error('--month YYYY-MM is required');
   const [y, m] = month.split('-').map(Number);
   const days = new Date(y, m, 0).getDate();
-  const bank: DailyBank = { month, levels: {} };
+  const bank: DailyBank = { month, days: {} };
   for (let d = 1; d <= days; d++) {
     const key = `${month}-${pad(d)}`;
-    const params = dailyParams(key);
-    const c = generateLevel(params);
-    if (!c) throw new Error(`daily ${key} failed`);
-    bank.levels[key] = toLevel(c, { id: `daily-${key}`, pack: 0, index: d, params });
-    process.stdout.write(`${key}: ${c.puzzle.size.width}x${c.puzzle.size.width} score=${c.difficulty.score}\n`);
+    const day = {} as Record<DailyTier, Level>;
+    for (const tier of DAILY_TIERS) {
+      const t0 = Date.now();
+      const level = (day[tier] = generateDaily(key, tier, d));
+      process.stdout.write(
+        `${key} ${tier.padEnd(6)} ${level.size.width}x${level.size.height} obstacles=${obstacleCount(level)} score=${level.difficulty.score} (${Date.now() - t0}ms)\n`,
+      );
+    }
+    bank.days[key] = day;
   }
   const out = resolve(String(flags.out ?? path.join(LEVELS_DIR, 'daily')));
   writeJson(path.join(out, `${month}.json`), bank);

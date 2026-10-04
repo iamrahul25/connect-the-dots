@@ -3,7 +3,7 @@ import { Platform, Text, View, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { Game, isTeleportStep, sameCell, type Cell, type GameEvent, type Level } from '@ctd/core';
+import { Game, isTeleportStep, sameCell, type Cell, type DailyTier, type GameEvent, type Level } from '@ctd/core';
 import { Board } from '../board/Board';
 import { cellAtRaw, cellCenter, clampCell, frameWidth, makeGeom } from '../board/geometry';
 import type { Effect, EffectInput } from '../board/effects';
@@ -32,8 +32,8 @@ export interface GameScreenProps {
   nextLabel: string;
   onNext: () => void;
   onLevels: () => void;
-  /** Daily puzzles are keyed by date. */
-  dailyKey?: string;
+  /** Daily puzzles are keyed by date and tier. */
+  daily?: { key: string; tier: DailyTier };
 }
 
 const IDLE_MS = 45_000;
@@ -56,7 +56,7 @@ const RETRACT_ZONE = 0.3;
 
 const sameCellPair = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
 
-export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNext, onLevels, dailyKey }: GameScreenProps) {
+export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNext, onLevels, daily }: GameScreenProps) {
   const theme = useTheme();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
@@ -160,13 +160,14 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
     const stars = starsFor(gm.moves, lv.stars.perfectMoves, lv.stars.twoStarMoves, usedHint);
     const progress = useProgress.getState();
     let info: ResultInfo;
-    if (mode === 'daily' && dailyKey) {
-      const prev = progress.daily.completed[dailyKey];
-      const r = progress.completeDaily(dailyKey, stars, gm.moves);
+    if (mode === 'daily' && daily) {
+      const prev = progress.daily.completed[daily.key]?.[daily.tier];
+      const r = progress.completeDaily(daily.key, daily.tier, stars, gm.moves);
       progress.saveBoard(lv.id, null);
       info = {
         stars, moves: gm.moves, best: prev ? Math.min(prev.moves, gm.moves) : gm.moves, perfect: lv.stars.perfectMoves,
         hintsEarned: r.hintsEarned, packCompleted: false, usedHint, streak: useProgress.getState().daily.streak,
+        perfectDay: r.perfectDay,
       };
     } else {
       const prev = progress.levels[lv.id];
@@ -178,7 +179,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
       if (r.packCompleted) setTimeout(() => audio.play('pack_unlock'), 1400);
     }
     setTimeout(() => setResult(info), ref.current.reduceMotion ? 300 : 1150);
-  }, [emit, mode, dailyKey]);
+  }, [emit, mode, daily]);
 
   const process = useCallback(
     (events: GameEvent[]) => {

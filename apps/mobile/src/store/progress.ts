@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { dateKey, parseDateKey, type Layer } from '@ctd/core';
+import { DAILY_TIERS, dateKey, parseDateKey, type DailyTier, type Layer } from '@ctd/core';
 import { persistStorage } from '../services/storage';
 import { getPack, manifest, PACK_STAR_REQUIREMENTS } from '../data/levels';
 import { unlimitedHintsActive, unlockAllActive } from './settings';
@@ -28,11 +28,23 @@ export interface CompletionResult {
   packCompleted: boolean;
 }
 
+export interface DailyCompletionResult extends CompletionResult {
+  /** This solve finished the last of the day's three tiers. */
+  perfectDay: boolean;
+}
+
+export interface DailyResult {
+  stars: number;
+  moves: number;
+}
+
+export type DailyDay = Partial<Record<DailyTier, DailyResult>>;
+
 interface ProgressState {
   levels: Record<string, LevelRecord>;
   hints: number;
   daily: {
-    completed: Record<string, { stars: number; moves: number }>;
+    completed: Record<string, DailyDay>;
     streak: number;
     bestStreak: number;
     lastDate: string | null;
@@ -42,7 +54,7 @@ interface ProgressState {
   completedPacks: number[];
 
   completeLevel: (id: string, stars: number, moves: number, usedHint: boolean) => CompletionResult;
-  completeDaily: (key: string, stars: number, moves: number) => CompletionResult;
+  completeDaily: (key: string, tier: DailyTier, stars: number, moves: number) => DailyCompletionResult;
   spendHint: () => boolean;
   saveBoard: (id: string, board: SavedBoard | null) => void;
   setLastPlayed: (id: string) => void;
@@ -95,26 +107,38 @@ export const useProgress = create<ProgressState>()(
         return { stars, isNewBest, firstSolve, hintsEarned, packCompleted };
       },
 
-      completeDaily: (key, stars, moves) => {
+      completeDaily: (key, tier, stars, moves) => {
         const d = get().daily;
-        const prev = d.completed[key];
-        const firstSolve = !prev;
+        const day = d.completed[key] ?? {};
+        const prev = day[tier];
         let { streak, bestStreak, lastDate } = d;
         let hintsEarned = 0;
-        if (firstSolve) {
+        // Any one tier keeps the streak; only the day's first solve counts. Back-filling
+        // an older day from the calendar leaves the current streak alone.
+        if (!isDaySolved(day)) {
           hintsEarned = 1;
-          const yesterday = parseDateKey(key);
-          yesterday.setDate(yesterday.getDate() - 1);
-          streak = lastDate === dateKey(yesterday) ? streak + 1 : lastDate === key ? streak : 1;
-          bestStreak = Math.max(bestStreak, streak);
-          lastDate = key;
+          if (!lastDate || key > lastDate) {
+            const yesterday = parseDateKey(key);
+            yesterday.setDate(yesterday.getDate() - 1);
+            streak = lastDate === dateKey(yesterday) ? streak + 1 : 1;
+            bestStreak = Math.max(bestStreak, streak);
+            lastDate = key;
+          }
         }
-        const completed = {
-          ...d.completed,
-          [key]: { stars: Math.max(prev?.stars ?? 0, stars), moves: prev ? Math.min(prev.moves, moves) : moves },
+        const nextDay: DailyDay = {
+          ...day,
+          [tier]: { stars: Math.max(prev?.stars ?? 0, stars), moves: prev ? Math.min(prev.moves, moves) : moves },
         };
+        const completed = { ...d.completed, [key]: nextDay };
         set({ daily: { completed, streak, bestStreak, lastDate }, hints: get().hints + hintsEarned });
-        return { stars, isNewBest: !prev || moves < prev.moves, firstSolve, hintsEarned, packCompleted: false };
+        return {
+          stars,
+          isNewBest: !prev || moves < prev.moves,
+          firstSolve: !prev,
+          hintsEarned,
+          packCompleted: false,
+          perfectDay: !prev && isPerfectDay(nextDay),
+        };
       },
 
       spendHint: () => {
@@ -135,9 +159,42 @@ export const useProgress = create<ProgressState>()(
 
       reset: () => set({ ...initial }),
     }),
-    { name: 'progress.v1', storage: persistStorage, version: 1 },
+    {
+      name: 'progress.v1',
+      storage: persistStorage,
+      version: 2,
+      migrate: (persisted, version) => {
+        const s = persisted as ProgressState;
+        if (version < 2 && s?.daily) {
+          s.daily = { ...s.daily, completed: upgradeLegacyDaily(s.daily.completed as unknown as Record<string, DailyResult>) };
+          s.inProgress = dropLegacyDailyBoards(s.inProgress ?? {});
+        }
+        return s;
+      },
+    },
   ),
 );
+
+/** Before tiers existed each day had one puzzle; those solves count as the Medium tier. */
+export function upgradeLegacyDaily(completed: Record<string, DailyResult>): Record<string, DailyDay> {
+  return Object.fromEntries(Object.entries(completed).map(([key, r]) => [key, { medium: r }]));
+}
+
+export function dropLegacyDailyBoards(boards: Record<string, SavedBoard>): Record<string, SavedBoard> {
+  return Object.fromEntries(Object.entries(boards).filter(([id]) => !/^daily-\d{4}-\d{2}-\d{2}$/.test(id)));
+}
+
+export function daySolvedCount(day: DailyDay | undefined): number {
+  return day ? DAILY_TIERS.filter((t) => day[t]).length : 0;
+}
+
+export function isDaySolved(day: DailyDay | undefined): boolean {
+  return daySolvedCount(day) > 0;
+}
+
+export function isPerfectDay(day: DailyDay | undefined): boolean {
+  return daySolvedCount(day) === DAILY_TIERS.length;
+}
 
 export function totalStars(levels: Record<string, LevelRecord>): number {
   return Object.values(levels).reduce((a, l) => a + l.stars, 0);

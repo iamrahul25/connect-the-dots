@@ -25,6 +25,8 @@ export interface ResultInfo {
   packCompleted: boolean;
   usedHint: boolean;
   streak?: number;
+  /** Daily: all three tiers of the day are now solved. */
+  perfectDay?: boolean;
 }
 
 interface Props {
@@ -96,6 +98,7 @@ export function ResultModal({ result, nextLabel, onNext, onReplay, onLevels, red
           {result.streak !== undefined && result.streak > 0 && (
             <Text style={[styles.reward, styles.streak]}>🔥 {result.streak}-day streak</Text>
           )}
+          {result.perfectDay && <Text style={[styles.reward, styles.crown]}>👑 Perfect day: all 3 solved!</Text>}
           {result.packCompleted && <Text style={styles.reward}>Pack complete! 🎉</Text>}
           {result.hintsEarned > 0 && <Text style={styles.reward}>+{result.hintsEarned} hint{result.hintsEarned > 1 ? 's' : ''} 💡</Text>}
           <GlassButton label={nextLabel} icon="play" variant="primary" size="lg" onPress={onNext} style={styles.next} />
@@ -146,6 +149,7 @@ const useStyles = makeStyles((t, s) => ({
   note: { fontFamily: fonts.body, fontSize: s(12), color: t.text.secondary, marginTop: s(12), textAlign: 'center' },
   reward: { fontFamily: fonts.bodyBold, fontSize: s(15), color: t.icon.hint, marginTop: s(10) },
   streak: { color: t.icon.streak },
+  crown: { color: t.icon.star },
   next: { alignSelf: 'stretch', marginTop: s(18) },
   row: { flexDirection: 'row', gap: s(10), marginTop: s(10), alignSelf: 'stretch' },
 }));

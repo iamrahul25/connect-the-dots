@@ -1,10 +1,21 @@
-import type { Layer } from '@ctd/core';
-import { useProgress, totalStars, type LevelRecord, type SavedBoard } from '../store/progress';
+import { isDailyTier, type Layer } from '@ctd/core';
+import {
+  dropLegacyDailyBoards,
+  isDaySolved,
+  totalStars,
+  upgradeLegacyDaily,
+  useProgress,
+  type DailyDay,
+  type DailyResult,
+  type LevelRecord,
+  type SavedBoard,
+} from '../store/progress';
 import { useSettings, type SettingsState } from '../store/settings';
 import { isThemeId } from '../theme/config';
 
 const APP_ID = 'connect-the-dots';
-const FORMAT = 1;
+/** 2 = daily results split per tier (easy / medium / hard). */
+const FORMAT = 2;
 /**
  * Mixed into the checksum so hand-edited files are rejected. It ships in the bundle, so this
  * deters casual tampering only; changing it invalidates every previously exported file.
@@ -20,7 +31,7 @@ interface SavedProgress {
   levels: Record<string, LevelRecord>;
   hints: number;
   daily: {
-    completed: Record<string, { stars: number; moves: number }>;
+    completed: Record<string, DailyDay>;
     streak: number;
     bestStreak: number;
     lastDate: string | null;
@@ -70,8 +81,8 @@ function hash(str: string): string {
   return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16).padStart(14, '0');
 }
 
-function checksum(data: SaveData): string {
-  return hash(`${CHECKSUM_SALT}|${FORMAT}|${canonical(data)}`);
+function checksum(data: SaveData, format = FORMAT): string {
+  return hash(`${CHECKSUM_SALT}|${format}|${canonical(data)}`);
 }
 
 function snapshot(): SaveData {
@@ -129,13 +140,22 @@ function validRecord<T>(v: unknown, item: (x: unknown) => x is T, key: (k: strin
   return isObj(v) && Object.entries(v).every(([k, x]) => key(k) && item(x));
 }
 
-function validProgress(v: unknown): v is SavedProgress {
+function validDailyResult(v: unknown): v is DailyResult {
+  return isObj(v) && isInt(v.stars) && v.stars <= 3 && isInt(v.moves);
+}
+
+function validDailyDay(v: unknown): v is DailyDay {
+  return validRecord(v, validDailyResult, isDailyTier);
+}
+
+/** Format 1 files store one `{ stars, moves }` per day instead of one per tier. */
+function validProgress(v: unknown, format: number): v is SavedProgress {
   if (!isObj(v) || !isObj(v.daily)) return false;
   const d = v.daily;
   return (
     validRecord(v.levels, validLevel) &&
     isInt(v.hints) &&
-    validRecord(d.completed, (x): x is { stars: number; moves: number } => isObj(x) && isInt(x.stars) && x.stars <= 3 && isInt(x.moves), isDateKey) &&
+    validRecord<unknown>(d.completed, format === 1 ? validDailyResult : validDailyDay, isDateKey) &&
     isInt(d.streak) &&
     isInt(d.bestStreak) &&
     (d.lastDate === null || isDateKey(d.lastDate)) &&
@@ -156,7 +176,7 @@ function summarize(data: SaveData, exportedAt: string | null): SaveSummary {
     levelsSolved: Object.keys(p.levels).length,
     stars: totalStars(p.levels),
     hints: p.hints,
-    dailySolved: Object.keys(p.daily.completed).length,
+    dailySolved: Object.values(p.daily.completed).filter(isDaySolved).length,
     exportedAt,
   };
 }
@@ -178,12 +198,17 @@ export function parseSaveData(text: string): ParseResult {
     return { ok: false, error: 'This save was made by a newer version of the game. Update the app and try again.' };
   }
   const data = file.data as Record<string, unknown>;
-  if (!validProgress(data.progress) || !validSettings(data.settings)) {
+  if (!validProgress(data.progress, file.format) || !validSettings(data.settings)) {
     return { ok: false, error: 'The save file is incomplete or damaged.' };
   }
   const save: SaveData = { progress: data.progress, settings: data.settings };
-  if (typeof file.checksum !== 'string' || file.checksum !== checksum(save)) {
+  if (typeof file.checksum !== 'string' || file.checksum !== checksum(save, file.format)) {
     return { ok: false, error: 'This save file has been modified and cannot be imported.' };
+  }
+  if (file.format === 1) {
+    const p = save.progress;
+    const completed = upgradeLegacyDaily(p.daily.completed as unknown as Record<string, DailyResult>);
+    save.progress = { ...p, daily: { ...p.daily, completed }, inProgress: dropLegacyDailyBoards(p.inProgress) };
   }
   return { ok: true, data: save, summary: summarize(save, typeof file.exportedAt === 'string' ? file.exportedAt : null) };
 }

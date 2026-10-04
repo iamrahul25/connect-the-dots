@@ -3,6 +3,9 @@ import {
   buildGraph,
   canonicalKey,
   createRng,
+  DAILY_TIER_SPECS,
+  DAILY_TIERS,
+  dailyParams,
   endpointNodes,
   Game,
   generateAttempt,
@@ -10,11 +13,13 @@ import {
   hashSeed,
   isValidSolution,
   nodesAt,
+  obstacleCount,
   solveExact,
   solveHuman,
   specOf,
   toLevel,
   validateLevel,
+  type GenParams,
   type Puzzle,
 } from '../src';
 
@@ -439,5 +444,38 @@ describe('generator', () => {
       ],
     };
     expect(canonicalKey(tiny)).toBe(canonicalKey(mirrored));
+  });
+});
+
+describe('daily tiers', () => {
+  const MECHANICS = ['walls', 'bridges', 'warps', 'teleporters', 'tunnels', 'rotators', 'locks'] as const;
+  const total = (p: GenParams) => MECHANICS.reduce((a, m) => a + ((p[m] as number | undefined) ?? 0), 0);
+
+  it('params follow each tier spec and are deterministic', () => {
+    for (const tier of DAILY_TIERS) {
+      const spec = DAILY_TIER_SPECS[tier];
+      for (let d = 1; d <= 28; d++) {
+        const key = `2026-10-${String(d).padStart(2, '0')}`;
+        const p = dailyParams(key, tier);
+        expect(dailyParams(key, tier)).toEqual(p);
+        expect(spec.sizes).toContain(p.width);
+        expect(total(p)).toBeGreaterThanOrEqual(spec.obstacles[0]);
+        expect(total(p)).toBeLessThanOrEqual(spec.obstacles[1]);
+        for (const m of MECHANICS) if (p[m]) expect(spec.weights[m]).toBeDefined();
+        if (spec.featured) expect(spec.featured.some((m) => p[m])).toBe(true);
+      }
+    }
+  });
+
+  it('tiers of the same day get different seeds', () => {
+    const seeds = DAILY_TIERS.map((t) => dailyParams('2026-10-04', t).seed);
+    expect(new Set(seeds).size).toBe(3);
+  });
+
+  it('generates an easy daily with the requested obstacles', () => {
+    const p = dailyParams('2026-10-04', 'easy');
+    const c = generateLevel(p);
+    expect(c).not.toBeNull();
+    expect(obstacleCount(c!.puzzle)).toBe(total(p));
   });
 });

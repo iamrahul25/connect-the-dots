@@ -1,4 +1,4 @@
-import { dailyParams, generateLevel, toLevel, type Level } from '@ctd/core';
+import { dailyParams, generateLevel, obstacleCount, toLevel, type DailyTier, type GenParams, type Level } from '@ctd/core';
 import { dailyBanks, levels, manifest } from '@ctd/levels';
 
 export { manifest };
@@ -40,14 +40,27 @@ export function maxStars(packId?: number): number {
 }
 
 /** Daily puzzle from the bundled bank, or generated on-device as a fallback. */
-export function dailyFromBank(key: string): Level | undefined {
-  return dailyBanks[key.slice(0, 7)]?.levels[key];
+export function dailyFromBank(key: string, tier: DailyTier): Level | undefined {
+  return dailyBanks[key.slice(0, 7)]?.days[key]?.[tier];
 }
 
-export function generateDaily(key: string): Level | null {
-  const params = { ...dailyParams(key), timeBudgetMs: 6000, maxAttempts: 200 };
-  const capped = { ...params, width: Math.min(params.width, 10) };
-  const c = generateLevel(capped);
-  if (!c) return null;
-  return toLevel(c, { id: `daily-${key}`, pack: 0, index: Number(key.slice(8)), params: capped });
+const DAILY_TIME_BUDGET_MS: Record<DailyTier, number> = { easy: 4000, medium: 6000, hard: 12000 };
+
+export function generateDaily(key: string, tier: DailyTier): Level | null {
+  const deadline = Date.now() + DAILY_TIME_BUDGET_MS[tier];
+  for (let attempt = 0; Date.now() < deadline; attempt++) {
+    const params = { ...dailyParams(key, tier, attempt), timeBudgetMs: deadline - Date.now(), maxAttempts: 200 };
+    const c = generateLevel(params);
+    if (c) return toLevel(c, { id: `daily-${key}-${tier}`, pack: 0, index: Number(key.slice(8)), params });
+  }
+  return null;
+}
+
+/** Board size and obstacle count shown before the puzzle is opened. */
+export function dailyPreview(key: string, tier: DailyTier): { size: number; obstacles: number } {
+  const level = dailyFromBank(key, tier);
+  if (level) return { size: level.size.width, obstacles: obstacleCount(level) };
+  const p = dailyParams(key, tier);
+  const n = (v: GenParams['walls']) => (typeof v === 'number' ? v : 0);
+  return { size: p.width, obstacles: n(p.walls) + n(p.bridges) + n(p.warps) + n(p.teleporters) + n(p.tunnels) + n(p.rotators) + n(p.locks) };
 }

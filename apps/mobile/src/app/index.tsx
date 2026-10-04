@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { dateKey, WEEKDAY_NAMES } from '@ctd/core';
+import { DAILY_TIERS, dateKey, WEEKDAY_NAMES } from '@ctd/core';
 import { Screen } from '../ui/Screen';
 import { Logo } from '../ui/Logo';
 import { GlassButton } from '../ui/GlassButton';
@@ -12,11 +12,9 @@ import { fonts, tokens } from '../theme/tokens';
 import { makeStyles, useTheme } from '../theme/useTheme';
 import { withAlpha } from '../board/color';
 import { globalNumber, maxStars } from '../data/levels';
-import { nextToPlay, totalStars, useProgress } from '../store/progress';
+import { daySolvedCount, nextToPlay, totalStars, useProgress } from '../store/progress';
 import { useSettings } from '../store/settings';
 import { audio } from '../services/audio';
-
-const DAILY_DIFFICULTY = ['Expert', 'Easy', 'Easy+', 'Medium', 'Medium+', 'Hard', 'Hard+'];
 
 function useCountdown() {
   const [now, setNow] = useState(Date.now());
@@ -55,7 +53,7 @@ export default function Home() {
   const next = nextToPlay(levels);
   const today = dateKey(new Date());
   const weekday = new Date().getDay();
-  const dailyDone = !!daily.completed[today];
+  const dailySolved = daySolvedCount(daily.completed[today]);
   const stars = totalStars(levels);
 
   useFocusEffect(
@@ -114,13 +112,16 @@ export default function Home() {
           style={({ pressed }) => [styles.dailyCard, { borderColor: withAlpha(theme.text.primary, 0.25) }, pressed && { transform: [{ scale: 0.98 }] }]}
         >
           <View style={[styles.dailyIcon, { backgroundColor: withAlpha(theme.icon.streak, 0.18) }]}>
-            <Ionicons name={dailyDone ? 'checkmark-circle' : 'calendar'} size={s(28)} color={theme.icon.streak} />
+            {dailySolved === DAILY_TIERS.length ? (
+              <Text style={{ fontSize: s(26) }}>👑</Text>
+            ) : (
+              <Ionicons name={dailySolved > 0 ? 'checkmark-circle' : 'calendar'} size={s(28)} color={theme.icon.streak} />
+            )}
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.dailyTitle}>Daily Puzzle</Text>
             <Text style={styles.dailySub}>
-              {WEEKDAY_NAMES[weekday]} · {DAILY_DIFFICULTY[weekday]}
-              {dailyDone ? ' · solved' : ''}
+              {WEEKDAY_NAMES[weekday]} · {dailySolved > 0 ? `${dailySolved}/${DAILY_TIERS.length} solved` : 'Easy · Medium · Hard'}
             </Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>

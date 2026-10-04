@@ -111,7 +111,10 @@ export interface Manifest {
   packs: { id: number; name: string; theme: string; levels: string[] }[];
 }
 
+export type DailyTier = 'easy' | 'medium' | 'hard';
+
 export interface DailyBank {
   month: string;
-  levels: Record<string, Level>;
+  /** Keyed by date (YYYY-MM-DD), then tier. */
+  days: Record<string, Record<DailyTier, Level>>;
 }

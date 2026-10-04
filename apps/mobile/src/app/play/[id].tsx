@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { parseDateKey, WEEKDAY_NAMES, type Level } from '@ctd/core';
+import { DAILY_TIER_NAMES, DAILY_TIERS, isDailyTier, parseDateKey, WEEKDAY_NAMES, type DailyTier, type Level } from '@ctd/core';
 import { GameScreen } from '../../game/GameScreen';
 import { Screen } from '../../ui/Screen';
 import { fonts } from '../../theme/tokens';
@@ -11,11 +11,25 @@ import { isLevelUnlocked, useProgress } from '../../store/progress';
 import { useSettings } from '../../store/settings';
 
 const DAILY_PREFIX = 'daily-';
+const DAILY_ID = /^daily-(\d{4}-\d{2}-\d{2})-(\w+)$/;
 
 export default function PlayRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  if (id?.startsWith(DAILY_PREFIX)) return <DailyPlay dateKey={id.slice(DAILY_PREFIX.length)} />;
+  if (id?.startsWith(DAILY_PREFIX)) {
+    const m = DAILY_ID.exec(id);
+    if (!m || !isDailyTier(m[2])) return <InvalidDaily />;
+    return <DailyPlay key={id} dateKey={m[1]} tier={m[2]} />;
+  }
   return <PackPlay id={id ?? ''} />;
+}
+
+function InvalidDaily() {
+  const styles = useStyles();
+  return (
+    <Screen title="Daily" back>
+      <Text style={styles.msg}>Invalid daily puzzle.</Text>
+    </Screen>
+  );
 }
 
 function PackPlay({ id }: { id: string }) {
@@ -59,25 +73,24 @@ function PackPlay({ id }: { id: string }) {
   );
 }
 
-function DailyPlay({ dateKey }: { dateKey: string }) {
+function DailyPlay({ dateKey, tier }: { dateKey: string; tier: DailyTier }) {
   const theme = useTheme();
   const styles = useStyles();
-  const [level, setLevel] = useState<Level | null | undefined>(() => dailyFromBank(dateKey));
+  const [level, setLevel] = useState<Level | null | undefined>(() => dailyFromBank(dateKey, tier));
+  const daily = useMemo(() => ({ key: dateKey, tier }), [dateKey, tier]);
+  // Snapshot on open: the tier being played counts as done once it's solved.
+  const [nextTier] = useState(() => {
+    const day = useProgress.getState().daily.completed[dateKey];
+    return DAILY_TIERS.find((t) => t !== tier && !day?.[t]);
+  });
 
   useEffect(() => {
     if (level !== undefined) return;
     // Yield a frame so the spinner renders before the synchronous generator runs.
-    const t = setTimeout(() => setLevel(generateDaily(dateKey)), 60);
+    const t = setTimeout(() => setLevel(generateDaily(dateKey, tier)), 60);
     return () => clearTimeout(t);
-  }, [dateKey, level]);
+  }, [dateKey, tier, level]);
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
-    return (
-      <Screen title="Daily" back>
-        <Text style={styles.msg}>Invalid date.</Text>
-      </Screen>
-    );
-  }
   if (level === undefined) {
     return (
       <Screen title="Daily" back>
@@ -99,15 +112,15 @@ function DailyPlay({ dateKey }: { dateKey: string }) {
   const d = parseDateKey(dateKey);
   return (
     <GameScreen
-      key={dateKey}
+      key={level.id}
       level={level}
       mode="daily"
-      dailyKey={dateKey}
-      title="Daily Puzzle"
-      subtitle={`${WEEKDAY_NAMES[d.getDay()]} · ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
+      daily={daily}
+      title={`Daily · ${DAILY_TIER_NAMES[tier]}`}
+      subtitle={`${WEEKDAY_NAMES[d.getDay()]} · ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · ${level.size.width}×${level.size.height}`}
       pack="daily"
-      nextLabel="Calendar"
-      onNext={() => router.replace('/daily')}
+      nextLabel={nextTier ? DAILY_TIER_NAMES[nextTier] : 'Calendar'}
+      onNext={() => router.replace(nextTier ? `/play/daily-${dateKey}-${nextTier}` : '/daily')}
       onLevels={() => router.dismissTo('/daily')}
     />
   );

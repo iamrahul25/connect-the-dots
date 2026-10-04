@@ -91,6 +91,6 @@ export function listLevelFiles(dir: string): string[] {
 
 export function loadLevelsFromFile(file: string): Level[] {
   const data = readJson<Level | DailyBank>(file);
-  if ('levels' in data && !('dots' in data)) return Object.values(data.levels);
+  if ('days' in data) return Object.values(data.days).flatMap((day) => Object.values(day));
   return [data as Level];
 }

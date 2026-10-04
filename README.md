@@ -15,7 +15,7 @@ Built with Expo (React Native + React Native Web), Skia for the board, and Reani
 - **100 handcrafted-by-generator levels** in 5 themed packs: Dawn, Lagoon, Ember, Aurora and Cosmos (5×5 up to 12×12).
 - **Every level has exactly one solution**, verified by an exact solver.
 - **New mechanics over time:** walls (blocked cells), bridges (two paths cross over each other) and warps (paths wrap around the edges).
-- **Daily Puzzle** with a calendar, streak, best streak and solved count.
+- **Daily Puzzle**: Easy (7×7–8×8, 1–2 obstacles), Medium (9×9–10×10, 3–4) and Hard (11×11–12×12, 5–7) every day. Solving any one keeps the streak; solving all three earns a 👑 on the calendar.
 - **Star rating** (up to 3 stars per level) based on how close you get to the perfect move count.
 - **Hints** that draw one correct path (earn more by getting ★★★), plus **Undo** and **Restart**.
 - **Live HUD** showing moves, connected flows and fill percentage.
