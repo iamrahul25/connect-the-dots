@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, Text, View, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
@@ -566,6 +566,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
     return () => window.removeEventListener('keydown', onKey);
   }, [onUndo, onRestart, onHint, onLevels, infoOpen, hasObstacles]);
 
+  const openInfo = useCallback(() => setInfoOpen(true), []);
   const view = game.view();
   const connected = game.connectedCount(view);
   const fill = game.fillRatio(view);
@@ -582,18 +583,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
         },
       ]}
     >
-      <View style={styles.header}>
-        <GlassButton icon="chevron-back" size="sm" onPress={onLevels} accessibilityLabel="Back to levels" />
-        <View style={styles.titleWrap}>
-          <Text style={styles.title}>{title}</Text>
-          {subtitle && (
-            <View style={styles.titlePill}>
-              <Text style={styles.subtitle}>{subtitle}</Text>
-            </View>
-          )}
-        </View>
-        <GlassButton icon="refresh" size="sm" onPress={onRestart} accessibilityLabel="Restart level" />
-      </View>
+      <Header title={title} subtitle={subtitle} onBack={onLevels} onRestart={onRestart} />
 
       <View style={styles.stage} onLayout={onStageLayout}>
         <View style={[styles.hud, { width: sectionWidth }]} onLayout={onHudLayout}>
@@ -633,7 +623,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
           <GlassButton icon="arrow-undo" label="Undo" onPress={onUndo} disabled={!game.canUndo()} style={styles.controlButton} />
           <GlassButton icon="bulb" label="Hint" variant="primary" onPress={onHint} badge={unlimitedHints ? '∞' : hints} style={styles.controlButton} />
           {hasObstacles && (
-            <GlassButton icon="information-circle" iconColor={theme.icon.info} onPress={() => setInfoOpen(true)} accessibilityLabel="Obstacle info" />
+            <GlassButton icon="information-circle" iconColor={theme.icon.info} onPress={openInfo} accessibilityLabel="Obstacle info" />
           )}
         </View>
       </View>
@@ -664,12 +654,41 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
+// The screen re-renders on every cell of a drag; these stay put unless their own props change.
+const Header = memo(function Header({
+  title,
+  subtitle,
+  onBack,
+  onRestart,
+}: {
+  title: string;
+  subtitle?: string;
+  onBack: () => void;
+  onRestart: () => void;
+}) {
+  const styles = useStyles();
+  return (
+    <View style={styles.header}>
+      <GlassButton icon="chevron-back" size="sm" onPress={onBack} accessibilityLabel="Back to levels" />
+      <View style={styles.titleWrap}>
+        <Text style={styles.title}>{title}</Text>
+        {subtitle && (
+          <View style={styles.titlePill}>
+            <Text style={styles.subtitle}>{subtitle}</Text>
+          </View>
+        )}
+      </View>
+      <GlassButton icon="refresh" size="sm" onPress={onRestart} accessibilityLabel="Restart level" />
+    </View>
+  );
+});
+
 function HudIcon({ icon, color }: { icon: IconName; color: string }) {
   const { s } = useLayout();
   return <Ionicons name={icon} size={s(28)} color={color} />;
 }
 
-function Hud({
+const Hud = memo(function Hud({
   icon,
   iconColor,
   label,
@@ -702,7 +721,7 @@ function Hud({
       {progress !== undefined && <HudProgress progress={progress} color={iconColor} reduceMotion={!!reduceMotion} />}
     </View>
   );
-}
+});
 
 function HudProgress({ progress, color, reduceMotion }: { progress: number; color: string; reduceMotion: boolean }) {
   const styles = useStyles();

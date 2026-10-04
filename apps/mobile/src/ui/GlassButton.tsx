@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Pressable, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,7 +34,7 @@ interface Props {
 }
 
 /** Rounded button with press-down spring, sound and haptic. */
-export function GlassButton({
+export const GlassButton = memo(function GlassButton({
   label,
   sublabel,
   icon,
@@ -108,7 +108,7 @@ export function GlassButton({
       </Pressable>
     </Animated.View>
   );
-}
+});
 
 const useStyles = makeStyles((t, s) => ({
   base: {

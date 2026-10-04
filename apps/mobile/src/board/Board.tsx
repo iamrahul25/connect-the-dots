@@ -1,30 +1,35 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import {
   Canvas,
   Circle,
   ClipOp,
-  DashPathEffect,
   Group,
+  Paint,
   PaintStyle,
   Path,
   Picture,
   RoundedRect,
   Skia,
+  StrokeCap,
+  StrokeJoin,
   useClock,
+  type SkCanvas,
+  type SkPaint,
   type SkPath,
-  type SkPicture,
 } from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { useDerivedValue, useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
+import { useAnimatedReaction, useDerivedValue, useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { isTeleportStep, isWarpStep, ROTATOR_LAYERS, stepDirection, TUNNEL_LAYERS, type Game } from '@ctd/core';
 import { BORDER_INSET, cellCenter, cellGapPx, type BoardGeom } from './geometry';
 import { drawEffects, type Effect } from './effects';
-import { ClosedDoor, KeyBadge, KeyMark, OpenDoor, keyPath, padlockPaths, type Padlock } from './LockMarks';
+import { withBrush, type Brush } from './brush';
+import { drawClosedDoor, drawKeyBadge, drawKeyMark, drawOpenDoor, keyPath, padlockPaths, type Padlock } from './LockMarks';
 import { TeleportGate } from './TeleportGate';
 import { TurnPiece } from './TurnPiece';
 import { symbolPath } from './symbols';
-import { recordPicture } from '../ui/skiaMemory';
+import { emptyPicture, makePicture, recordPicture, skipPicture, usePictureSlot, usePictureValue } from '../ui/skiaMemory';
 import { tokens } from '../theme/tokens';
 import { lockColor, teleporterColor, type DotStyle, type Palette } from '../theme/config';
 import { useTheme } from '../theme/useTheme';
@@ -47,6 +52,14 @@ interface Props {
 const DIR_VEC = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] } as const;
 const CLIP_INTERSECT = ClipOp.Intersect;
 const STROKE = PaintStyle.Stroke;
+const ROUND = { cap: StrokeCap.Round, join: StrokeJoin.Round };
+
+/*
+ * Rendering budget: Skia replays every scene-graph node on every frame while anything animates
+ * (dots breathe continuously), so per-cell content (tints, flows, bridges, locks, dot symbols) is
+ * baked into pictures that are re-recorded only when the board changes. Only the few animated
+ * shapes stay as nodes.
+ */
 
 export function Board(props: Props) {
   const { game, version, geom, palette, colorblind, reduceMotion, fx, intro, shake } = props;
@@ -146,7 +159,7 @@ export function Board(props: Props) {
   const emptyColor = B.cellEmpty;
   const wallColor = B.cellWall;
   const stripeColor = B.wallStripe;
-  const prevCells = useSharedValue<SkPicture | null>(null);
+  const prevCells = usePictureSlot();
   const cellsPicture = useDerivedValue(() => {
     const k = intro.value;
     const data = staticData.cells;
@@ -193,33 +206,9 @@ export function Board(props: Props) {
     const view = game.view();
     const ghosts = game.ghosts();
     const tints: { x: number; y: number; s: number; color: string; half: boolean }[] = [];
-    const paths: { key: string; color: string; path: SkPath }[] = [];
-    const ghostPaths: { key: string; color: string; path: SkPath }[] = [];
+    const paths: { color: string; nodes: number[] }[] = [];
+    const ghostPaths: { color: string; nodes: number[] }[] = [];
     const vNodeOwner = new Map<number, { pair: number; idx: number }>();
-
-    const build = (nodes: number[]) => {
-      const b = Skia.PathBuilder.Make();
-      nodes.forEach((n, i) => {
-        const [x, y] = cellCenter(geom, g.nodeRow[n], g.nodeCol[n]);
-        if (i === 0) {
-          b.moveTo(x, y);
-          return;
-        }
-        const prev = nodes[i - 1];
-        if (isTeleportStep(g, prev, n)) {
-          b.moveTo(x, y);
-          return;
-        }
-        if (isWarpStep(g, prev, n)) {
-          const d = DIR_VEC[stepDirection(g, prev, n)];
-          const [px, py] = cellCenter(geom, g.nodeRow[prev], g.nodeCol[prev]);
-          b.lineTo(px + (d[0] * cell) / 2, py + (d[1] * cell) / 2);
-          b.moveTo(x - (d[0] * cell) / 2, y - (d[1] * cell) / 2);
-        }
-        b.lineTo(x, y);
-      });
-      return b.build();
-    };
 
     view.forEach((nodes, pair) => {
       if (nodes.length === 0) return;
@@ -229,31 +218,28 @@ export function Board(props: Props) {
         const [cx, cy] = cellCenter(geom, g.nodeRow[n], g.nodeCol[n]);
         tints.push({ x: cx - cell / 2, y: cy - cell / 2, s: cell, color: style.cellFill, half: g.isBridge[g.nodeCellIdx[n]] });
       });
-      if (nodes.length >= 2) paths.push({ key: `p${pair}`, color: style.line, path: build(nodes) });
+      if (nodes.length >= 2) paths.push({ color: style.line, nodes });
     });
     ghosts.forEach((nodes, pair) => {
       if (nodes.length < 1) return;
       const base = view[pair];
       const withJoin = base.length ? [base[base.length - 1], ...nodes] : nodes;
-      if (withJoin.length >= 2) ghostPaths.push({ key: `g${pair}`, color: styleOf(pair).line, path: build(withJoin) });
+      if (withJoin.length >= 2) ghostPaths.push({ color: styleOf(pair).line, nodes: withJoin });
     });
 
-    // Vertical crossing segments drawn above the bridge tile.
-    const overpasses: { key: string; color: string; path: SkPath }[] = [];
+    // Vertical crossing segments drawn above the bridge tile: center, then up (-1) or down (+1).
+    const overpasses: { color: string; x: number; y: number; dirs: number[] }[] = [];
     staticData.bridges.forEach(({ r, c }) => {
       const vNode = g.cellNodes[r * g.width + c][1];
       const owner = vNodeOwner.get(vNode);
       if (!owner) return;
       const nodes = view[owner.pair];
-      const [cx, cy] = cellCenter(geom, r, c);
-      const b = Skia.PathBuilder.Make();
+      const [x, y] = cellCenter(geom, r, c);
+      const dirs: number[] = [];
       for (const j of [owner.idx - 1, owner.idx + 1]) {
-        if (j < 0 || j >= nodes.length) continue;
-        const dy = g.nodeRow[nodes[j]] < r ? -1 : 1;
-        b.moveTo(cx, cy);
-        b.lineTo(cx, cy + (dy * cell) / 2);
+        if (j >= 0 && j < nodes.length) dirs.push(g.nodeRow[nodes[j]] < r ? -1 : 1);
       }
-      overpasses.push({ key: `o${r}-${c}`, color: styleOf(owner.pair).line, path: b.build() });
+      overpasses.push({ color: styleOf(owner.pair).line, x, y, dirs });
     });
 
     const connected = view.map((_, p) => game.isComplete(p, view));
@@ -277,32 +263,159 @@ export function Board(props: Props) {
   const dots = useMemo(
     () =>
       game.puzzle.dots.flatMap((d, pair) =>
-        [d.start, d.end].map(([r, c], k) => {
+        [d.start, d.end].map(([r, c]) => {
           const [x, y] = cellCenter(geom, r, c);
-          return { key: `d${pair}-${k}`, pair, x, y, color: styleOf(pair).dot, symbol: d.color };
+          return { pair, x, y, color: styleOf(pair).dot, symbol: symbolPath(d.color, x, y, dotR * 0.45) };
         }),
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [game, geom, palette],
+    [game, geom, palette, dotR],
   );
 
+  // ---- Baked layers (re-recorded only when the board changes) ---------------
+  const tile = (x: number, y: number, s: number) => ({ x: x + gap, y: y + gap, width: s - gap * 2, height: s - gap * 2, r: radius });
+
+  const strokeNodes = (canvas: SkCanvas, nodes: number[], paint: SkPaint) => {
+    const b = Skia.PathBuilder.Make();
+    nodes.forEach((n, i) => {
+      const [x, y] = cellCenter(geom, g.nodeRow[n], g.nodeCol[n]);
+      if (i === 0) {
+        b.moveTo(x, y);
+        return;
+      }
+      const prev = nodes[i - 1];
+      if (isTeleportStep(g, prev, n)) {
+        b.moveTo(x, y);
+        return;
+      }
+      if (isWarpStep(g, prev, n)) {
+        const d = DIR_VEC[stepDirection(g, prev, n)];
+        const [px, py] = cellCenter(geom, g.nodeRow[prev], g.nodeCol[prev]);
+        b.lineTo(px + (d[0] * cell) / 2, py + (d[1] * cell) / 2);
+        b.moveTo(x - (d[0] * cell) / 2, y - (d[1] * cell) / 2);
+      }
+      b.lineTo(x, y);
+    });
+    const path = b.build();
+    canvas.drawPath(path, paint);
+    path.dispose?.();
+  };
+
+  const tileBase = theme.background.color;
+  /** Under the obstacles: flow-tinted cells (on an opaque base so the empty-cell color doesn't show through) and warp lanes. */
+  const underPicture = useMemo(
+    () =>
+      makePicture((canvas) =>
+        withBrush(canvas, (b) => {
+          const s = cell - gap * 2;
+          for (const t of dynamic.tints) {
+            b.rrect(t.x + gap, t.y + gap, s, s, radius, b.fill(tileBase));
+            b.rrect(t.x + gap, t.y + gap, s, s, radius, b.fill(t.color, t.half ? 0.5 : 1));
+          }
+          for (const l of staticData.lanes) b.rrect(l.x, l.y, l.w, l.h, radius, b.fill(B.warpTint));
+        }),
+      ),
+    [dynamic, staticData, cell, gap, radius, tileBase, B.warpTint],
+  );
+  const under = usePictureValue(underPicture);
+
+  /** Over the obstacles: key badges, doors, flows, bridges and keys. */
+  const overPicture = useMemo(() => {
+    const draw = (b: Brush) => {
+      const { canvas } = b;
+      const { keys, doors, bridges, deck } = staticData;
+      const open = dynamic.doorsOpen;
+      for (const k of keys) drawKeyBadge(b, k.x, k.y, cell, k.color, open[k.lock]);
+      for (const d of doors) if (open[d.lock]) drawOpenDoor(b, tile(d.x, d.y, cell), cell, d.color);
+      for (const p of dynamic.ghostPaths) {
+        strokeNodes(canvas, p.nodes, b.stroke(p.color, { width: pathW * 0.7, ...ROUND, dash: [pathW * 0.5, pathW * 0.6] }, 0.3));
+      }
+      for (const p of dynamic.paths) strokeNodes(canvas, p.nodes, b.stroke(p.color, { width: pathW, ...ROUND }, B.lineOpacity));
+
+      const corner = cell * 0.18;
+      const inset = (cell - deck) / 2;
+      for (const br of bridges) b.rrect(br.x + inset, br.y + inset + cell * 0.07, deck, deck, corner, b.fill(B.bridgeShadow));
+      for (const br of bridges) b.rrect(br.x + inset, br.y + inset, deck, deck, corner, b.fill(B.bridgeBox));
+      if (bridges.length > 0) {
+        canvas.drawPath(staticData.bridgeRails, b.stroke(B.bridgeRail, { width: Math.max(1.5, cell * 0.05), cap: StrokeCap.Round }));
+      }
+      const rim = b.stroke(B.bridgeBorder, { width: Math.max(2, cell * 0.07) });
+      for (const br of bridges) b.rrect(br.x + inset, br.y + inset, deck, deck, corner, rim);
+      for (const o of dynamic.overpasses) {
+        const paint = b.stroke(o.color, { width: pathW, cap: StrokeCap.Round }, B.lineOpacity);
+        for (const dy of o.dirs) canvas.drawLine(o.x, o.y, o.x, o.y + (dy * cell) / 2, paint);
+      }
+
+      for (const d of doors) if (!open[d.lock]) drawClosedDoor(b, tile(d.x, d.y, cell), cell, d.color, d.padlock);
+      for (const k of keys) drawKeyMark(b, k.path, cell, k.color, open[k.lock]);
+    };
+    return makePicture((canvas) => withBrush(canvas, draw));
+    // `tile` and `strokeNodes` only read geometry.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dynamic, staticData, geom, g, cell, gap, radius, pathW, B]);
+  const over = usePictureValue(overPicture);
+
+  /** One character per pair, so the dot layers only rebuild when a connection changes, not on every cell. */
+  const connectedKey = dynamic.connected.map((c) => (c ? '1' : '0')).join('');
+  /** Connected dots stay still; every dot's colorblind symbol sits on top. */
+  const dotsPicture = useMemo(
+    () =>
+      makePicture((canvas) =>
+        withBrush(canvas, (b) => {
+          for (const d of dots) if (connectedKey[d.pair] === '1') canvas.drawCircle(d.x, d.y, dotR, b.fill(d.color));
+          if (colorblind) for (const d of dots) canvas.drawPath(d.symbol, b.fill(B.colorblindSymbol));
+        }),
+      ),
+    [dots, connectedKey, dotR, colorblind, B.colorblindSymbol],
+  );
+  const dotsLayer = usePictureValue(dotsPicture);
+  const breathing = useMemo(
+    () => dots.filter((d) => connectedKey[d.pair] !== '1').map((d) => ({ x: d.x, y: d.y, color: d.color })),
+    [dots, connectedKey],
+  );
   // ---- Animations ----------------------------------------------------------
   const clock = useClock();
-  const breathR = useDerivedValue(
-    () => (reduceMotion ? dotR : dotR * (1 + 0.05 * Math.sin(clock.value / 380))),
-    [dotR, reduceMotion],
+  const boardOpacity = useDerivedValue(() => Math.min(1, intro.value * 1.5));
+  const dotsOpacity = useDerivedValue(() => Math.min(1, Math.max(0, intro.value * 2 - 0.8)));
+  // A Group's opacity doesn't reach pictures, so the intro fades through layers, kept only while it runs.
+  const [fading, setFading] = useState(true);
+  useAnimatedReaction(
+    () => intro.value < 1,
+    (now, before) => {
+      if (now !== before) scheduleOnRN(setFading, now);
+    },
   );
+
+  const prevBreath = usePictureSlot();
+  /** Unconnected dots breathe; one picture instead of a node per dot. */
+  const breathPicture = useDerivedValue(() => {
+    const r = reduceMotion ? dotR : dotR * (1 + 0.05 * Math.sin(clock.value / 380));
+    return recordPicture(prevBreath, (canvas) => {
+      const paint = Skia.Paint();
+      paint.setAntiAlias(true);
+      for (let i = 0; i < breathing.length; i++) {
+        const d = breathing[i];
+        paint.setColor(Skia.Color(d.color));
+        canvas.drawCircle(d.x, d.y, r, paint);
+      }
+      paint.dispose();
+    });
+  }, [breathing, dotR, reduceMotion]);
   const warpPulse = useDerivedValue(
     () => (reduceMotion ? 0.8 : 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(clock.value / 450))),
     [reduceMotion],
   );
-  const prevFx = useSharedValue<SkPicture | null>(null);
+  const prevFx = usePictureSlot();
+  const blank = emptyPicture();
   const fxPicture = useDerivedValue(() => {
     clock.value;
     const list = fx.value;
     const now = Date.now();
+    let live = false;
+    for (let i = 0; i < list.length && !live; i++) live = now - list[i].t0 < list[i].dur;
+    if (!live) return skipPicture(prevFx, blank);
     return recordPicture(prevFx, (canvas) => drawEffects(canvas, list, now));
-  });
+  }, [blank]);
 
   const headX = useSharedValue(0);
   const headY = useSharedValue(0);
@@ -325,8 +438,6 @@ export function Board(props: Props) {
       { scale: s },
     ];
   });
-  const boardOpacity = useDerivedValue(() => Math.min(1, intro.value * 1.5));
-  const dotsOpacity = useDerivedValue(() => Math.min(1, Math.max(0, intro.value * 2 - 0.8)));
 
   // ---- Gestures (JS thread; engine calls are cheap and only run on cell changes)
   const { onDown, onMove, onUp } = props;
@@ -342,13 +453,11 @@ export function Board(props: Props) {
     [onDown, onMove, onUp],
   );
 
-  const tile = (x: number, y: number, s: number) => ({ x: x + gap, y: y + gap, width: s - gap * 2, height: s - gap * 2, r: radius });
-
   return (
     <GestureDetector gesture={pan}>
       <View style={[styles.wrap, { width: size, height: size }]}>
         <Canvas style={{ width: size, height: size }}>
-          <Group transform={boardTransform} opacity={boardOpacity}>
+          <Group transform={boardTransform} layer={fading ? <Paint opacity={boardOpacity} /> : undefined}>
             {B.background !== 'transparent' && <RoundedRect x={0} y={0} width={size} height={size} r={tokens.radius.lg} color={B.background} />}
             {B.borderWidth > 0 && (
               <RoundedRect
@@ -364,19 +473,9 @@ export function Board(props: Props) {
             )}
 
             <Picture picture={cellsPicture} />
+            <Picture picture={under} />
 
-            {/* Filled cells take their flow's pastel tint, painted over an opaque base so the empty-cell color doesn't show through */}
-            {dynamic.tints.map((t, i) => (
-              <Group key={i}>
-                <RoundedRect {...tile(t.x, t.y, t.s)} color={theme.background.color} />
-                <RoundedRect {...tile(t.x, t.y, t.s)} color={t.color} opacity={t.half ? 0.5 : 1} />
-              </Group>
-            ))}
-
-            {/* Warp lanes and gates */}
-            {staticData.lanes.map((l, i) => (
-              <RoundedRect key={`l${i}`} x={l.x} y={l.y} width={l.w} height={l.h} r={radius} color={B.warpTint} />
-            ))}
+            {/* Warp gates */}
             <Group opacity={warpPulse}>
               {staticData.warps.map((w, i) => {
                 const glow = staticData.warpT * 0.45;
@@ -428,80 +527,11 @@ export function Board(props: Props) {
               />
             ))}
 
-            {/* Key cells get a glowing badge under the flow so they stand out */}
-            {staticData.keys.map((k) => (
-              <KeyBadge key={`kb${k.key}`} x={k.x} y={k.y} cell={cell} color={k.color} dim={dynamic.doorsOpen[k.lock]} />
-            ))}
+            <Picture picture={over} />
 
-            {/* Open doors leave a tinted frame the flow passes through */}
-            {staticData.doors.map((d) =>
-              dynamic.doorsOpen[d.lock] ? <OpenDoor key={d.key} rect={tile(d.x, d.y, cell)} cell={cell} color={d.color} /> : null,
-            )}
-
-            {/* Ghosts of paths cut by the current drag */}
-            {dynamic.ghostPaths.map((p) => (
-              <Path key={p.key} path={p.path} color={p.color} style="stroke" strokeWidth={pathW * 0.7} strokeCap="round" strokeJoin="round" opacity={0.3}>
-                <DashPathEffect intervals={[pathW * 0.5, pathW * 0.6]} />
-              </Path>
-            ))}
-
-            {dynamic.paths.map((p) => (
-              <Path key={p.key} path={p.path} color={p.color} opacity={B.lineOpacity} style="stroke" strokeWidth={pathW} strokeCap="round" strokeJoin="round" />
-            ))}
-
-            {/* Bridges: raised deck with rails along the over lane, vertical path on top */}
-            {staticData.bridges.map((b) => {
-              const s = staticData.deck;
-              const x = b.x + (cell - s) / 2;
-              const y = b.y + (cell - s) / 2;
-              return (
-                <Group key={`b${b.r}-${b.c}`}>
-                  <RoundedRect x={x} y={y + cell * 0.07} width={s} height={s} r={cell * 0.18} color={B.bridgeShadow} />
-                  <RoundedRect x={x} y={y} width={s} height={s} r={cell * 0.18} color={B.bridgeBox} />
-                </Group>
-              );
-            })}
-            {staticData.bridges.length > 0 && (
-              <Path path={staticData.bridgeRails} color={B.bridgeRail} style="stroke" strokeWidth={Math.max(1.5, cell * 0.05)} strokeCap="round" />
-            )}
-            {staticData.bridges.map((b) => {
-              const s = staticData.deck;
-              return (
-                <RoundedRect
-                  key={`bo${b.r}-${b.c}`}
-                  x={b.x + (cell - s) / 2}
-                  y={b.y + (cell - s) / 2}
-                  width={s}
-                  height={s}
-                  r={cell * 0.18}
-                  style="stroke"
-                  strokeWidth={Math.max(2, cell * 0.07)}
-                  color={B.bridgeBorder}
-                />
-              );
-            })}
-            {dynamic.overpasses.map((p) => (
-              <Path key={p.key} path={p.path} color={p.color} opacity={B.lineOpacity} style="stroke" strokeWidth={pathW} strokeCap="round" />
-            ))}
-
-            {/* Closed doors block the cell; keys sit on top of the flow that collects them */}
-            {staticData.doors.map((d) =>
-              dynamic.doorsOpen[d.lock] ? null : (
-                <ClosedDoor key={d.key} rect={tile(d.x, d.y, cell)} cell={cell} color={d.color} padlock={d.padlock} />
-              ),
-            )}
-            {staticData.keys.map((k) => (
-              <KeyMark key={k.key} path={k.path} cell={cell} color={k.color} dim={dynamic.doorsOpen[k.lock]} />
-            ))}
-
-            {/* Dots */}
-            <Group opacity={dotsOpacity}>
-              {dots.map((d) => (
-                <Group key={d.key}>
-                  <Circle cx={d.x} cy={d.y} r={dynamic.connected[d.pair] ? dotR : breathR} color={d.color} />
-                  {colorblind && <Path path={symbolPath(d.symbol, d.x, d.y, dotR * 0.45)} color={B.colorblindSymbol} />}
-                </Group>
-              ))}
+            <Group layer={fading ? <Paint opacity={dotsOpacity} /> : undefined}>
+              <Picture picture={breathPicture} />
+              <Picture picture={dotsLayer} />
             </Group>
 
             {/* Head of the path being drawn */}
