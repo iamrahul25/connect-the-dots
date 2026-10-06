@@ -477,7 +477,11 @@ export class Game {
       return p;
     });
     const events: GameEvent[] = [{ type: 'connect', pair }, ...this.commit(paths)];
-    if (asHint) this.hinted.add(pair);
+    if (asHint) {
+      this.hinted.add(pair);
+      this.moves++;
+      this.lastPair = pair;
+    }
     if (this.isSolved()) events.push({ type: 'win' });
     return events;
   }

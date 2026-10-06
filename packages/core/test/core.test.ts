@@ -280,6 +280,16 @@ describe('engine', () => {
     game.endDrag();
     expect(game.moves).toBe(1);
   });
+
+  it('counts each hint as one move', () => {
+    const game = new Game(tiny);
+    game.applySolutionPath(0, [[0, 0], [1, 0], [2, 0]]);
+    expect(game.moves).toBe(1);
+    game.applySolutionPath(1, [[0, 2], [1, 2], [2, 2]]);
+    expect(game.moves).toBe(2);
+    game.applySolutionPath(1, [[0, 2], [1, 2], [2, 2]], false);
+    expect(game.moves).toBe(2);
+  });
 });
 
 describe('new mechanics', () => {
