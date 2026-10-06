@@ -2,7 +2,7 @@
   "expo": {
     "name": "Connect the Dots",
     "slug": "connect-the-dots",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "scheme": "connectthedots",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
