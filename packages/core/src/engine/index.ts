@@ -30,6 +30,8 @@ export type GameEvent =
 interface Snapshot {
   paths: number[][];
   orient: Layer[];
+  moves: number;
+  lastPair: number;
 }
 
 interface Drag {
@@ -73,7 +75,8 @@ export class Game {
   private committed: number[][];
   private openDoors: boolean[];
   private drag: Drag | null = null;
-  private undoStack: Snapshot[] = [];
+  /** State before the last drag; only that one drag can be undone. */
+  private lastDrag: Snapshot | null = null;
   moves = 0;
   private lastPair = -1;
   readonly hinted = new Set<number>();
@@ -245,7 +248,7 @@ export class Game {
   }
 
   private snapshot(): Snapshot {
-    return { paths: this.committed, orient: [...this.orient] };
+    return { paths: this.committed, orient: [...this.orient], moves: this.moves, lastPair: this.lastPair };
   }
 
   /** Commits paths outside a drag: applies lock cuts and clears single-node stubs. */
@@ -383,7 +386,7 @@ export class Game {
     const next = d.view.map((p) => (p.length === 1 ? [] : p));
     const changed = next.some((p, i) => !samePath(p, this.committed[i]));
     if (!changed) return [];
-    this.undoStack.push(this.snapshot());
+    this.lastDrag = this.snapshot();
     if (d.pair !== this.lastPair) this.moves++;
     this.lastPair = d.pair;
     this.committed = next;
@@ -406,7 +409,7 @@ export class Game {
     if (oi === undefined) return [];
     const layers: readonly Layer[] = this.g.cellKind[ci] === 'tunnel' ? TUNNEL_LAYERS : ROTATOR_LAYERS;
     const dir = layers[(layers.indexOf(this.orient[oi]) + 1) % layers.length];
-    this.undoStack.push(this.snapshot());
+    this.lastDrag = null;
     const piece = new Set(this.g.cellNodes[ci]);
     const events: GameEvent[] = [{ type: 'rotate', cell, dir }];
     const paths = this.committed.map((p, i) => {
@@ -422,25 +425,29 @@ export class Game {
   }
 
   canUndo(): boolean {
-    return this.undoStack.length > 0;
+    return this.lastDrag !== null;
   }
 
-  /** Undo counts as a move and breaks the same-pair streak, so the next drag always counts too. */
+  /**
+   * Reverts the last drag, including its move count. Only one step: rotations
+   * and hints can't be undone, and they also clear the pending undo.
+   */
   undo(): boolean {
-    const s = this.undoStack.pop();
+    const s = this.lastDrag;
     if (!s) return false;
+    this.lastDrag = null;
     this.drag = null;
     this.committed = s.paths;
     this.orient = [...s.orient];
     this.openDoors = this.doorState(this.committed);
-    this.moves++;
-    this.lastPair = -1;
+    this.moves = s.moves;
+    this.lastPair = s.lastPair;
     return true;
   }
 
   restart(): void {
     this.drag = null;
-    this.undoStack = [];
+    this.lastDrag = null;
     this.committed = this.puzzle.dots.map(() => []);
     this.orient = [...this.startOrient];
     this.openDoors = this.g.locks.map(() => false);
@@ -457,7 +464,7 @@ export class Game {
     const nodes = cellsToNodes(this.g, cells);
     if (!nodes) return [];
     this.drag = null;
-    this.undoStack.push(this.snapshot());
+    this.lastDrag = null;
     const taken = new Set(nodes);
     for (const n of nodes) {
       if (!this.g.isOption[n]) continue;

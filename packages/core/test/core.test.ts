@@ -231,20 +231,40 @@ describe('engine', () => {
     expect(game.view()[0].length).toBe(3);
   });
 
-  it('undoes moves', () => {
+  it('undoes the last move and rewinds the move count', () => {
     const game = new Game(tiny);
     game.beginDrag([0, 0]);
     game.dragTo([1, 0]);
     game.endDrag();
     expect(game.moves).toBe(1);
+    expect(game.canUndo()).toBe(true);
     expect(game.undo()).toBe(true);
     expect(game.view()[0]).toEqual([]);
-    expect(game.moves).toBe(2);
+    expect(game.moves).toBe(0);
+    expect(game.canUndo()).toBe(false);
     expect(game.undo()).toBe(false);
-    expect(game.moves).toBe(2);
+    expect(game.moves).toBe(0);
   });
 
-  it('counts a same-pair drag after undo as a new move', () => {
+  it('undoes only one step', () => {
+    const game = new Game(tiny);
+    game.beginDrag([0, 0]);
+    game.dragTo([1, 0]);
+    game.endDrag();
+    game.beginDrag([1, 0]);
+    game.dragTo([1, 1]);
+    game.endDrag();
+    expect(game.undo()).toBe(true);
+    expect(game.view()[0].length).toBe(2);
+    expect(game.undo()).toBe(false);
+    expect(game.view()[0].length).toBe(2);
+    game.beginDrag([1, 0]);
+    game.dragTo([1, 1]);
+    game.endDrag();
+    expect(game.canUndo()).toBe(true);
+  });
+
+  it('keeps the same-pair streak across undo', () => {
     const game = new Game(tiny);
     game.beginDrag([0, 0]);
     game.dragTo([1, 0]);
@@ -254,11 +274,11 @@ describe('engine', () => {
     game.endDrag();
     expect(game.moves).toBe(1);
     game.undo();
-    expect(game.moves).toBe(2);
+    expect(game.moves).toBe(1);
     game.beginDrag([1, 0]);
     game.dragTo([1, 1]);
     game.endDrag();
-    expect(game.moves).toBe(3);
+    expect(game.moves).toBe(1);
   });
 });
 
@@ -339,9 +359,9 @@ describe('new mechanics', () => {
     expect(ev.some((e) => e.type === 'cut' && e.pair === 0)).toBe(true);
     expect(game.view()[0]).toEqual([]);
     expect(game.orientationAt([0, 1])).toBe('v');
-    game.undo();
-    expect(game.orientationAt([0, 1])).toBe('h');
-    expect(game.view()[0].length).toBe(2);
+    expect(game.canUndo()).toBe(false);
+    expect(game.undo()).toBe(false);
+    expect(game.orientationAt([0, 1])).toBe('v');
   });
 
   it('opens doors with completed key paths and re-locks them', () => {
