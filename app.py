@@ -6,9 +6,12 @@ Run from anywhere:  python app.py
 import json
 import os
 import shutil
+import socket
 import subprocess
 import sys
+import threading
 import time
+import webbrowser
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -141,6 +144,21 @@ def run_apk_in_emulator():
         return 130
 
 
+def serve_website(port=8765):
+    """Serve index.html and website/ like GitHub Pages does, and open it in the browser."""
+    url = f"http://localhost:{port}/"
+    with socket.socket() as sock:
+        if sock.connect_ex(("127.0.0.1", port)) == 0:
+            print(f"Port {port} is already in use, so the site is probably running. Opening {url}")
+            webbrowser.open(url)
+            return 0
+
+    print(f"Serving the website at {url}  (press Ctrl+C to stop)")
+    threading.Timer(1.0, webbrowser.open, args=(url,)).start()
+    code = run(f'"{sys.executable}" -m http.server {port}')
+    return 0 if code == 130 else code
+
+
 def open_release_folder():
     RELEASE.mkdir(exist_ok=True)
     if IS_WINDOWS:
@@ -159,6 +177,7 @@ OPTIONS = [
     ("Run .apk file in emulator (adb install + launch)", run_apk_in_emulator),
     ("Run prechecks (release preflight)", lambda: run("npm run preflight-apk")),
     ("Run on Android device/emulator (expo run:android)", lambda: run("npm run android")),
+    ("Run website locally (index.html at localhost:8765)", serve_website),
     ("Typecheck all packages", lambda: run("npm run typecheck")),
     ("Lint mobile app", lambda: run("npm run lint -w mobile")),
     ("Run core tests", lambda: run("npm test")),

@@ -58,6 +58,21 @@ npm run levels:validate  # check every level is valid, solvable and has a unique
 npm run export:web       # build the static web version into apps/mobile/dist
 ```
 
+## Run the website locally
+
+The game's website (landing page, Privacy Policy and Delete Account pages) is hosted on GitHub Pages. `index.html` is at the repo root and everything else is in `website/`. Preview it with a local web server from the repo root:
+
+```bash
+cd /c/all-projects/connect-the-dots
+python -m http.server 8765
+```
+
+Then open [http://localhost:8765/](http://localhost:8765/) in your browser. Press `Ctrl+C` in the terminal to stop the server.
+
+You can also run `python app.py` and choose option **7. Run website locally**, which starts the same server and opens the page in your browser.
+
+> Don't open `index.html` by double-clicking it. The "Home" links on the other pages point to `../`, which shows a folder listing instead of the home page when opened straight from disk.
+
 ## Build an APK
 
 ### Option 1: Cloud build with EAS (easiest)
@@ -270,5 +285,8 @@ apps/mobile/        Expo app (screens, board rendering, audio, storage)
 packages/core/      Game rules, solver and shared types
 levels/             Level JSON files (pack-01 … pack-05) and daily puzzles
 tools/levelgen/     Level generator and audio generator CLI
+index.html          Website landing page (GitHub Pages)
+website/            Website pages, styles and images (Privacy Policy, Delete Account)
+app.py              Interactive developer menu (python app.py)
 PLAN.md             Full game design and technical plan
 ```
