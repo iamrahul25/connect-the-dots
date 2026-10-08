@@ -14,6 +14,7 @@
     },
     "android": {
       "package": "com.connectthedots.game",
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#18154D",
         "foregroundImage": "./assets/android-icon-foreground.png",

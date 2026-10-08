@@ -33,7 +33,13 @@ const outputApkPath = path.join(
 const destApkPath = path.join(releaseDir, apkFilename);
 
 const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 const gradleCmd = process.platform === 'win32' ? 'gradlew.bat' : './gradlew';
+// Gradle only watches JS/TS under apps/mobile for the bundle task, so edits in
+// workspace packages (packages/core, levels) would otherwise ship a stale bundle.
+const gradleArgs = target === 'release'
+  ? `createBundleReleaseJsAndAssets --rerun ${gradleTask}`
+  : gradleTask;
 
 console.log(`\n🚀 ${checkOnly ? 'Checking' : 'Starting'} ${target.toUpperCase()} APK build...`);
 
@@ -58,10 +64,18 @@ if (!fs.existsSync(releaseDir)) {
   fs.mkdirSync(releaseDir, { recursive: true });
 }
 
+// Syncs app.json (version, versionCode, plugins) into android/.
+console.log('\n🔄 Running expo prebuild (android)...\n');
+execSync(`${npxCmd} expo prebuild --platform android --no-install`, {
+  cwd: rootDir,
+  stdio: 'inherit',
+  env: process.env,
+});
+
 console.log(`\n🛠 Running Gradle ${gradleTask}...\n`);
 const gradleStart = Date.now();
 try {
-  execSync(`${gradleCmd} ${gradleTask}`, {
+  execSync(`${gradleCmd} ${gradleArgs}`, {
     cwd: androidDir,
     stdio: 'inherit',
     env: process.env,

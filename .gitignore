@@ -9,3 +9,5 @@ apps/mobile/ios/
 apps/mobile/android/
 .vercel
 .buildlogs/
+__pycache__/
+*.pyc
