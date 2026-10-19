@@ -15,8 +15,11 @@ import { LEVELS_DIR, levelFile, levelId, readJson, writeIndex, writeJson } from 
 type Count = number | [number, number];
 
 export interface GroupConfig {
+  /** Level indices within the pack, 1-based and inclusive. */
   range: [number, number];
+  /** Board width; also the height unless `height` is set. */
   size: number;
+  height?: number;
   colors: [number, number];
   difficulty: [number, number];
   walls?: Count;
@@ -48,12 +51,13 @@ export interface BuildConfig {
   packs: PackConfig[];
 }
 
-export const LEVELS_PER_PACK = 20;
+export const packLength = (pack: PackConfig) => Math.max(...pack.groups.map((g) => g.range[1]));
 
 function groupParams(g: GroupConfig, seed: number): GenParams {
   return {
     seed,
     width: g.size,
+    ...(g.height !== undefined && { height: g.height }),
     colors: g.colors,
     walls: g.walls,
     bridges: g.bridges,
@@ -112,26 +116,40 @@ function sawtooth(sorted: Candidate[], firstLevel: number, g: GroupConfig): Cand
 
 export interface BuildOptions {
   packs?: number[];
+  /** Only groups that start inside this range of level indices. */
+  levels?: [number, number];
+  /** Regenerate groups whose level files already exist (by default they are kept as they are). */
+  force?: boolean;
   log?: (msg: string) => void;
 }
 
+const groupIndices = (g: GroupConfig) => Array.from({ length: g.range[1] - g.range[0] + 1 }, (_, i) => g.range[0] + i);
+
 export function buildAll(config: BuildConfig, opts: BuildOptions = {}): void {
   const log = opts.log ?? console.log;
-  const seen = new Set<string>();
-
-  // Seed the dedupe set with levels of packs we are not rebuilding.
+  const todo = new Map<PackConfig, GroupConfig[]>();
   for (const pack of config.packs) {
-    if (!opts.packs || opts.packs.includes(pack.id)) continue;
-    for (let i = 1; i <= LEVELS_PER_PACK; i++) {
+    if (opts.packs && !opts.packs.includes(pack.id)) continue;
+    const groups = pack.groups.filter(
+      (g) =>
+        (!opts.levels || (g.range[0] >= opts.levels[0] && g.range[0] <= opts.levels[1])) &&
+        (opts.force || groupIndices(g).some((i) => !fs.existsSync(levelFile(pack.id, i)))),
+    );
+    if (groups.length) todo.set(pack, groups);
+  }
+
+  // Seed the dedupe set with every level that is not being regenerated.
+  const seen = new Set<string>();
+  for (const pack of config.packs) {
+    const rebuilt = new Set((todo.get(pack) ?? []).flatMap(groupIndices));
+    for (let i = 1; i <= packLength(pack); i++) {
       const f = levelFile(pack.id, i);
-      if (fs.existsSync(f)) seen.add(canonicalKey(readJson(f)));
+      if (!rebuilt.has(i) && fs.existsSync(f)) seen.add(canonicalKey(readJson(f)));
     }
   }
 
-  for (const pack of config.packs) {
-    if (opts.packs && !opts.packs.includes(pack.id)) continue;
-    const packStart = (pack.id - 1) * LEVELS_PER_PACK + 1;
-    for (const g of pack.groups) {
+  for (const [pack, groups] of todo) {
+    for (const g of groups) {
       const count = g.range[1] - g.range[0] + 1;
       const target = count * 3;
       const maxAttempts = count * (g.attemptsPerLevel ?? 250);
@@ -151,8 +169,7 @@ export function buildAll(config: BuildConfig, opts: BuildOptions = {}): void {
       const chosen = sawtooth(select(pool, count, g.difficulty, !!g.showcase), g.range[0], g);
       if (chosen.length < count) throw new Error(`group ${g.range.join('-')}: only ${chosen.length}/${count} levels`);
       chosen.forEach((c, i) => {
-        const global = g.range[0] + i;
-        const index = global - packStart + 1;
+        const index = g.range[0] + i;
         const level = toLevel(c, {
           id: levelId(pack.id, index),
           pack: pack.id,
@@ -164,7 +181,7 @@ export function buildAll(config: BuildConfig, opts: BuildOptions = {}): void {
       const scores = chosen.map((c) => c.difficulty.score).join(', ');
       const bearing = chosen.filter((c) => c.loadBearing).length;
       log(
-        `pack ${pack.id} levels ${g.range[0]}-${g.range[1]} (${g.size}x${g.size}): ${stats.attempts} attempts, ` +
+        `pack ${pack.id} levels ${g.range[0]}-${g.range[1]} (${g.size}x${g.height ?? g.size}): ${stats.attempts} attempts, ` +
           `${pool.length} candidates, ${((Date.now() - t0) / 1000).toFixed(1)}s  scores: ${scores}` +
           (chosen.some((c) => c.loadBearing !== undefined) ? `  load-bearing: ${bearing}/${count}` : '') +
           `  rejects: ${JSON.stringify(stats.rejects)}`,
@@ -184,7 +201,7 @@ export function writeManifest(config: BuildConfig): void {
         id: p.id,
         name: p.name,
         theme: p.theme,
-        levels: Array.from({ length: LEVELS_PER_PACK }, (_, i) => levelId(p.id, i + 1)),
+        levels: Array.from({ length: packLength(p) }, (_, i) => levelId(p.id, i + 1)),
       })),
   };
   writeJson(path.join(LEVELS_DIR, 'manifest.json'), manifest);

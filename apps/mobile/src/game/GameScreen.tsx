@@ -93,16 +93,16 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
   const onHudLayout = useCallback((e: LayoutChangeEvent) => setHudH(e.nativeEvent.layout.height), []);
   const onControlsLayout = useCallback((e: LayoutChangeEvent) => setControlsH(e.nativeEvent.layout.height), []);
   const measured = stage !== null && hudH > 0 && controlsH > 0;
-  const boardSize = measured
-    ? Math.floor(Math.max(0, Math.min(stage.w, stage.h - hudH - controlsH - s(BOARD_GAP) * 2, s(tokens.maxBoardWidth))))
-    : 0;
+  const boardMaxW = measured ? Math.floor(Math.max(0, Math.min(stage.w, s(tokens.maxBoardWidth)))) : 0;
+  const boardMaxH = measured ? Math.floor(Math.max(0, stage.h - hudH - controlsH - s(BOARD_GAP) * 2)) : 0;
+  const boardShown = boardMaxW > 0 && boardMaxH > 0;
   const { borderWidth, cellGap } = theme.board;
   const geom = useMemo(
-    () => makeGeom(level.size.width, level.size.height, boardSize, level.warps.length ? undefined : { borderWidth, cellGap }),
-    [level, boardSize, borderWidth, cellGap],
+    () => makeGeom(level.size.width, level.size.height, boardMaxW, boardMaxH, level.warps.length ? undefined : { borderWidth, cellGap }),
+    [level, boardMaxW, boardMaxH, borderWidth, cellGap],
   );
   // Top (HUD) and bottom (controls) sections match the drawn board frame, so the three read as one column.
-  const boardFrameW = boardSize > 0 ? Math.round(frameWidth(geom, cellGap, borderWidth)) : 0;
+  const boardFrameW = boardShown ? Math.round(frameWidth(geom, cellGap, borderWidth)) : 0;
   const sectionWidth = boardFrameW > 0 ? boardFrameW : '100%';
   const controlsInset = Math.round(boardFrameW * CONTROLS_INSET);
   const compactHud = boardFrameW > 0 && (boardFrameW - s(HUD_GAP) * 2) / 3 < s(HUD_ICON_MIN_W);
@@ -153,8 +153,8 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
     const cells: number[] = [];
     for (let r = 0; r < gg.H; r++) for (let c = 0; c < gg.W; c++) cells.push(gg.ox + c * gg.cell + 1.5, gg.oy + r * gg.cell + 1.5, gg.cell - 3, r + c);
     emit({ kind: 'sweep', dur: 1300, cells, maxOrder: gg.W + gg.H, radius: gg.cell * 0.2 });
-    emit({ kind: 'flash', dur: 900, x: 4, y: 4, w: gg.size - 8, h: gg.size - 8, radius: tokens.radius.lg, color: ref.current.theme.accent.color });
-    emit({ kind: 'confetti', dur: 2600, colors: lv.dots.map((d) => ref.current.palette[d.color % ref.current.palette.length].dot), count: 70, w: gg.size, h: gg.size, seed: Date.now() % 1000 });
+    emit({ kind: 'flash', dur: 900, x: 4, y: 4, w: gg.width - 8, h: gg.height - 8, radius: tokens.radius.lg, color: ref.current.theme.accent.color });
+    emit({ kind: 'confetti', dur: 2600, colors: lv.dots.map((d) => ref.current.palette[d.color % ref.current.palette.length].dot), count: 70, w: gg.width, h: gg.height, seed: Date.now() % 1000 });
 
     const usedHint = gm.hinted.size > 0;
     const stars = starsFor(gm.moves, lv.stars.perfectMoves, lv.stars.twoStarMoves, usedHint);
@@ -600,7 +600,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
           />
         </View>
 
-        {boardSize > 0 && (
+        {boardShown && (
           <View style={styles.board}>
             <Board
               game={game}

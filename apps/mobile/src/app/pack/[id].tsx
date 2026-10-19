@@ -10,8 +10,8 @@ import { fonts } from '../../theme/tokens';
 import { musicFor } from '../../theme/packs';
 import { makeStyles, usePalette, useTheme } from '../../theme/useTheme';
 import { mix } from '../../board/color';
-import { getLevel, getPack, globalNumber, maxStars } from '../../data/levels';
-import { isLevelUnlocked, isPackUnlocked, packStars, useProgress } from '../../store/progress';
+import { getLevel, getPack, levelNumber, maxStars } from '../../data/levels';
+import { isLevelUnlocked, packStars, useProgress } from '../../store/progress';
 import { useSettings } from '../../store/settings';
 import { audio } from '../../services/audio';
 
@@ -34,10 +34,10 @@ export default function PackScreen() {
     }, [pack]),
   );
 
-  if (!pack || !isPackUnlocked(levels, pack.id)) {
+  if (!pack) {
     return (
-      <Screen title="Locked" back>
-        <Text style={styles.empty}>This pack is still locked.</Text>
+      <Screen title="Not found" back>
+        <Text style={styles.empty}>This pack could not be found.</Text>
       </Screen>
     );
   }
@@ -65,7 +65,7 @@ export default function PackScreen() {
         key={lid}
         disabled={!unlocked}
         onPress={() => router.push(`/play/${lid}`)}
-        accessibilityLabel={`Level ${globalNumber(lid)}${rec ? `, ${rec.stars} stars` : unlocked ? '' : ', locked'}`}
+        accessibilityLabel={`Level ${levelNumber(lid)}${rec ? `, ${rec.stars} stars` : unlocked ? '' : ', locked'}`}
         style={({ pressed }) => [
           styles.tile,
           {
@@ -85,7 +85,7 @@ export default function PackScreen() {
           <MiniBoard level={level} size={tile - footerH} palette={palette} />
         ) : unlocked ? (
           <View style={styles.center}>
-            <Text style={[styles.num, { color: theme.text.primary, fontSize: numSize }]}>{globalNumber(lid)}</Text>
+            <Text style={[styles.num, { color: theme.text.primary, fontSize: numSize }]}>{levelNumber(lid)}</Text>
             <Text style={[styles.size, { fontSize: detailSize }]}>
               {level.size.width}×{level.size.height}
             </Text>
@@ -95,7 +95,7 @@ export default function PackScreen() {
           <Ionicons name="lock-closed" size={s(22)} color={theme.icon.locked} />
         )}
         <View style={styles.footer}>
-          {rec ? <Stars count={rec.stars} size={s(12)} /> : <Text style={[styles.footerText, { fontSize: detailSize }]}>{unlocked ? '' : globalNumber(lid)}</Text>}
+          {rec ? <Stars count={rec.stars} size={s(12)} /> : <Text style={[styles.footerText, { fontSize: detailSize }]}>{unlocked ? '' : levelNumber(lid)}</Text>}
         </View>
       </Pressable>
     );

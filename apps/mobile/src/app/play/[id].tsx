@@ -6,7 +6,7 @@ import { GameScreen } from '../../game/GameScreen';
 import { Screen } from '../../ui/Screen';
 import { fonts } from '../../theme/tokens';
 import { makeStyles, useTheme } from '../../theme/useTheme';
-import { dailyFromBank, generateDaily, getLevel, globalNumber, nextLevelId, packOfLevel } from '../../data/levels';
+import { dailyFromBank, generateDaily, getLevel, levelNumber, nextLevelId, packOfLevel } from '../../data/levels';
 import { isLevelUnlocked, useProgress } from '../../store/progress';
 import { useSettings } from '../../store/settings';
 
@@ -60,7 +60,7 @@ function PackPlay({ id }: { id: string }) {
       key={id}
       level={level}
       mode="pack"
-      title={`Level ${globalNumber(id)}`}
+      title={`Level ${levelNumber(id)}`}
       subtitle={`${pack.name} · ${level.size.width}×${level.size.height}`}
       pack={pack.theme}
       nextLabel={nextLabel}

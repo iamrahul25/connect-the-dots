@@ -1,7 +1,9 @@
 import type { Cell } from '@ctd/core';
 
 export interface BoardGeom {
-  size: number;
+  /** Canvas size; matches the board's aspect ratio, so taller boards get a taller canvas. */
+  width: number;
+  height: number;
   pad: number;
   cell: number;
   ox: number;
@@ -19,24 +21,23 @@ export function cellGapPx(cell: number, cellGap: number): number {
 }
 
 /**
+ * Largest board that fits in `maxW` x `maxH`.
  * Without `frame` the board keeps a margin wide enough for warp portals.
  * With `frame` the margin only fits the border, so it touches the canvas edge.
  */
-export function makeGeom(W: number, H: number, size: number, frame?: { borderWidth: number; cellGap: number }): BoardGeom {
-  const n = Math.max(W, H);
+export function makeGeom(
+  W: number,
+  H: number,
+  maxW: number,
+  maxH: number,
+  frame?: { borderWidth: number; cellGap: number },
+): BoardGeom {
+  const fit = Math.min(maxW / W, maxH / H);
   const pad = frame
-    ? Math.max(0, frame.borderWidth + BORDER_INSET - cellGapPx(size / n, frame.cellGap))
-    : Math.max(10, size * 0.04);
-  const cell = (size - pad * 2) / n;
-  return {
-    size,
-    pad,
-    cell,
-    ox: pad + ((Math.max(W, H) - W) * cell) / 2,
-    oy: pad + ((Math.max(W, H) - H) * cell) / 2,
-    W,
-    H,
-  };
+    ? Math.max(0, frame.borderWidth + BORDER_INSET - cellGapPx(fit, frame.cellGap))
+    : Math.max(10, fit * Math.max(W, H) * 0.04);
+  const cell = Math.max(0, Math.min((maxW - pad * 2) / W, (maxH - pad * 2) / H));
+  return { width: W * cell + pad * 2, height: H * cell + pad * 2, pad, cell, ox: pad, oy: pad, W, H };
 }
 
 /** Outer width of the board frame Board draws (or of the tile grid when there's no border). */

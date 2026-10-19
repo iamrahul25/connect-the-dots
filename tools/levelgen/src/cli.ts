@@ -24,7 +24,9 @@ Usage:
   levelgen generate --size 7 --colors 6-8 [--walls 0-2] [--bridges 1] [--warps 1]
                     [--teleporters 1] [--tunnels 1-2] [--rotators 1-2] [--locks 1]
                     [--difficulty 35-50] [--count 20] [--seed 42] [--out levels/custom]
-  levelgen build    --config tools/levelgen/levels.config.json [--pack 3]
+  levelgen build    --config tools/levelgen/levels.config.json [--pack 3] [--levels 21-40] [--force]
+                    (only groups with missing level files are generated unless --force;
+                     --levels limits it to groups starting at those level indices)
   levelgen validate <dir|file>
   levelgen show     <file> [--solution]
   levelgen daily    --month 2026-10 [--out levels/daily]
@@ -156,7 +158,7 @@ function main() {
     case 'build': {
       const config = readJson<BuildConfig>(resolve(String(flags.config ?? 'tools/levelgen/levels.config.json')));
       const packs = typeof flags.pack === 'string' ? flags.pack.split(',').map(Number) : undefined;
-      return buildAll(config, { packs });
+      return buildAll(config, { packs, levels: range(flags.levels), force: !!flags.force });
     }
     case 'validate':
       return cmdValidate(positional[0] ?? LEVELS_DIR);

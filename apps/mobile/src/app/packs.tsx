@@ -11,29 +11,27 @@ import { PACK_ICONS } from '../theme/packs';
 import { packCardAccent } from '../theme/config';
 import { makeStyles, useTheme } from '../theme/useTheme';
 import { withAlpha } from '../board/color';
-import { manifest, maxStars, PACK_STAR_REQUIREMENTS } from '../data/levels';
-import { isPackUnlocked, packSolved, packStars, totalStars, useProgress } from '../store/progress';
-import { useSettings } from '../store/settings';
+import { manifest, maxStars } from '../data/levels';
+import { packSolved, packStars, totalStars, useProgress } from '../store/progress';
 import { audio } from '../services/audio';
 
 const DETAILS: Record<number, { grid: string; feature?: string }> = {
-  1: { grid: '5×5 – 6×6' },
-  2: { grid: '7×7 – 8×8', feature: 'Walls' },
-  3: { grid: '8×8 – 9×9', feature: 'Bridges' },
-  4: { grid: '9×9 – 10×10', feature: 'Warps' },
-  5: { grid: '11×11 – 12×12', feature: 'All 3 obstacles' },
-  6: { grid: '8×8 – 9×9', feature: 'Teleporters' },
-  7: { grid: '9×9 – 10×10', feature: 'Tunnels' },
-  8: { grid: '10×10 – 11×11', feature: 'Rotators' },
-  9: { grid: '10×10 – 11×11', feature: 'Keys & Doors' },
-  10: { grid: '11×11 – 12×12', feature: 'All 7 obstacles' },
+  1: { grid: '5×5 – 8×8' },
+  2: { grid: '7×7 – 10×10', feature: 'Walls' },
+  3: { grid: '8×8 – 11×11', feature: 'Bridges' },
+  4: { grid: '9×9 – 12×12', feature: 'Warps' },
+  5: { grid: '11×11 – 12×14', feature: 'All 3 obstacles' },
+  6: { grid: '8×8 – 11×11', feature: 'Teleporters' },
+  7: { grid: '9×9 – 12×12', feature: 'Tunnels' },
+  8: { grid: '10×10 – 12×13', feature: 'Rotators' },
+  9: { grid: '10×10 – 12×13', feature: 'Keys & Doors' },
+  10: { grid: '11×11 – 12×14', feature: 'All 7 obstacles' },
 };
 
 const clamp = (v: number, lo: number, hi: number) => Math.round(Math.min(hi, Math.max(lo, v)));
 
 export default function Packs() {
   const levels = useProgress((s) => s.levels);
-  useSettings((s) => s.unlockAll);
   const theme = useTheme();
   const styles = useStyles();
   const layout = useLayout();
@@ -68,13 +66,11 @@ export default function Packs() {
       >
         {manifest.packs.map((p) => {
           const accent = packCardAccent(theme, p.theme);
-          const unlocked = isPackUnlocked(levels, p.id);
           const solved = packSolved(levels, p.id);
           const pStars = packStars(levels, p.id);
           return (
             <Pressable
               key={p.id}
-              disabled={!unlocked}
               onPress={() => router.push(`/pack/${p.id}`)}
               style={({ pressed }) => [{ width: cardW, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
             >
@@ -106,14 +102,9 @@ export default function Packs() {
                       <Ionicons
                         name={PACK_ICONS[p.theme] as keyof typeof Ionicons.glyphMap}
                         size={Math.round(medallion * 0.5)}
-                        color={unlocked ? accent : theme.icon.locked}
+                        color={accent}
                       />
                     </View>
-                    {!unlocked && (
-                      <View style={[styles.lockBadge, { borderColor: theme.box.background }]}>
-                        <Ionicons name="lock-closed" size={s(16)} color={theme.icon.locked} />
-                      </View>
-                    )}
                   </View>
                 </View>
 
@@ -132,30 +123,20 @@ export default function Packs() {
                 </View>
 
                 <View style={styles.footer}>
-                  {unlocked ? (
-                    <>
-                      <View style={styles.progressTrack}>
-                        <View style={[styles.progressFill, { width: `${(solved / p.levels.length) * 100}%`, backgroundColor: accent }]} />
-                      </View>
-                      <View style={styles.statsRow}>
-                        <Text style={[styles.meta, { fontSize: metaSize }]}>
-                          {solved}/{p.levels.length} solved
-                        </Text>
-                        <View style={styles.starStat}>
-                          <Stars count={1} max={1} size={metaSize + 1} />
-                          <Text style={[styles.meta, { fontSize: metaSize }]}>
-                            {pStars}/{maxStars(p.id)}
-                          </Text>
-                        </View>
-                      </View>
-                    </>
-                  ) : (
-                    <View style={styles.locked}>
-                      <Text style={[styles.meta, styles.lockedText, { fontSize: metaSize }]} numberOfLines={2}>
-                        {Math.max(0, (PACK_STAR_REQUIREMENTS[p.id] ?? 0) - stars)} more ★ or finish Pack {p.id - 1}
+                  <View style={styles.progressTrack}>
+                    <View style={[styles.progressFill, { width: `${(solved / p.levels.length) * 100}%`, backgroundColor: accent }]} />
+                  </View>
+                  <View style={styles.statsRow}>
+                    <Text style={[styles.meta, { fontSize: metaSize }]}>
+                      {solved}/{p.levels.length} solved
+                    </Text>
+                    <View style={styles.starStat}>
+                      <Stars count={1} max={1} size={metaSize + 1} />
+                      <Text style={[styles.meta, { fontSize: metaSize }]}>
+                        {pStars}/{maxStars(p.id)}
                       </Text>
                     </View>
-                  )}
+                  </View>
                 </View>
               </View>
             </Pressable>
@@ -180,18 +161,6 @@ const useStyles = makeStyles((t, s) => ({
   hero: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', paddingVertical: s(12) },
   halo: { position: 'absolute', opacity: 0.08 },
   medallion: { alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
-  lockBadge: {
-    position: 'absolute',
-    right: s(4),
-    bottom: s(4),
-    width: s(34),
-    height: s(34),
-    borderRadius: s(17),
-    borderWidth: 3,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: t.box.pill,
-  },
   info: { alignSelf: 'stretch', alignItems: 'center', gap: s(8) },
   packName: { fontFamily: fonts.titleBold, color: t.text.primary, textAlign: 'center' },
   detailRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: s(8) },
@@ -204,7 +173,5 @@ const useStyles = makeStyles((t, s) => ({
   statsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   starStat: { flexDirection: 'row', alignItems: 'center', gap: s(4) },
   meta: { fontFamily: fonts.body, color: t.text.secondary },
-  locked: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: s(14), paddingVertical: s(10), borderRadius: s(16), backgroundColor: t.box.pill },
-  lockedText: { textAlign: 'center' },
   hint: { fontFamily: fonts.body, fontSize: s(13), color: t.text.muted, textAlign: 'center', marginTop: s(18) },
 }));

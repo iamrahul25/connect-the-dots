@@ -3,11 +3,6 @@ import { dailyBanks, levels, manifest } from '@ctd/levels';
 
 export { manifest };
 
-export const LEVELS_PER_PACK = 20;
-export const PACK_STAR_REQUIREMENTS: Record<number, number> = {
-  1: 0, 2: 30, 3: 70, 4: 110, 5: 150, 6: 190, 7: 230, 8: 270, 9: 310, 10: 350,
-};
-
 export type Pack = (typeof manifest.packs)[number];
 
 export function getLevel(id: string): Level | undefined {
@@ -24,9 +19,9 @@ export function packOfLevel(id: string): Pack | undefined {
 
 export const allLevelIds: string[] = manifest.packs.flatMap((p) => p.levels);
 
-/** 1-based level number across all packs. */
-export function globalNumber(id: string): number {
-  return allLevelIds.indexOf(id) + 1;
+/** 1-based level number within its pack. */
+export function levelNumber(id: string): number {
+  return (packOfLevel(id)?.levels.indexOf(id) ?? -1) + 1;
 }
 
 export function nextLevelId(id: string): string | undefined {

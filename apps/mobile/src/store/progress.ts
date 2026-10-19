@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { DAILY_TIERS, dateKey, parseDateKey, type DailyTier, type Layer } from '@ctd/core';
 import { persistStorage } from '../services/storage';
-import { getPack, manifest, PACK_STAR_REQUIREMENTS } from '../data/levels';
+import { getPack, manifest } from '../data/levels';
 import { unlimitedHintsActive, unlockAllActive } from './settings';
 
 export interface LevelRecord {
@@ -210,16 +210,10 @@ export function packSolved(levels: Record<string, LevelRecord>, packId: number):
   return pack ? pack.levels.filter((id) => levels[id]).length : 0;
 }
 
-export function isPackUnlocked(levels: Record<string, LevelRecord>, packId: number): boolean {
-  if (packId <= 1 || unlockAllActive()) return true;
-  const prev = getPack(packId - 1);
-  if (prev && prev.levels.every((id) => levels[id])) return true;
-  return totalStars(levels) >= (PACK_STAR_REQUIREMENTS[packId] ?? Infinity);
-}
-
+/** Every pack is open; within a pack, each level unlocks once the one before it is solved. */
 export function isLevelUnlocked(levels: Record<string, LevelRecord>, id: string): boolean {
   const pack = manifest.packs.find((p) => p.levels.includes(id));
-  if (!pack || !isPackUnlocked(levels, pack.id)) return false;
+  if (!pack) return false;
   if (unlockAllActive()) return true;
   const i = pack.levels.indexOf(id);
   return i === 0 || !!levels[pack.levels[i - 1]] || !!levels[id];
@@ -228,7 +222,6 @@ export function isLevelUnlocked(levels: Record<string, LevelRecord>, id: string)
 /** First unsolved, unlocked level (the "Play" button target). */
 export function nextToPlay(levels: Record<string, LevelRecord>): string {
   for (const p of manifest.packs) {
-    if (!isPackUnlocked(levels, p.id)) continue;
     for (const id of p.levels) if (!levels[id] && isLevelUnlocked(levels, id)) return id;
   }
   return manifest.packs[0].levels[0];

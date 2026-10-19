@@ -11,7 +11,7 @@ import { useLayout } from '../ui/layout';
 import { fonts, tokens } from '../theme/tokens';
 import { makeStyles, useTheme } from '../theme/useTheme';
 import { withAlpha } from '../board/color';
-import { globalNumber, maxStars } from '../data/levels';
+import { levelNumber, maxStars, packOfLevel } from '../data/levels';
 import { daySolvedCount, nextToPlay, totalStars, useProgress } from '../store/progress';
 import { useSettings } from '../store/settings';
 import { audio } from '../services/audio';
@@ -97,7 +97,7 @@ export default function Home() {
       <Rise delay={220}>
         <GlassButton
           label="Play"
-          sublabel={`Level ${globalNumber(next)}`}
+          sublabel={`${packOfLevel(next)?.name} · Level ${levelNumber(next)}`}
           icon="play"
           variant="primary"
           size="lg"

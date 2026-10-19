@@ -66,7 +66,7 @@ export function Board(props: Props) {
   const theme = useTheme();
   const B = theme.board;
   const g = game.g;
-  const { size, cell } = geom;
+  const { width, height, cell } = geom;
   const pathW = cell * tokens.pathWidthRatio;
   const dotR = (cell * tokens.dotRatio) / 2;
   const gap = cellGapPx(cell, B.cellGap);
@@ -433,8 +433,8 @@ export function Board(props: Props) {
   const boardTransform = useDerivedValue(() => {
     const s = 0.92 + 0.08 * Math.min(1, intro.value);
     return [
-      { translateX: shake.value + (size / 2) * (1 - s) },
-      { translateY: (size / 2) * (1 - s) },
+      { translateX: shake.value + (width / 2) * (1 - s) },
+      { translateY: (height / 2) * (1 - s) },
       { scale: s },
     ];
   });
@@ -455,10 +455,10 @@ export function Board(props: Props) {
 
   return (
     <GestureDetector gesture={pan}>
-      <View style={[styles.wrap, { width: size, height: size }]}>
-        <Canvas style={{ width: size, height: size }}>
+      <View style={[styles.wrap, { width, height }]}>
+        <Canvas style={{ width, height }}>
           <Group transform={boardTransform} layer={fading ? <Paint opacity={boardOpacity} /> : undefined}>
-            {B.background !== 'transparent' && <RoundedRect x={0} y={0} width={size} height={size} r={tokens.radius.lg} color={B.background} />}
+            {B.background !== 'transparent' && <RoundedRect x={0} y={0} width={width} height={height} r={tokens.radius.lg} color={B.background} />}
             {B.borderWidth > 0 && (
               <RoundedRect
                 x={geom.ox + gap - frameOffset}
