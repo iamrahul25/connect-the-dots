@@ -341,6 +341,26 @@ import p09_l017 from './pack-09/level-017.json';
 import p09_l018 from './pack-09/level-018.json';
 import p09_l019 from './pack-09/level-019.json';
 import p09_l020 from './pack-09/level-020.json';
+import p09_l021 from './pack-09/level-021.json';
+import p09_l022 from './pack-09/level-022.json';
+import p09_l023 from './pack-09/level-023.json';
+import p09_l024 from './pack-09/level-024.json';
+import p09_l025 from './pack-09/level-025.json';
+import p09_l026 from './pack-09/level-026.json';
+import p09_l027 from './pack-09/level-027.json';
+import p09_l028 from './pack-09/level-028.json';
+import p09_l029 from './pack-09/level-029.json';
+import p09_l030 from './pack-09/level-030.json';
+import p09_l031 from './pack-09/level-031.json';
+import p09_l032 from './pack-09/level-032.json';
+import p09_l033 from './pack-09/level-033.json';
+import p09_l034 from './pack-09/level-034.json';
+import p09_l035 from './pack-09/level-035.json';
+import p09_l036 from './pack-09/level-036.json';
+import p09_l037 from './pack-09/level-037.json';
+import p09_l038 from './pack-09/level-038.json';
+import p09_l039 from './pack-09/level-039.json';
+import p09_l040 from './pack-09/level-040.json';
 import p10_l001 from './pack-10/level-001.json';
 import p10_l002 from './pack-10/level-002.json';
 import p10_l003 from './pack-10/level-003.json';
@@ -361,6 +381,26 @@ import p10_l017 from './pack-10/level-017.json';
 import p10_l018 from './pack-10/level-018.json';
 import p10_l019 from './pack-10/level-019.json';
 import p10_l020 from './pack-10/level-020.json';
+import p10_l021 from './pack-10/level-021.json';
+import p10_l022 from './pack-10/level-022.json';
+import p10_l023 from './pack-10/level-023.json';
+import p10_l024 from './pack-10/level-024.json';
+import p10_l025 from './pack-10/level-025.json';
+import p10_l026 from './pack-10/level-026.json';
+import p10_l027 from './pack-10/level-027.json';
+import p10_l028 from './pack-10/level-028.json';
+import p10_l029 from './pack-10/level-029.json';
+import p10_l030 from './pack-10/level-030.json';
+import p10_l031 from './pack-10/level-031.json';
+import p10_l032 from './pack-10/level-032.json';
+import p10_l033 from './pack-10/level-033.json';
+import p10_l034 from './pack-10/level-034.json';
+import p10_l035 from './pack-10/level-035.json';
+import p10_l036 from './pack-10/level-036.json';
+import p10_l037 from './pack-10/level-037.json';
+import p10_l038 from './pack-10/level-038.json';
+import p10_l039 from './pack-10/level-039.json';
+import p10_l040 from './pack-10/level-040.json';
 import daily_2026_09 from './daily/2026-09.json';
 import daily_2026_10 from './daily/2026-10.json';
 import daily_2026_11 from './daily/2026-11.json';
@@ -709,6 +749,26 @@ export const levels: Record<string, Level> = {
   'p09-l018': p09_l018 as unknown as Level,
   'p09-l019': p09_l019 as unknown as Level,
   'p09-l020': p09_l020 as unknown as Level,
+  'p09-l021': p09_l021 as unknown as Level,
+  'p09-l022': p09_l022 as unknown as Level,
+  'p09-l023': p09_l023 as unknown as Level,
+  'p09-l024': p09_l024 as unknown as Level,
+  'p09-l025': p09_l025 as unknown as Level,
+  'p09-l026': p09_l026 as unknown as Level,
+  'p09-l027': p09_l027 as unknown as Level,
+  'p09-l028': p09_l028 as unknown as Level,
+  'p09-l029': p09_l029 as unknown as Level,
+  'p09-l030': p09_l030 as unknown as Level,
+  'p09-l031': p09_l031 as unknown as Level,
+  'p09-l032': p09_l032 as unknown as Level,
+  'p09-l033': p09_l033 as unknown as Level,
+  'p09-l034': p09_l034 as unknown as Level,
+  'p09-l035': p09_l035 as unknown as Level,
+  'p09-l036': p09_l036 as unknown as Level,
+  'p09-l037': p09_l037 as unknown as Level,
+  'p09-l038': p09_l038 as unknown as Level,
+  'p09-l039': p09_l039 as unknown as Level,
+  'p09-l040': p09_l040 as unknown as Level,
   'p10-l001': p10_l001 as unknown as Level,
   'p10-l002': p10_l002 as unknown as Level,
   'p10-l003': p10_l003 as unknown as Level,
@@ -729,6 +789,26 @@ export const levels: Record<string, Level> = {
   'p10-l018': p10_l018 as unknown as Level,
   'p10-l019': p10_l019 as unknown as Level,
   'p10-l020': p10_l020 as unknown as Level,
+  'p10-l021': p10_l021 as unknown as Level,
+  'p10-l022': p10_l022 as unknown as Level,
+  'p10-l023': p10_l023 as unknown as Level,
+  'p10-l024': p10_l024 as unknown as Level,
+  'p10-l025': p10_l025 as unknown as Level,
+  'p10-l026': p10_l026 as unknown as Level,
+  'p10-l027': p10_l027 as unknown as Level,
+  'p10-l028': p10_l028 as unknown as Level,
+  'p10-l029': p10_l029 as unknown as Level,
+  'p10-l030': p10_l030 as unknown as Level,
+  'p10-l031': p10_l031 as unknown as Level,
+  'p10-l032': p10_l032 as unknown as Level,
+  'p10-l033': p10_l033 as unknown as Level,
+  'p10-l034': p10_l034 as unknown as Level,
+  'p10-l035': p10_l035 as unknown as Level,
+  'p10-l036': p10_l036 as unknown as Level,
+  'p10-l037': p10_l037 as unknown as Level,
+  'p10-l038': p10_l038 as unknown as Level,
+  'p10-l039': p10_l039 as unknown as Level,
+  'p10-l040': p10_l040 as unknown as Level,
 };
 
 export const dailyBanks: Record<string, DailyBank> = {

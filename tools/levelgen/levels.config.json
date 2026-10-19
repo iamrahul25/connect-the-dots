@@ -124,8 +124,8 @@
         { "range": [11, 19], "size": 12, "colors": [10, 12], "walls": [2, 4], "bridges": [1, 2], "warps": [1, 2], "teleporters": [1, 2], "tunnels": [2, 3], "rotators": [2, 3], "locks": [1, 2], "difficulty": [62, 80], "attemptsPerLevel": 600 },
         { "range": [20, 20], "size": 12, "colors": [10, 12], "walls": [2, 4], "bridges": 2, "warps": 2, "teleporters": 2, "tunnels": 3, "rotators": 3, "locks": 2, "difficulty": [66, 90], "attemptsPerLevel": 1500, "showcase": true },
         { "range": [21, 30], "size": 12, "height": 13, "colors": [10, 12], "walls": [2, 4], "bridges": [1, 2], "warps": [1, 2], "teleporters": [1, 2], "tunnels": [2, 3], "rotators": [2, 3], "locks": [1, 2], "difficulty": [64, 84], "attemptsPerLevel": 600 },
-        { "range": [31, 35], "size": 12, "height": 14, "colors": [10, 12], "walls": [2, 4], "bridges": [1, 2], "warps": [1, 2], "teleporters": [1, 2], "tunnels": [2, 3], "rotators": [2, 3], "locks": [1, 2], "difficulty": [66, 86], "attemptsPerLevel": 1200 },
-        { "range": [36, 39], "size": 12, "height": 14, "colors": [10, 12], "walls": [2, 4], "bridges": [1, 2], "warps": [1, 2], "teleporters": [1, 2], "tunnels": [2, 3], "rotators": [2, 3], "locks": [1, 2], "difficulty": [66, 86], "attemptsPerLevel": 1200 },
+        { "range": [31, 35], "size": 12, "height": 14, "colors": [10, 12], "walls": [2, 4], "bridges": [1, 2], "warps": [1, 2], "teleporters": [1, 2], "tunnels": [2, 3], "rotators": [2, 3], "locks": [1, 2], "difficulty": [66, 86], "attemptsPerLevel": 2400 },
+        { "range": [36, 39], "size": 12, "height": 14, "colors": [10, 12], "walls": [2, 4], "bridges": [1, 2], "warps": [1, 2], "teleporters": [1, 2], "tunnels": [2, 3], "rotators": [2, 3], "locks": [1, 2], "difficulty": [66, 86], "attemptsPerLevel": 2400 },
         { "range": [40, 40], "size": 12, "height": 14, "colors": [10, 12], "walls": [2, 4], "bridges": 2, "warps": 2, "teleporters": 2, "tunnels": 3, "rotators": 3, "locks": 2, "difficulty": [68, 92], "attemptsPerLevel": 6000, "showcase": true }
       ]
     }

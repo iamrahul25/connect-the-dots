@@ -25,8 +25,11 @@ Usage:
                     [--teleporters 1] [--tunnels 1-2] [--rotators 1-2] [--locks 1]
                     [--difficulty 35-50] [--count 20] [--seed 42] [--out levels/custom]
   levelgen build    --config tools/levelgen/levels.config.json [--pack 3] [--levels 21-40] [--force]
+                    [--workers 12]
                     (only groups with missing level files are generated unless --force;
-                     --levels limits it to groups starting at those level indices)
+                     --levels limits it to groups starting at those level indices;
+                     --workers defaults to one thread per logical CPU - build several
+                     packs in one process, e.g. --pack 9,10, rather than one process each)
   levelgen validate <dir|file>
   levelgen show     <file> [--solution]
   levelgen daily    --month 2026-10 [--out levels/daily]
@@ -149,7 +152,7 @@ function cmdDaily(flags: Record<string, string | true>) {
   writeIndex();
 }
 
-function main() {
+async function main() {
   const [cmd, ...rest] = process.argv.slice(2);
   const { positional, flags } = parseArgs(rest);
   switch (cmd) {
@@ -158,7 +161,9 @@ function main() {
     case 'build': {
       const config = readJson<BuildConfig>(resolve(String(flags.config ?? 'tools/levelgen/levels.config.json')));
       const packs = typeof flags.pack === 'string' ? flags.pack.split(',').map(Number) : undefined;
-      return buildAll(config, { packs, levels: range(flags.levels), force: !!flags.force });
+      const workers = typeof flags.workers === 'string' ? Number(flags.workers) : undefined;
+      if (workers !== undefined && !(Number.isInteger(workers) && workers > 0)) throw new Error('--workers must be a positive integer');
+      return buildAll(config, { packs, levels: range(flags.levels), force: !!flags.force, workers });
     }
     case 'validate':
       return cmdValidate(positional[0] ?? LEVELS_DIR);
@@ -182,4 +187,4 @@ function main() {
   }
 }
 
-main();
+await main();
