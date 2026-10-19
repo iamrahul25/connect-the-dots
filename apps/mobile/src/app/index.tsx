@@ -136,8 +136,20 @@ export default function Home() {
         <GlassButton label="Level Packs" icon="albums" size="lg" outlined onPress={() => router.push('/packs')} style={styles.packs} />
       </Rise>
 
+      <Rise delay={520}>
+        <GlassButton
+          label="Handcrafted"
+          sublabel="Create & play shared levels"
+          icon="construct"
+          size="lg"
+          outlined
+          onPress={() => router.push('/custom')}
+          style={styles.packs}
+        />
+      </Rise>
+
       {showLevelDetails && (
-        <Rise delay={520}>
+        <Rise delay={620}>
           <GlassButton label="Level Stats" icon="grid" size="lg" outlined onPress={() => router.push('/level-stats')} style={styles.packs} />
         </Rise>
       )}

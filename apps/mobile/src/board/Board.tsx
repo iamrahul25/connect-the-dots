@@ -21,7 +21,17 @@ import {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useAnimatedReaction, useDerivedValue, useSharedValue, withTiming, type SharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
-import { isTeleportStep, isWarpStep, ROTATOR_LAYERS, stepDirection, TUNNEL_LAYERS, type Game } from '@ctd/core';
+import {
+  isTeleportStep,
+  isWarpStep,
+  ROTATOR_LAYERS,
+  stepDirection,
+  TUNNEL_LAYERS,
+  type BoardGraph,
+  type Cell,
+  type Layer,
+  type Puzzle,
+} from '@ctd/core';
 import { BORDER_INSET, cellCenter, cellGapPx, type BoardGeom } from './geometry';
 import { drawEffects, type Effect } from './effects';
 import { withBrush, type Brush } from './brush';
@@ -34,8 +44,20 @@ import { tokens } from '../theme/tokens';
 import { lockColor, teleporterColor, type DotStyle, type Palette } from '../theme/config';
 import { useTheme } from '../theme/useTheme';
 
+/** What the board draws. `Game` is one; the level editor passes a preview of the draft. */
+export interface BoardSource {
+  readonly g: BoardGraph;
+  readonly puzzle: Puzzle;
+  readonly dragging: number;
+  view(): number[][];
+  ghosts(): number[][];
+  isComplete(pair: number, paths?: number[][]): boolean;
+  orientationAt(cell: Cell): Layer | null;
+  doors(): boolean[];
+}
+
 interface Props {
-  game: Game;
+  game: BoardSource;
   version: number;
   geom: BoardGeom;
   palette: Palette;
@@ -47,6 +69,8 @@ interface Props {
   onDown: (x: number, y: number) => void;
   onMove: (x: number, y: number) => void;
   onUp: () => void;
+  /** Squares outlined on top of everything (editor selections and problem squares). */
+  marks?: { cell: Cell; color: string }[];
 }
 
 const DIR_VEC = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] } as const;
@@ -369,6 +393,22 @@ export function Board(props: Props) {
     [dots, connectedKey, dotR, colorblind, B.colorblindSymbol],
   );
   const dotsLayer = usePictureValue(dotsPicture);
+  const { marks } = props;
+  const marksPicture = useMemo(
+    () =>
+      makePicture((canvas) =>
+        withBrush(canvas, (b) => {
+          const s = cell - gap * 2;
+          for (const m of marks ?? []) {
+            const [cx, cy] = cellCenter(geom, m.cell[0], m.cell[1]);
+            b.rrect(cx - s / 2, cy - s / 2, s, s, radius, b.fill(m.color, 0.18));
+            b.rrect(cx - s / 2, cy - s / 2, s, s, radius, b.stroke(m.color, { width: Math.max(2, cell * 0.08) }));
+          }
+        }),
+      ),
+    [marks, geom, cell, gap, radius],
+  );
+  const marksLayer = usePictureValue(marksPicture);
   const breathing = useMemo(
     () => dots.filter((d) => connectedKey[d.pair] !== '1').map((d) => ({ x: d.x, y: d.y, color: d.color })),
     [dots, connectedKey],
@@ -533,6 +573,7 @@ export function Board(props: Props) {
               <Picture picture={breathPicture} />
               <Picture picture={dotsLayer} />
             </Group>
+            <Picture picture={marksLayer} />
 
             {/* Head of the path being drawn */}
             <Group opacity={headOn}>

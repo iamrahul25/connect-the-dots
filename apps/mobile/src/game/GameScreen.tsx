@@ -3,9 +3,10 @@ import { Platform, Text, View, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { Game, isTeleportStep, sameCell, type Cell, type DailyTier, type GameEvent, type Level } from '@ctd/core';
+import { Game, type Cell, type DailyTier, type GameEvent, type Level } from '@ctd/core';
 import { Board } from '../board/Board';
-import { cellAtRaw, cellCenter, clampCell, frameWidth, makeGeom } from '../board/geometry';
+import { cellAtRaw, cellCenter, frameWidth, makeGeom } from '../board/geometry';
+import { newTrack, pointerMove, resetTrack, type PointerTrack } from '../board/dragPointer';
 import type { Effect, EffectInput } from '../board/effects';
 import { BUTTON_H, GlassButton } from '../ui/GlassButton';
 import { useToast } from '../ui/Toast';
@@ -19,12 +20,15 @@ import { makeStyles, usePalette, useTheme } from '../theme/useTheme';
 import { lockColor } from '../theme/config';
 import { useSettings } from '../store/settings';
 import { starsFor, useProgress } from '../store/progress';
+import { useCustomLevels } from '../store/customLevels';
+import { extendPalette } from '../theme/extraColors';
 import { audio } from '../services/audio';
 import { haptics } from '../services/haptics';
 
 export interface GameScreenProps {
   level: Level;
-  mode: 'pack' | 'daily';
+  /** `custom`: handcrafted levels; results stay out of pack progress and hints are free. */
+  mode: 'pack' | 'daily' | 'custom';
   title: string;
   subtitle?: string;
   /** Pack music key (`dawn`, `lagoon`, ..., `daily`). */
@@ -49,10 +53,6 @@ const HUD_ICON_MIN_W = 100;
 const CONTROLS_INSET = 0.08;
 /** Base max width of each Undo / Hint button, so they don't stretch into bars on tablets. */
 const CONTROL_MAX_W = 220;
-/** How far (in cells) the pointer must pass a warp edge before wrapping, so jitter on the edge can't bounce. */
-const WARP_MARGIN = 0.35;
-/** Half-size (in cells) of the zone around a cell's center the pointer must reach to retract a finished line onto it. */
-const RETRACT_ZONE = 0.3;
 
 const sameCellPair = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
 
@@ -62,17 +62,19 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
   const insets = useSafeAreaInsets();
   const { gutter, s } = useLayout();
   const { colorblind, reduceMotion, idleHints } = useSettings();
+  const custom = mode === 'custom';
   const hints = useProgress((s) => s.hints);
-  const unlimitedHints = useSettings((s) => __DEV__ && s.unlimitedHints);
-  const palette = usePalette();
+  const unlimitedHints = useSettings((s) => (__DEV__ && s.unlimitedHints) || custom);
+  const themePalette = usePalette();
+  const palette = useMemo(() => extendPalette(themePalette, Math.max(...level.dots.map((d) => d.color)) + 1), [themePalette, level]);
   const toast = useToast();
 
   const game = useMemo(() => {
     const g = new Game(level);
-    const saved = useProgress.getState().inProgress[level.id];
+    const saved = custom ? undefined : useProgress.getState().inProgress[level.id];
     if (saved) g.load(saved);
     return g;
-  }, [level]);
+  }, [level, custom]);
   const [version, setVersion] = useState(0);
   const bump = useCallback(() => setVersion((v) => v + 1), []);
   const [result, setResult] = useState<ResultInfo | null>(null);
@@ -113,8 +115,8 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
 
   useEffect(() => {
     audio.playMusic(musicFor(pack));
-    useProgress.getState().setLastPlayed(level.id);
-  }, [pack, level.id]);
+    if (!custom) useProgress.getState().setLastPlayed(level.id);
+  }, [pack, level.id, custom]);
 
   useEffect(() => {
     wonRef.current = false;
@@ -160,7 +162,14 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
     const stars = starsFor(gm.moves, lv.stars.perfectMoves, lv.stars.twoStarMoves, usedHint);
     const progress = useProgress.getState();
     let info: ResultInfo;
-    if (mode === 'daily' && daily) {
+    if (mode === 'custom') {
+      const prev = useCustomLevels.getState().results[lv.id];
+      useCustomLevels.getState().recordResult(lv.id, stars, gm.moves);
+      info = {
+        stars, moves: gm.moves, best: prev ? Math.min(prev.bestMoves, gm.moves) : gm.moves, perfect: lv.stars.perfectMoves,
+        hintsEarned: 0, packCompleted: false, usedHint,
+      };
+    } else if (mode === 'daily' && daily) {
       const prev = progress.daily.completed[daily.key]?.[daily.tier];
       const r = progress.completeDaily(daily.key, daily.tier, stars, gm.moves);
       progress.saveBoard(lv.id, null);
@@ -282,15 +291,12 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
 
   const save = useCallback(() => {
     const { game: gm, level: lv } = ref.current;
-    if (!wonRef.current) useProgress.getState().saveBoard(lv.id, gm.save());
-  }, []);
+    if (!wonRef.current && !custom) useProgress.getState().saveBoard(lv.id, gm.save());
+  }, [custom]);
 
-  const lastTarget = useRef<Cell | null>(null);
-  const wrapShift = useRef<[number, number]>([0, 0]);
+  const track = useRef<PointerTrack>(newTrack());
   /** A press on a tunnel / rotator: a release without leaving the cell rotates it, a drag starts a path there. */
   const pendingTap = useRef<Cell | null>(null);
-  /** Path length kept from before this gesture; only teleports made during the gesture offset the pointer. */
-  const gestureBase = useRef(0);
 
   const onDown = useCallback(
     (x: number, y: number) => {
@@ -299,15 +305,14 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
       const [r, c] = cellAtRaw(gg, x, y);
       pendingTap.current = null;
       if (r < 0 || c < 0 || r >= gg.H || c >= gg.W) return;
-      lastTarget.current = [r, c];
-      wrapShift.current = [0, 0];
+      resetTrack(track.current, [r, c]);
       if (gm.orientationAt([r, c])) {
         pendingTap.current = [r, c];
         return;
       }
       const ev = gm.beginDrag([r, c]);
       if (ev.length) {
-        gestureBase.current = gm.view()[gm.dragging].length;
+        track.current.gestureBase = gm.view()[gm.dragging].length;
         process(ev);
         bump();
       }
@@ -325,129 +330,11 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
         pendingTap.current = null;
         const ev = gm.beginDrag(start);
         if (!ev.length) return;
-        gestureBase.current = gm.view()[gm.dragging].length;
+        track.current.gestureBase = gm.view()[gm.dragging].length;
         process(ev);
         bump();
       }
-      if (gm.dragging < 0) return;
-      const g = gm.g;
-      const headOf = () => {
-        const p = gm.view()[gm.dragging];
-        const n = p[p.length - 1];
-        return [g.nodeRow[n], g.nodeCol[n]] as Cell;
-      };
-      // After a teleport the head is at the exit gate while the finger is still on the entry gate,
-      // so the pointer is offset by the jump for as long as the path keeps that teleport.
-      const tele = (() => {
-        const p = gm.view()[gm.dragging];
-        gestureBase.current = Math.min(gestureBase.current, p.length);
-        for (let i = p.length - 1; i >= gestureBase.current; i--) {
-          if (!isTeleportStep(g, p[i - 1], p[i])) continue;
-          const [ax, ay] = cellCenter(gg, g.nodeRow[p[i - 1]], g.nodeCol[p[i - 1]]);
-          const [bx, by] = cellCenter(gg, g.nodeRow[p[i]], g.nodeCol[p[i]]);
-          return { dx: bx - ax, dy: by - ay, entry: i - 1 };
-        }
-        return { dx: 0, dy: 0, entry: -1 };
-      })();
-      const spanX = gg.W * gg.cell;
-      const spanY = gg.H * gg.cell;
-      const inside = (px: number, py: number) => px >= gg.ox && px < gg.ox + spanX && py >= gg.oy && py < gg.oy + spanY;
-      // After a warp the finger is on the far side of the board from the head, so the pointer is shifted
-      // by one board span; otherwise the unshifted pointer maps straight back and the path bounces.
-      let vx = x + wrapShift.current[0];
-      let vy = y + wrapShift.current[1];
-      const [hr, hc] = headOf();
-
-      // Dragging off a warp edge re-enters from the opposite side.
-      const m = gg.cell * WARP_MARGIN;
-      let wrap: Cell | null = null;
-      let shift: [number, number] = [0, 0];
-      if (vx < gg.ox - m && hc === 0 && g.warpRows[hr]) {
-        wrap = [hr, gg.W - 1];
-        shift = [spanX, 0];
-      } else if (vx >= gg.ox + spanX + m && hc === gg.W - 1 && g.warpRows[hr]) {
-        wrap = [hr, 0];
-        shift = [-spanX, 0];
-      } else if (vy < gg.oy - m && hr === 0 && g.warpCols[hc]) {
-        wrap = [gg.H - 1, hc];
-        shift = [0, spanY];
-      } else if (vy >= gg.oy + spanY + m && hr === gg.H - 1 && g.warpCols[hc]) {
-        wrap = [0, hc];
-        shift = [0, -spanY];
-      }
-      if (wrap) {
-        if (lastTarget.current && sameCellPair(lastTarget.current, wrap)) return;
-        lastTarget.current = wrap;
-        const ev = gm.dragTo(wrap);
-        if (ev.length && ev[0].type !== 'invalid') {
-          wrapShift.current = [wrapShift.current[0] + shift[0], wrapShift.current[1] + shift[1]];
-        }
-        if (ev.length) {
-          process(ev);
-          bump();
-        }
-        return;
-      }
-
-      // Finger came back onto the board somewhere the shifted mapping can't reach: follow the finger again.
-      if ((wrapShift.current[0] || wrapShift.current[1]) && inside(x, y) && !inside(vx, vy)) {
-        wrapShift.current = [0, 0];
-        vx = x;
-        vy = y;
-      }
-
-      const px = vx + tele.dx;
-      const py = vy + tele.dy;
-      const target = clampCell(gg, cellAtRaw(gg, px, py));
-      if (lastTarget.current && sameCellPair(lastTarget.current, target)) return;
-
-      const path = gm.view()[gm.dragging];
-      const onPath = path.some((n) => sameCell(g, n, target));
-      const complete = gm.isComplete(gm.dragging);
-      if (complete && onPath) {
-        // Release jitter or an off-board pointer clamped onto the line must not break a finished
-        // connection: it only retracts once the pointer is well inside one of its cells.
-        const [cx, cy] = cellCenter(gg, target[0], target[1]);
-        const zone = gg.cell * RETRACT_ZONE;
-        if (Math.abs(px - cx) > zone || Math.abs(py - cy) > zone) return;
-      }
-      lastTarget.current = target;
-
-      const events: GameEvent[] = [];
-      // With the pointer offset, the only way back through a teleporter is the finger returning to the
-      // path before the entry gate when it can't move forward from the exit.
-      const backThroughGate = () => {
-        if (tele.entry < 0) return;
-        const real = clampCell(gg, cellAtRaw(gg, vx, vy));
-        const j = path.findIndex((n) => sameCell(g, n, real));
-        if (j >= 0 && j < tele.entry) events.push(...gm.dragTo(real));
-      };
-      if (onPath) {
-        events.push(...gm.dragTo(target));
-      } else if (!complete) {
-        // Walk cell by cell toward the pointer so fast swipes never skip cells.
-        for (let guard = 0; guard < 64; guard++) {
-          const [r, c] = headOf();
-          const dr = target[0] - r;
-          const dc = target[1] - c;
-          if (dr === 0 && dc === 0) break;
-          const primary: Cell = Math.abs(dr) >= Math.abs(dc) ? [r + Math.sign(dr), c] : [r, c + Math.sign(dc)];
-          const secondary: Cell | null = dr !== 0 && dc !== 0 ? (Math.abs(dr) >= Math.abs(dc) ? [r, c + Math.sign(dc)] : [r + Math.sign(dr), c]) : null;
-          let ev = gm.dragTo(primary);
-          if ((ev.length === 0 || ev[0].type === 'invalid') && secondary) {
-            const alt = gm.dragTo(secondary, true);
-            if (alt.length && alt[0].type !== 'invalid') ev = alt;
-          }
-          if (ev.length === 0) break;
-          events.push(...ev);
-          if (ev[0].type === 'invalid' || ev.some((e) => e.type === 'connect' || e.type === 'teleport')) break;
-        }
-        if (events.length === 0 || events[0].type === 'invalid') {
-          const blocked = events.splice(0);
-          backThroughGate();
-          if (events.length === 0) events.push(...blocked);
-        }
-      }
+      const events = pointerMove(gm, gg, track.current, x, y);
       if (events.length) {
         process(events);
         bump();
@@ -458,8 +345,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
 
   const onUp = useCallback(() => {
     const { game: gm, geom: gg } = ref.current;
-    lastTarget.current = null;
-    wrapShift.current = [0, 0];
+    resetTrack(track.current);
     const tap = pendingTap.current;
     pendingTap.current = null;
     if (tap && gm.dragging < 0 && !wonRef.current) {
@@ -499,17 +385,17 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
   const onRestart = useCallback(() => {
     if (wonRef.current) return;
     game.restart();
-    useProgress.getState().saveBoard(level.id, null);
+    if (!custom) useProgress.getState().saveBoard(level.id, null);
     intro.value = 0.4;
     intro.value = withTiming(1, { duration: 500 });
     bump();
-  }, [game, level.id, bump, intro]);
+  }, [game, level.id, bump, intro, custom]);
 
   const onHint = useCallback(() => {
     if (wonRef.current) return;
     const pair = game.hintPair(level.solution);
     if (pair < 0) return;
-    if (!useProgress.getState().spendHint()) {
+    if (!custom && !useProgress.getState().spendHint()) {
       toast.show('No hints left · earn them with ★★★ levels');
       return;
     }
@@ -528,7 +414,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
     save();
     if (ev.some((e) => e.type === 'win')) onWin();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game, level, emit, geom, bump, save, onWin, toast]);
+  }, [game, level, emit, geom, bump, save, onWin, toast, custom]);
 
   // Idle nudge: shimmer an unconnected pair after a long pause.
   useEffect(() => {

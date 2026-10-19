@@ -12,3 +12,5 @@ export { randomCover } from './generator/cover';
 export * from './validate';
 export { canonicalKey } from './canonical';
 export * from './daily';
+export * from './custom';
+export * from './editor';

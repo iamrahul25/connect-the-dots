@@ -14,14 +14,18 @@ export interface ValidationResult {
 const isCell = (c: unknown): c is Cell =>
   Array.isArray(c) && c.length === 2 && c.every((x) => Number.isInteger(x));
 
-/** Structural checks, cheap enough to run on-device. */
-export function validateShape(level: Level): string[] {
+/**
+ * Structural checks, cheap enough to run on-device. `maxColors` defaults to the
+ * built-in palette size; handcrafted levels lift it and get generated colors.
+ */
+export function validateShape(level: Level, opts: { maxColors?: number } = {}): string[] {
   const errors: string[] = [];
+  const maxColors = opts.maxColors ?? MAX_COLORS;
   const { width: W, height: H } = level.size ?? ({} as Level['size']);
   if (!Number.isInteger(W) || !Number.isInteger(H) || W < 2 || H < 2) errors.push('invalid size');
   const inside = (c: Cell) => c[0] >= 0 && c[0] < H && c[1] >= 0 && c[1] < W;
   if (!Array.isArray(level.dots) || level.dots.length < 1) errors.push('no dots');
-  if (level.dots.length > MAX_COLORS) errors.push(`more than ${MAX_COLORS} colors`);
+  if (level.dots.length > maxColors) errors.push(`more than ${maxColors} colors`);
   const seen = new Set<string>();
   const mark = (c: Cell, what: string) => {
     if (!isCell(c) || !inside(c)) {
