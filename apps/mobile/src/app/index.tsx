@@ -48,6 +48,7 @@ export default function Home() {
   const unlimitedHints = useSettings((s) => __DEV__ && s.unlimitedHints);
   const daily = useProgress((s) => s.daily);
   const reduceMotion = useSettings((s) => s.reduceMotion);
+  const showLevelDetails = useSettings((s) => __DEV__ && s.showLevelDetails);
   const { scale, s } = useLayout();
   const countdown = useCountdown();
   const next = nextToPlay(levels);
@@ -134,6 +135,12 @@ export default function Home() {
       <Rise delay={420}>
         <GlassButton label="Level Packs" icon="albums" size="lg" outlined onPress={() => router.push('/packs')} style={styles.packs} />
       </Rise>
+
+      {showLevelDetails && (
+        <Rise delay={520}>
+          <GlassButton label="Level Stats" icon="grid" size="lg" outlined onPress={() => router.push('/level-stats')} style={styles.packs} />
+        </Rise>
+      )}
     </Screen>
   );
 }

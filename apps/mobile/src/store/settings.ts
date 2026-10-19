@@ -14,6 +14,7 @@ export interface SettingsState {
   idleHints: boolean;
   unlockAll: boolean;
   unlimitedHints: boolean;
+  showLevelDetails: boolean;
   set: (patch: Partial<Omit<SettingsState, 'set'>>) => void;
 }
 
@@ -29,6 +30,7 @@ export const useSettings = create<SettingsState>()(
       idleHints: true,
       unlockAll: false,
       unlimitedHints: false,
+      showLevelDetails: false,
       set: (patch) => set(patch),
     }),
     {

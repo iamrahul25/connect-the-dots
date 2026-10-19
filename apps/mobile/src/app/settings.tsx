@@ -51,6 +51,7 @@ const ROWS: Row[] = [
 const DEV_ROWS: Row[] = [
   { key: 'unlockAll', icon: 'lock-open', label: 'Unlock all levels', sub: 'Play any level without earning it' },
   { key: 'unlimitedHints', icon: 'bulb', label: 'Unlimited hints', sub: 'Use hints without spending them' },
+  { key: 'showLevelDetails', icon: 'grid', label: 'Show level details', sub: 'Adds a Level Stats button to the home screen' },
 ];
 
 function ToggleRow({ row, divider }: { row: Row; divider: boolean }) {
