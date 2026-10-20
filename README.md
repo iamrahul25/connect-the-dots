@@ -12,7 +12,7 @@ Built with Expo (React Native + React Native Web), Skia for the board, and Reani
 
 ## Features
 
-- **100 handcrafted-by-generator levels** in 5 themed packs: Dawn, Lagoon, Ember, Aurora and Cosmos (5×5 up to 12×12).
+- **400 generated levels** in packs grouped by obstacle type, across three suites: Single Obstacle (one type per pack), Multiple Obstacles (a fixed mix per pack) and Handcrafted (coming soon). 5×5 up to 12×14.
 - **Every level has exactly one solution**, verified by an exact solver.
 - **New mechanics over time:** walls (blocked cells), bridges (two paths cross over each other) and warps (paths wrap around the edges).
 - **Daily Puzzle**: Easy (7×7–8×8, 1–2 obstacles), Medium (9×9–10×10, 3–4) and Hard (11×11–12×12, 5–7) every day. Solving any one keeps the streak; solving all three earns a 👑 on the calendar.
@@ -53,10 +53,22 @@ npm run web
 ```bash
 npm test                 # run core game logic tests
 npm run typecheck        # type-check all packages
-npm run levels:build     # regenerate all 100 levels from tools/levelgen/levels.config.json
+npm run levels:build     # generate missing levels from tools/levelgen/levels.config.json
 npm run levels:validate  # check every level is valid, solvable and has a unique solution
 npm run export:web       # build the static web version into apps/mobile/dist
 ```
+
+### Adding levels to a pack
+
+Packs live in `tools/levelgen/levels.config.json` under `suites` (`single`, `multi`, `handcrafted`). In the Single and Multiple suites, every level in a pack uses exactly the pack's `obstacles`, and the pack id is those obstacles joined by `-` (for example `walls-bridges`, `none` or `all`). A pack with no levels shows as "Coming soon" in the app.
+
+To add levels, append a group to the pack whose `range` starts after the last level file already in `levels/<suite>/<pack>/`. Every obstacle in the pack needs a count of at least 1, and other obstacles must be left out:
+
+```json
+{ "range": [6, 15], "size": 10, "colors": [8, 10], "rotators": [1, 2], "locks": 1, "difficulty": [50, 65] }
+```
+
+Then run `npm run levels:build -- --pack rotators-locks`. Generated boards that lose an obstacle type are rejected, so a pack never gets a level that doesn't match. Existing level files are never regenerated unless you pass `--force`.
 
 ## Run the website locally
 
@@ -283,7 +295,7 @@ Play re-signs the app with its own app signing key before delivering it to users
 ```
 apps/mobile/        Expo app (screens, board rendering, audio, storage)
 packages/core/      Game rules, solver and shared types
-levels/             Level JSON files (pack-01 … pack-05) and daily puzzles
+levels/             Level JSON files (single/<pack>, multi/<pack>, handcrafted/<pack>) and daily puzzles
 tools/levelgen/     Level generator and audio generator CLI
 index.html          Website landing page (GitHub Pages)
 website/            Website pages, styles and images (Privacy Policy, Delete Account)

@@ -421,7 +421,7 @@ describe('generator', () => {
     for (let s = 0; s < 3; s++) {
       const c = generateLevel({ ...params, seed: 100 + s });
       expect(c).not.toBeNull();
-      const level = toLevel(c!, { id: `t-${s}`, pack: 0, index: s, params: { ...params, seed: 100 + s } });
+      const level = toLevel(c!, { id: `t-${s}`, pack: 'test', index: s, params: { ...params, seed: 100 + s } });
       const res = validateLevel(level);
       expect(res.errors).toEqual([]);
       expect(level.bridges.length).toBe(1);
@@ -443,7 +443,7 @@ describe('generator', () => {
     cases.forEach((params, s) => {
       const c = generateLevel({ ...params, seed: 300 + s, maxAttempts: 400 });
       expect(c).not.toBeNull();
-      const level = toLevel(c!, { id: `n-${s}`, pack: 0, index: s, params: { ...params, seed: 300 + s } });
+      const level = toLevel(c!, { id: `n-${s}`, pack: 'test', index: s, params: { ...params, seed: 300 + s } });
       expect(level.formatVersion).toBe(2);
       expect(validateLevel(level).errors).toEqual([]);
       expect(level.teleporters!.length).toBe(params.teleporters ?? 0);

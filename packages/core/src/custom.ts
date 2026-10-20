@@ -249,7 +249,7 @@ export function buildCustomLevel(draft: CustomDraft, opts: { maxSolverNodes?: nu
   lines.forEach((l, i) => (solution[String(i)] = l.map((c) => [c[0], c[1]] as Cell)));
   const level: Level = {
     id: `custom-${hashSeed(JSON.stringify(puzzle), JSON.stringify(solution)).toString(36)}`,
-    pack: 0,
+    pack: 'custom',
     index: 0,
     formatVersion: v2 ? 2 : 1,
     ...puzzle,

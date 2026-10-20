@@ -13,8 +13,12 @@ import { useTheme } from '../theme/useTheme';
 
 export type GlyphKind = 'wall' | 'bridge' | 'warp' | 'teleporter' | 'tunnel' | 'rotator' | 'lock';
 
-/** One board square showing an obstacle the way the board draws it, so tools and labels match the board. */
-export function ObstacleGlyph({ kind, size }: { kind: GlyphKind; size: number }) {
+/**
+ * One board square showing an obstacle the way the board draws it, so tools and labels match the board.
+ * `flat` draws every kind with plain views (no WebGL context), for screens that show many at once:
+ * browsers only allow a handful of live WebGL contexts.
+ */
+export function ObstacleGlyph({ kind, size, flat = false }: { kind: GlyphKind; size: number; flat?: boolean }) {
   const { board } = useTheme();
   const radius = size * board.cellRadius;
   if (kind === 'wall') return <HatchedTile size={size} radius={radius} color={board.cellWall} stripe={board.wallStripe} />;
@@ -32,9 +36,9 @@ export function ObstacleGlyph({ kind, size }: { kind: GlyphKind; size: number })
     >
       {kind === 'bridge' && <Bridge size={size} />}
       {kind === 'warp' && <Warp size={size} />}
-      {kind === 'teleporter' && <Gate size={size} />}
-      {(kind === 'tunnel' || kind === 'rotator') && <Piece kind={kind} size={size} />}
-      {kind === 'lock' && <Key size={size} />}
+      {kind === 'teleporter' && (flat ? <FlatGate size={size} /> : <Gate size={size} />)}
+      {(kind === 'tunnel' || kind === 'rotator') && (flat ? <FlatPiece kind={kind} size={size} /> : <Piece kind={kind} size={size} />)}
+      {kind === 'lock' && (flat ? <FlatKey size={size} /> : <Key size={size} />)}
     </View>
   );
 }
@@ -95,6 +99,55 @@ function Piece({ kind, size }: { kind: 'tunnel' | 'rotator'; size: number }) {
         colors={{ box: board.bridgeBox, border: board.bridgeBorder, shadow: board.bridgeShadow }}
       />
     </Canvas>
+  );
+}
+
+function FlatGate({ size }: { size: number }) {
+  const color = teleporterColor(0);
+  const ring = size * 0.66;
+  return (
+    <View style={{ width: ring, height: ring, borderRadius: ring / 2, borderWidth: size * 0.11, borderColor: color, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: size * 0.16, height: size * 0.16, borderRadius: size, backgroundColor: color }} />
+    </View>
+  );
+}
+
+function FlatPiece({ kind, size }: { kind: 'tunnel' | 'rotator'; size: number }) {
+  const { board } = useTheme();
+  const deck = size * 0.76;
+  const groove = Math.max(2, size * tokens.pathWidthRatio * 0.75);
+  const half = deck / 2;
+  const bar = { position: 'absolute', backgroundColor: board.bridgeBorder } as const;
+  return (
+    <View
+      style={{
+        width: deck,
+        height: deck,
+        borderRadius: kind === 'tunnel' ? size * 0.18 : half,
+        backgroundColor: board.bridgeBox,
+        borderWidth: 1.5,
+        borderColor: board.bridgeBorder,
+        overflow: 'hidden',
+      }}
+    >
+      {kind === 'tunnel' ? (
+        <View style={[bar, { left: 0, right: 0, top: half - groove / 2 - 1.5, height: groove }]} />
+      ) : (
+        <>
+          <View style={[bar, { top: 0, height: half - 1.5 + groove / 2, left: half - groove / 2 - 1.5, width: groove }]} />
+          <View style={[bar, { right: 0, left: half - groove / 2 - 1.5, top: half - groove / 2 - 1.5, height: groove }]} />
+        </>
+      )}
+    </View>
+  );
+}
+
+function FlatKey({ size }: { size: number }) {
+  const badge = size * 0.72;
+  return (
+    <View style={{ width: badge, height: badge, borderRadius: badge / 2, backgroundColor: lockColor(0), alignItems: 'center', justifyContent: 'center' }}>
+      <Ionicons name="key" size={size * 0.4} color="#FFFFFF" />
+    </View>
   );
 }
 

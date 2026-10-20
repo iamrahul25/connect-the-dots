@@ -474,7 +474,7 @@ export function generateLevel(params: GenParams, stats: GenStats = emptyStats())
 
 export function toLevel(
   c: Candidate,
-  info: { id: string; pack: number; index: number; params: GenParams },
+  info: { id: string; pack: string; index: number; params: GenParams },
 ): Level {
   const k = c.puzzle.dots.length;
   const solution: Record<string, Cell[]> = {};

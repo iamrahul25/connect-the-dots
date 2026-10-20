@@ -10,14 +10,14 @@ import { fonts } from '../../theme/tokens';
 import { musicFor } from '../../theme/packs';
 import { makeStyles, usePalette, useTheme } from '../../theme/useTheme';
 import { mix } from '../../board/color';
-import { getLevel, getPack, levelNumber, maxStars } from '../../data/levels';
+import { getLevel, getPack, levelNumber, maxStars, suiteOfPack } from '../../data/levels';
 import { isLevelUnlocked, packStars, useProgress } from '../../store/progress';
 import { useSettings } from '../../store/settings';
 import { audio } from '../../services/audio';
 
 export default function PackScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const pack = getPack(Number(id));
+  const pack = getPack(id ?? '');
   const levels = useProgress((s) => s.levels);
   const inProgress = useProgress((s) => s.inProgress);
   useSettings((s) => s.unlockAll);
@@ -34,10 +34,10 @@ export default function PackScreen() {
     }, [pack]),
   );
 
-  if (!pack) {
+  if (!pack || pack.levels.length === 0) {
     return (
-      <Screen title="Not found" back>
-        <Text style={styles.empty}>This pack could not be found.</Text>
+      <Screen title={pack ? pack.name : 'Not found'} back>
+        <Text style={styles.empty}>{pack ? 'This pack is coming soon.' : 'This pack could not be found.'}</Text>
       </Screen>
     );
   }
@@ -102,7 +102,14 @@ export default function PackScreen() {
   };
 
   return (
-    <Screen title={pack.name} subtitle={`${packStars(levels, pack.id)} / ${maxStars(pack.id)} ★`} back scroll width="wide" contentStyle={{ gap }}>
+    <Screen
+      title={pack.name}
+      subtitle={`${suiteOfPack(pack.id)?.name} · ${packStars(levels, pack.id)} / ${maxStars(pack.id)} ★`}
+      back
+      scroll
+      width="wide"
+      contentStyle={{ gap }}
+    >
       {rows.map((row, r) => (
         <View key={r} style={[styles.row, { width: rowW, gap }]}>
           {row.map(renderTile)}

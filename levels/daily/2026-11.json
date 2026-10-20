@@ -4,7 +4,7 @@
     "2026-11-01": {
       "easy": {
         "id": "daily-2026-11-01-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 1,
         "formatVersion": 1,
         "size": {
@@ -92,7 +92,7 @@
       },
       "medium": {
         "id": "daily-2026-11-01-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 1,
         "formatVersion": 2,
         "size": {
@@ -204,7 +204,7 @@
       },
       "hard": {
         "id": "daily-2026-11-01-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 1,
         "formatVersion": 2,
         "size": {
@@ -342,7 +342,7 @@
     "2026-11-02": {
       "easy": {
         "id": "daily-2026-11-02-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 2,
         "formatVersion": 1,
         "size": {
@@ -435,7 +435,7 @@
       },
       "medium": {
         "id": "daily-2026-11-02-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 2,
         "formatVersion": 2,
         "size": {
@@ -553,7 +553,7 @@
       },
       "hard": {
         "id": "daily-2026-11-02-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 2,
         "formatVersion": 2,
         "size": {
@@ -693,7 +693,7 @@
     "2026-11-03": {
       "easy": {
         "id": "daily-2026-11-03-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 3,
         "formatVersion": 1,
         "size": {
@@ -786,7 +786,7 @@
       },
       "medium": {
         "id": "daily-2026-11-03-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 3,
         "formatVersion": 2,
         "size": {
@@ -908,7 +908,7 @@
       },
       "hard": {
         "id": "daily-2026-11-03-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 3,
         "formatVersion": 2,
         "size": {
@@ -1043,7 +1043,7 @@
     "2026-11-04": {
       "easy": {
         "id": "daily-2026-11-04-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 4,
         "formatVersion": 1,
         "size": {
@@ -1125,7 +1125,7 @@
       },
       "medium": {
         "id": "daily-2026-11-04-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 4,
         "formatVersion": 2,
         "size": {
@@ -1239,7 +1239,7 @@
       },
       "hard": {
         "id": "daily-2026-11-04-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 4,
         "formatVersion": 2,
         "size": {
@@ -1386,7 +1386,7 @@
     "2026-11-05": {
       "easy": {
         "id": "daily-2026-11-05-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 5,
         "formatVersion": 1,
         "size": {
@@ -1474,7 +1474,7 @@
       },
       "medium": {
         "id": "daily-2026-11-05-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 5,
         "formatVersion": 2,
         "size": {
@@ -1587,7 +1587,7 @@
       },
       "hard": {
         "id": "daily-2026-11-05-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 5,
         "formatVersion": 2,
         "size": {
@@ -1733,7 +1733,7 @@
     "2026-11-06": {
       "easy": {
         "id": "daily-2026-11-06-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 6,
         "formatVersion": 1,
         "size": {
@@ -1821,7 +1821,7 @@
       },
       "medium": {
         "id": "daily-2026-11-06-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 6,
         "formatVersion": 2,
         "size": {
@@ -1938,7 +1938,7 @@
       },
       "hard": {
         "id": "daily-2026-11-06-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 6,
         "formatVersion": 2,
         "size": {
@@ -2065,7 +2065,7 @@
     "2026-11-07": {
       "easy": {
         "id": "daily-2026-11-07-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 7,
         "formatVersion": 1,
         "size": {
@@ -2153,7 +2153,7 @@
       },
       "medium": {
         "id": "daily-2026-11-07-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 7,
         "formatVersion": 2,
         "size": {
@@ -2272,7 +2272,7 @@
       },
       "hard": {
         "id": "daily-2026-11-07-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 7,
         "formatVersion": 2,
         "size": {
@@ -2422,7 +2422,7 @@
     "2026-11-08": {
       "easy": {
         "id": "daily-2026-11-08-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 8,
         "formatVersion": 1,
         "size": {
@@ -2504,7 +2504,7 @@
       },
       "medium": {
         "id": "daily-2026-11-08-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 8,
         "formatVersion": 2,
         "size": {
@@ -2619,7 +2619,7 @@
       },
       "hard": {
         "id": "daily-2026-11-08-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 8,
         "formatVersion": 2,
         "size": {
@@ -2752,7 +2752,7 @@
     "2026-11-09": {
       "easy": {
         "id": "daily-2026-11-09-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 9,
         "formatVersion": 1,
         "size": {
@@ -2840,7 +2840,7 @@
       },
       "medium": {
         "id": "daily-2026-11-09-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 9,
         "formatVersion": 2,
         "size": {
@@ -2965,7 +2965,7 @@
       },
       "hard": {
         "id": "daily-2026-11-09-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 9,
         "formatVersion": 2,
         "size": {
@@ -3108,7 +3108,7 @@
     "2026-11-10": {
       "easy": {
         "id": "daily-2026-11-10-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 10,
         "formatVersion": 1,
         "size": {
@@ -3196,7 +3196,7 @@
       },
       "medium": {
         "id": "daily-2026-11-10-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 10,
         "formatVersion": 2,
         "size": {
@@ -3303,7 +3303,7 @@
       },
       "hard": {
         "id": "daily-2026-11-10-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 10,
         "formatVersion": 2,
         "size": {
@@ -3447,7 +3447,7 @@
     "2026-11-11": {
       "easy": {
         "id": "daily-2026-11-11-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 11,
         "formatVersion": 1,
         "size": {
@@ -3529,7 +3529,7 @@
       },
       "medium": {
         "id": "daily-2026-11-11-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 11,
         "formatVersion": 2,
         "size": {
@@ -3653,7 +3653,7 @@
       },
       "hard": {
         "id": "daily-2026-11-11-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 11,
         "formatVersion": 2,
         "size": {
@@ -3807,7 +3807,7 @@
     "2026-11-12": {
       "easy": {
         "id": "daily-2026-11-12-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 12,
         "formatVersion": 1,
         "size": {
@@ -3889,7 +3889,7 @@
       },
       "medium": {
         "id": "daily-2026-11-12-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 12,
         "formatVersion": 2,
         "size": {
@@ -3996,7 +3996,7 @@
       },
       "hard": {
         "id": "daily-2026-11-12-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 12,
         "formatVersion": 2,
         "size": {
@@ -4133,7 +4133,7 @@
     "2026-11-13": {
       "easy": {
         "id": "daily-2026-11-13-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 13,
         "formatVersion": 1,
         "size": {
@@ -4226,7 +4226,7 @@
       },
       "medium": {
         "id": "daily-2026-11-13-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 13,
         "formatVersion": 2,
         "size": {
@@ -4349,7 +4349,7 @@
       },
       "hard": {
         "id": "daily-2026-11-13-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 13,
         "formatVersion": 2,
         "size": {
@@ -4497,7 +4497,7 @@
     "2026-11-14": {
       "easy": {
         "id": "daily-2026-11-14-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 14,
         "formatVersion": 1,
         "size": {
@@ -4585,7 +4585,7 @@
       },
       "medium": {
         "id": "daily-2026-11-14-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 14,
         "formatVersion": 2,
         "size": {
@@ -4702,7 +4702,7 @@
       },
       "hard": {
         "id": "daily-2026-11-14-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 14,
         "formatVersion": 2,
         "size": {
@@ -4839,7 +4839,7 @@
     "2026-11-15": {
       "easy": {
         "id": "daily-2026-11-15-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 15,
         "formatVersion": 1,
         "size": {
@@ -4932,7 +4932,7 @@
       },
       "medium": {
         "id": "daily-2026-11-15-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 15,
         "formatVersion": 2,
         "size": {
@@ -5051,7 +5051,7 @@
       },
       "hard": {
         "id": "daily-2026-11-15-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 15,
         "formatVersion": 2,
         "size": {
@@ -5198,7 +5198,7 @@
     "2026-11-16": {
       "easy": {
         "id": "daily-2026-11-16-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 16,
         "formatVersion": 1,
         "size": {
@@ -5286,7 +5286,7 @@
       },
       "medium": {
         "id": "daily-2026-11-16-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 16,
         "formatVersion": 2,
         "size": {
@@ -5415,7 +5415,7 @@
       },
       "hard": {
         "id": "daily-2026-11-16-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 16,
         "formatVersion": 2,
         "size": {
@@ -5546,7 +5546,7 @@
     "2026-11-17": {
       "easy": {
         "id": "daily-2026-11-17-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 17,
         "formatVersion": 1,
         "size": {
@@ -5628,7 +5628,7 @@
       },
       "medium": {
         "id": "daily-2026-11-17-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 17,
         "formatVersion": 2,
         "size": {
@@ -5740,7 +5740,7 @@
       },
       "hard": {
         "id": "daily-2026-11-17-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 17,
         "formatVersion": 2,
         "size": {
@@ -5883,7 +5883,7 @@
     "2026-11-18": {
       "easy": {
         "id": "daily-2026-11-18-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 18,
         "formatVersion": 1,
         "size": {
@@ -5970,7 +5970,7 @@
       },
       "medium": {
         "id": "daily-2026-11-18-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 18,
         "formatVersion": 2,
         "size": {
@@ -6087,7 +6087,7 @@
       },
       "hard": {
         "id": "daily-2026-11-18-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 18,
         "formatVersion": 2,
         "size": {
@@ -6240,7 +6240,7 @@
     "2026-11-19": {
       "easy": {
         "id": "daily-2026-11-19-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 19,
         "formatVersion": 1,
         "size": {
@@ -6328,7 +6328,7 @@
       },
       "medium": {
         "id": "daily-2026-11-19-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 19,
         "formatVersion": 2,
         "size": {
@@ -6453,7 +6453,7 @@
       },
       "hard": {
         "id": "daily-2026-11-19-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 19,
         "formatVersion": 2,
         "size": {
@@ -6592,7 +6592,7 @@
     "2026-11-20": {
       "easy": {
         "id": "daily-2026-11-20-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 20,
         "formatVersion": 1,
         "size": {
@@ -6680,7 +6680,7 @@
       },
       "medium": {
         "id": "daily-2026-11-20-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 20,
         "formatVersion": 2,
         "size": {
@@ -6799,7 +6799,7 @@
       },
       "hard": {
         "id": "daily-2026-11-20-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 20,
         "formatVersion": 2,
         "size": {
@@ -6937,7 +6937,7 @@
     "2026-11-21": {
       "easy": {
         "id": "daily-2026-11-21-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 21,
         "formatVersion": 1,
         "size": {
@@ -7025,7 +7025,7 @@
       },
       "medium": {
         "id": "daily-2026-11-21-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 21,
         "formatVersion": 2,
         "size": {
@@ -7127,7 +7127,7 @@
       },
       "hard": {
         "id": "daily-2026-11-21-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 21,
         "formatVersion": 2,
         "size": {
@@ -7265,7 +7265,7 @@
     "2026-11-22": {
       "easy": {
         "id": "daily-2026-11-22-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 22,
         "formatVersion": 1,
         "size": {
@@ -7353,7 +7353,7 @@
       },
       "medium": {
         "id": "daily-2026-11-22-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 22,
         "formatVersion": 2,
         "size": {
@@ -7478,7 +7478,7 @@
       },
       "hard": {
         "id": "daily-2026-11-22-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 22,
         "formatVersion": 2,
         "size": {
@@ -7623,7 +7623,7 @@
     "2026-11-23": {
       "easy": {
         "id": "daily-2026-11-23-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 23,
         "formatVersion": 1,
         "size": {
@@ -7716,7 +7716,7 @@
       },
       "medium": {
         "id": "daily-2026-11-23-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 23,
         "formatVersion": 2,
         "size": {
@@ -7835,7 +7835,7 @@
       },
       "hard": {
         "id": "daily-2026-11-23-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 23,
         "formatVersion": 2,
         "size": {
@@ -7972,7 +7972,7 @@
     "2026-11-24": {
       "easy": {
         "id": "daily-2026-11-24-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 24,
         "formatVersion": 1,
         "size": {
@@ -8060,7 +8060,7 @@
       },
       "medium": {
         "id": "daily-2026-11-24-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 24,
         "formatVersion": 2,
         "size": {
@@ -8177,7 +8177,7 @@
       },
       "hard": {
         "id": "daily-2026-11-24-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 24,
         "formatVersion": 2,
         "size": {
@@ -8309,7 +8309,7 @@
     "2026-11-25": {
       "easy": {
         "id": "daily-2026-11-25-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 25,
         "formatVersion": 1,
         "size": {
@@ -8397,7 +8397,7 @@
       },
       "medium": {
         "id": "daily-2026-11-25-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 25,
         "formatVersion": 2,
         "size": {
@@ -8510,7 +8510,7 @@
       },
       "hard": {
         "id": "daily-2026-11-25-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 25,
         "formatVersion": 2,
         "size": {
@@ -8642,7 +8642,7 @@
     "2026-11-26": {
       "easy": {
         "id": "daily-2026-11-26-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 26,
         "formatVersion": 1,
         "size": {
@@ -8724,7 +8724,7 @@
       },
       "medium": {
         "id": "daily-2026-11-26-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 26,
         "formatVersion": 2,
         "size": {
@@ -8832,7 +8832,7 @@
       },
       "hard": {
         "id": "daily-2026-11-26-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 26,
         "formatVersion": 2,
         "size": {
@@ -8990,7 +8990,7 @@
     "2026-11-27": {
       "easy": {
         "id": "daily-2026-11-27-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 27,
         "formatVersion": 1,
         "size": {
@@ -9083,7 +9083,7 @@
       },
       "medium": {
         "id": "daily-2026-11-27-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 27,
         "formatVersion": 2,
         "size": {
@@ -9203,7 +9203,7 @@
       },
       "hard": {
         "id": "daily-2026-11-27-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 27,
         "formatVersion": 2,
         "size": {
@@ -9355,7 +9355,7 @@
     "2026-11-28": {
       "easy": {
         "id": "daily-2026-11-28-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 28,
         "formatVersion": 1,
         "size": {
@@ -9443,7 +9443,7 @@
       },
       "medium": {
         "id": "daily-2026-11-28-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 28,
         "formatVersion": 2,
         "size": {
@@ -9562,7 +9562,7 @@
       },
       "hard": {
         "id": "daily-2026-11-28-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 28,
         "formatVersion": 2,
         "size": {
@@ -9704,7 +9704,7 @@
     "2026-11-29": {
       "easy": {
         "id": "daily-2026-11-29-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 29,
         "formatVersion": 1,
         "size": {
@@ -9798,7 +9798,7 @@
       },
       "medium": {
         "id": "daily-2026-11-29-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 29,
         "formatVersion": 2,
         "size": {
@@ -9923,7 +9923,7 @@
       },
       "hard": {
         "id": "daily-2026-11-29-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 29,
         "formatVersion": 2,
         "size": {
@@ -10071,7 +10071,7 @@
     "2026-11-30": {
       "easy": {
         "id": "daily-2026-11-30-easy",
-        "pack": 0,
+        "pack": "daily",
         "index": 30,
         "formatVersion": 1,
         "size": {
@@ -10164,7 +10164,7 @@
       },
       "medium": {
         "id": "daily-2026-11-30-medium",
-        "pack": 0,
+        "pack": "daily",
         "index": 30,
         "formatVersion": 2,
         "size": {
@@ -10286,7 +10286,7 @@
       },
       "hard": {
         "id": "daily-2026-11-30-hard",
-        "pack": 0,
+        "pack": "daily",
         "index": 30,
         "formatVersion": 2,
         "size": {

@@ -56,7 +56,7 @@ export function editorSource(d: CustomDraft, g: BoardGraph, drag: LineDrag | nul
 /** A level-shaped stand-in for thumbnails of unfinished drafts (dots where lines end). */
 export function draftThumbnail(d: CustomDraft): Level {
   const dots = d.lines.flatMap((l, color) => (l.length >= 2 ? [{ color, start: l[0], end: l[l.length - 1] }] : []));
-  return { ...draftPuzzle(d, dots), id: 'draft', pack: 0, index: 0, formatVersion: 2 } as Level;
+  return { ...draftPuzzle(d, dots), id: 'draft', pack: 'custom', index: 0, formatVersion: 2 } as Level;
 }
 
 /** Highest color index + 1 used by a level, for sizing the palette. */

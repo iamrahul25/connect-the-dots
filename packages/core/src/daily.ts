@@ -1,11 +1,9 @@
 import { createRng, hashSeed } from './rng';
 import { mechanicsOf, type GenParams } from './generator';
-import type { DailyTier, Puzzle } from './types';
+import type { DailyTier, Obstacle, Puzzle } from './types';
 
 export const DAILY_TIERS: readonly DailyTier[] = ['easy', 'medium', 'hard'];
 export const DAILY_TIER_NAMES: Record<DailyTier, string> = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
-
-type Obstacle = 'walls' | 'bridges' | 'warps' | 'teleporters' | 'tunnels' | 'rotators' | 'locks';
 
 interface TierSpec {
   sizes: number[];

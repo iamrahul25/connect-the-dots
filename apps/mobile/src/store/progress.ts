@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { DAILY_TIERS, dateKey, parseDateKey, type DailyTier, type Layer } from '@ctd/core';
 import { persistStorage } from '../services/storage';
-import { getPack, manifest } from '../data/levels';
+import { allPacks, getPack, legacyLevelIds, packOfLevel } from '../data/levels';
 import { unlimitedHintsActive, unlockAllActive } from './settings';
 
 export interface LevelRecord {
@@ -51,7 +51,7 @@ interface ProgressState {
   };
   inProgress: Record<string, SavedBoard>;
   lastPlayed: string | null;
-  completedPacks: number[];
+  completedPacks: string[];
 
   completeLevel: (id: string, stars: number, moves: number, usedHint: boolean) => CompletionResult;
   completeDaily: (key: string, tier: DailyTier, stars: number, moves: number) => DailyCompletionResult;
@@ -67,7 +67,7 @@ const initial = {
   daily: { completed: {}, streak: 0, bestStreak: 0, lastDate: null },
   inProgress: {},
   lastPlayed: null,
-  completedPacks: [],
+  completedPacks: [] as string[],
 };
 
 export const useProgress = create<ProgressState>()(
@@ -94,7 +94,7 @@ export const useProgress = create<ProgressState>()(
         };
 
         let packCompleted = false;
-        const pack = manifest.packs.find((p) => p.levels.includes(id));
+        const pack = packOfLevel(id);
         const completedPacks = [...get().completedPacks];
         if (pack && !completedPacks.includes(pack.id) && pack.levels.every((l) => levels[l])) {
           packCompleted = true;
@@ -162,18 +162,38 @@ export const useProgress = create<ProgressState>()(
     {
       name: 'progress.v1',
       storage: persistStorage,
-      version: 2,
+      version: 3,
       migrate: (persisted, version) => {
         const s = persisted as ProgressState;
         if (version < 2 && s?.daily) {
           s.daily = { ...s.daily, completed: upgradeLegacyDaily(s.daily.completed as unknown as Record<string, DailyResult>) };
           s.inProgress = dropLegacyDailyBoards(s.inProgress ?? {});
         }
+        if (version < 3 && s) Object.assign(s, upgradeLegacyLevelIds({ ...initial, ...s }));
         return s;
       },
     },
   ),
 );
+
+type LevelProgress = Pick<ProgressState, 'levels' | 'inProgress' | 'lastPlayed'>;
+
+/**
+ * Levels used to live in numbered packs (`p03-l012`) before they were regrouped by obstacle
+ * type. Rewrites those ids to the current ones and works out which new packs are already
+ * complete, without awarding the completion bonus a second time.
+ */
+export function upgradeLegacyLevelIds(p: LevelProgress): LevelProgress & { completedPacks: string[] } {
+  const upgrade = (id: string) => legacyLevelIds[id] ?? id;
+  const rekey = <T,>(r: Record<string, T>) => Object.fromEntries(Object.entries(r).map(([id, v]) => [upgrade(id), v]));
+  const levels = rekey(p.levels);
+  return {
+    levels,
+    inProgress: rekey(p.inProgress),
+    lastPlayed: p.lastPlayed && upgrade(p.lastPlayed),
+    completedPacks: allPacks.filter((pk) => pk.levels.length > 0 && pk.levels.every((id) => levels[id])).map((pk) => pk.id),
+  };
+}
 
 /** Before tiers existed each day had one puzzle; those solves count as the Medium tier. */
 export function upgradeLegacyDaily(completed: Record<string, DailyResult>): Record<string, DailyDay> {
@@ -200,19 +220,19 @@ export function totalStars(levels: Record<string, LevelRecord>): number {
   return Object.values(levels).reduce((a, l) => a + l.stars, 0);
 }
 
-export function packStars(levels: Record<string, LevelRecord>, packId: number): number {
+export function packStars(levels: Record<string, LevelRecord>, packId: string): number {
   const pack = getPack(packId);
   return pack ? pack.levels.reduce((a, id) => a + (levels[id]?.stars ?? 0), 0) : 0;
 }
 
-export function packSolved(levels: Record<string, LevelRecord>, packId: number): number {
+export function packSolved(levels: Record<string, LevelRecord>, packId: string): number {
   const pack = getPack(packId);
   return pack ? pack.levels.filter((id) => levels[id]).length : 0;
 }
 
 /** Every pack is open; within a pack, each level unlocks once the one before it is solved. */
 export function isLevelUnlocked(levels: Record<string, LevelRecord>, id: string): boolean {
-  const pack = manifest.packs.find((p) => p.levels.includes(id));
+  const pack = packOfLevel(id);
   if (!pack) return false;
   if (unlockAllActive()) return true;
   const i = pack.levels.indexOf(id);
@@ -221,10 +241,10 @@ export function isLevelUnlocked(levels: Record<string, LevelRecord>, id: string)
 
 /** First unsolved, unlocked level (the "Play" button target). */
 export function nextToPlay(levels: Record<string, LevelRecord>): string {
-  for (const p of manifest.packs) {
+  for (const p of allPacks) {
     for (const id of p.levels) if (!levels[id] && isLevelUnlocked(levels, id)) return id;
   }
-  return manifest.packs[0].levels[0];
+  return allPacks.find((p) => p.levels.length)!.levels[0];
 }
 
 export function starsFor(moves: number, perfect: number, twoStar: number, usedHint: boolean): number {

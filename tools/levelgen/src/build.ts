@@ -4,12 +4,20 @@ import {
   canonicalKey,
   emptyStats,
   hashSeed,
+  obstaclesOf,
+  OBSTACLES,
+  packIdFor,
+  packLevelId,
+  sameObstacles,
   toLevel,
   type Candidate,
   type GenParams,
+  type Level,
   type Manifest,
+  type Obstacle,
+  type SuiteId,
 } from '@ctd/core';
-import { LEVELS_DIR, levelFile, levelId, readJson, writeIndex, writeJson } from './io';
+import { existingLevelCount, LEVEL_SCHEMA_REF, LEVELS_DIR, levelFile, readJson, writeIndex, writeJson } from './io';
 import { AttemptPool, defaultWorkerCount } from './pool';
 
 type Count = number | [number, number];
@@ -38,20 +46,63 @@ export interface GroupConfig {
 }
 
 export interface PackConfig {
-  id: number;
+  /** For `single` / `multi` packs this must be `packIdFor(obstacles)`. */
+  id: string;
   name: string;
   theme: string;
+  obstacles: Obstacle[];
   /** Built and validated, but left out of manifest.json / index.ts (the app can't render it yet). */
   hidden?: boolean;
+  /** Recipes for levels to generate. Level files already on disk are kept, so groups only need to cover new levels. */
   groups: GroupConfig[];
+}
+
+export interface SuiteConfig {
+  id: SuiteId;
+  name: string;
+  packs: PackConfig[];
 }
 
 export interface BuildConfig {
   generatorVersion: string;
-  packs: PackConfig[];
+  suites: SuiteConfig[];
 }
 
-export const packLength = (pack: PackConfig) => Math.max(...pack.groups.map((g) => g.range[1]));
+interface PackRef {
+  suite: SuiteConfig;
+  pack: PackConfig;
+}
+
+const packRefs = (config: BuildConfig): PackRef[] => config.suites.flatMap((suite) => suite.packs.map((pack) => ({ suite, pack })));
+
+/** Generated suites guarantee every level uses exactly the pack's obstacle types; handcrafted packs may mix freely. */
+const isExact = (suite: SuiteConfig) => suite.id !== 'handcrafted';
+
+export const packLength = ({ suite, pack }: PackRef) =>
+  Math.max(existingLevelCount(suite.id, pack.id), ...pack.groups.map((g) => g.range[1]));
+
+const countMin = (c: Count | undefined) => (c === undefined ? 0 : typeof c === 'number' ? c : c[0]);
+const countMax = (c: Count | undefined) => (c === undefined ? 0 : typeof c === 'number' ? c : c[1]);
+
+/** Rejects recipes that could produce a level outside the pack's obstacle set. */
+export function checkConfig(config: BuildConfig): void {
+  const ids = new Set<string>();
+  for (const { suite, pack } of packRefs(config)) {
+    if (ids.has(pack.id)) throw new Error(`duplicate pack id "${pack.id}"`);
+    ids.add(pack.id);
+    if (!isExact(suite)) continue;
+    if (pack.id !== packIdFor(pack.obstacles)) throw new Error(`pack "${pack.id}" should be named "${packIdFor(pack.obstacles)}"`);
+    if (suite.id === 'single' && pack.obstacles.length > 1) throw new Error(`single-obstacle pack "${pack.id}" lists ${pack.obstacles.length} obstacles`);
+    if (suite.id === 'multi' && pack.obstacles.length < 2) throw new Error(`multi-obstacle pack "${pack.id}" lists fewer than 2 obstacles`);
+    for (const g of pack.groups) {
+      for (const o of OBSTACLES) {
+        const wanted = pack.obstacles.includes(o);
+        if (wanted && countMin(g[o]) < 1) throw new Error(`pack "${pack.id}" levels ${g.range.join('-')}: ${o} needs at least 1`);
+        if (!wanted && countMax(g[o]) > 0) throw new Error(`pack "${pack.id}" levels ${g.range.join('-')}: ${o} is not part of this pack`);
+      }
+    }
+  }
+}
 
 function groupParams(g: GroupConfig, seed: number): GenParams {
   return {
@@ -115,7 +166,8 @@ function sawtooth(sorted: Candidate[], firstLevel: number, g: GroupConfig): Cand
 }
 
 export interface BuildOptions {
-  packs?: number[];
+  /** Pack ids, e.g. `walls-bridges`. */
+  packs?: string[];
   /** Only groups that start inside this range of level indices. */
   levels?: [number, number];
   /** Regenerate groups whose level files already exist (by default they are kept as they are). */
@@ -129,23 +181,28 @@ const groupIndices = (g: GroupConfig) => Array.from({ length: g.range[1] - g.ran
 
 export async function buildAll(config: BuildConfig, opts: BuildOptions = {}): Promise<void> {
   const log = opts.log ?? console.log;
-  const todo = new Map<PackConfig, GroupConfig[]>();
-  for (const pack of config.packs) {
+  checkConfig(config);
+  const refs = packRefs(config);
+  const unknown = opts.packs?.filter((id) => !refs.some((r) => r.pack.id === id));
+  if (unknown?.length) throw new Error(`unknown pack id(s): ${unknown.join(', ')}`);
+  const todo = new Map<PackRef, GroupConfig[]>();
+  for (const ref of refs) {
+    const { suite, pack } = ref;
     if (opts.packs && !opts.packs.includes(pack.id)) continue;
     const groups = pack.groups.filter(
       (g) =>
         (!opts.levels || (g.range[0] >= opts.levels[0] && g.range[0] <= opts.levels[1])) &&
-        (opts.force || groupIndices(g).some((i) => !fs.existsSync(levelFile(pack.id, i)))),
+        (opts.force || groupIndices(g).some((i) => !fs.existsSync(levelFile(suite.id, pack.id, i)))),
     );
-    if (groups.length) todo.set(pack, groups);
+    if (groups.length) todo.set(ref, groups);
   }
 
   // Seed the dedupe set with every level that is not being regenerated.
   const seen = new Set<string>();
-  for (const pack of config.packs) {
-    const rebuilt = new Set((todo.get(pack) ?? []).flatMap(groupIndices));
-    for (let i = 1; i <= packLength(pack); i++) {
-      const f = levelFile(pack.id, i);
+  for (const ref of refs) {
+    const rebuilt = new Set((todo.get(ref) ?? []).flatMap(groupIndices));
+    for (let i = 1; i <= packLength(ref); i++) {
+      const f = levelFile(ref.suite.id, ref.pack.id, i);
       if (!rebuilt.has(i) && fs.existsSync(f)) seen.add(canonicalKey(readJson(f)));
     }
   }
@@ -154,8 +211,8 @@ export async function buildAll(config: BuildConfig, opts: BuildOptions = {}): Pr
     const workers = new AttemptPool(opts.workers ?? defaultWorkerCount());
     log(`using ${workers.size} worker threads`);
     try {
-      for (const [pack, groups] of todo) {
-        for (const g of groups) await buildGroup(workers, pack, g, seen, log);
+      for (const [ref, groups] of todo) {
+        for (const g of groups) await buildGroup(workers, ref, g, seen, log);
       }
     } finally {
       await workers.close();
@@ -167,7 +224,7 @@ export async function buildAll(config: BuildConfig, opts: BuildOptions = {}): Pr
 
 async function buildGroup(
   workers: AttemptPool,
-  pack: PackConfig,
+  { suite, pack }: PackRef,
   g: GroupConfig,
   seen: Set<string>,
   log: (msg: string) => void,
@@ -178,6 +235,7 @@ async function buildGroup(
   const pool: Candidate[] = [];
   const found = new Map<Candidate, { attempt: number; atMs: number; ms: number }>();
   let good = 0;
+  let mismatched = 0;
   const stats = emptyStats();
   const t0 = Date.now();
   const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
@@ -190,6 +248,11 @@ async function buildGroup(
       stats.attempts++;
       if (!c) {
         if (reject) stats.rejects[reject]++;
+        return false;
+      }
+      // The board builder can silently place fewer obstacles than asked for, dropping a type entirely.
+      if (isExact(suite) && !sameObstacles(obstaclesOf(c.puzzle), pack.obstacles)) {
+        mismatched++;
         return false;
       }
       const key = canonicalKey(c.puzzle);
@@ -211,12 +274,12 @@ async function buildGroup(
   chosen.forEach((c, i) => {
     const index = g.range[0] + i;
     const level = toLevel(c, {
-      id: levelId(pack.id, index),
+      id: packLevelId(pack.id, index),
       pack: pack.id,
       index,
       params: groupParams(g, c.seed),
     });
-    writeJson(levelFile(pack.id, index), { $schema: '../schema/level.schema.json', ...level });
+    writeJson(levelFile(suite.id, pack.id, index), { $schema: LEVEL_SCHEMA_REF, ...level });
     const f = found.get(c)!;
     log(
       `  ${level.id}: score ${c.difficulty.score}, found after ${secs(f.atMs)} ` +
@@ -229,21 +292,36 @@ async function buildGroup(
     `pack ${pack.id} levels ${g.range[0]}-${g.range[1]} (${g.size}x${g.height ?? g.size}): ${stats.attempts} attempts, ` +
       `${pool.length} candidates, ${((Date.now() - t0) / 1000).toFixed(1)}s  scores: ${scores}` +
       (chosen.some((c) => c.loadBearing !== undefined) ? `  load-bearing: ${bearing}/${count}` : '') +
-      `  rejects: ${JSON.stringify(stats.rejects)}`,
+      `  rejects: ${JSON.stringify({ ...stats.rejects, wrongObstacles: mismatched })}`,
   );
 }
 
+/**
+ * Lists every level file on disk (packs without any are kept as "coming soon") and
+ * checks each one sits in a pack whose obstacle types it matches exactly.
+ */
 export function writeManifest(config: BuildConfig): void {
+  checkConfig(config);
   const manifest: Manifest = {
-    formatVersion: 1,
-    packs: config.packs
-      .filter((p) => !p.hidden)
-      .map((p) => ({
-        id: p.id,
-        name: p.name,
-        theme: p.theme,
-        levels: Array.from({ length: packLength(p) }, (_, i) => levelId(p.id, i + 1)),
-      })),
+    formatVersion: 2,
+    suites: config.suites.map((suite) => ({
+      id: suite.id,
+      name: suite.name,
+      packs: suite.packs
+        .filter((p) => !p.hidden)
+        .map((p) => {
+          const levels = Array.from({ length: existingLevelCount(suite.id, p.id) }, (_, i) => {
+            const id = packLevelId(p.id, i + 1);
+            const level = readJson<Level>(levelFile(suite.id, p.id, i + 1));
+            if (level.id !== id) throw new Error(`${levelFile(suite.id, p.id, i + 1)}: id is "${level.id}", expected "${id}"`);
+            if (isExact(suite) && !sameObstacles(obstaclesOf(level), p.obstacles)) {
+              throw new Error(`${id} uses [${obstaclesOf(level).join(', ')}], which does not match pack "${p.id}"`);
+            }
+            return id;
+          });
+          return { id: p.id, name: p.name, theme: p.theme, obstacles: p.obstacles, levels };
+        }),
+    })),
   };
   writeJson(path.join(LEVELS_DIR, 'manifest.json'), manifest);
 }

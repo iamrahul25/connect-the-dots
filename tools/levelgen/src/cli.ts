@@ -24,17 +24,19 @@ Usage:
   levelgen generate --size 7 --colors 6-8 [--walls 0-2] [--bridges 1] [--warps 1]
                     [--teleporters 1] [--tunnels 1-2] [--rotators 1-2] [--locks 1]
                     [--difficulty 35-50] [--count 20] [--seed 42] [--out levels/custom]
-  levelgen build    --config tools/levelgen/levels.config.json [--pack 3] [--levels 21-40] [--force]
-                    [--workers 12]
+  levelgen build    --config tools/levelgen/levels.config.json [--pack walls-bridges] [--levels 21-40]
+                    [--force] [--workers 12]
                     (only groups with missing level files are generated unless --force;
+                     --pack takes pack ids from the config, comma-separated;
                      --levels limits it to groups starting at those level indices;
                      --workers defaults to one thread per logical CPU - build several
-                     packs in one process, e.g. --pack 9,10, rather than one process each)
+                     packs in one process, e.g. --pack walls,warps, rather than one process each)
   levelgen validate <dir|file>
   levelgen show     <file> [--solution]
   levelgen daily    --month 2026-10 [--out levels/daily]
   levelgen index    (regenerate levels/index.ts)
-  levelgen manifest [--config ...] (rewrite manifest.json from the recipe, skipping hidden packs, then index)
+  levelgen manifest [--config ...] (rewrite manifest.json from the recipe and the level files on disk,
+                     skipping hidden packs, then index)
 `;
 
 function parseArgs(argv: string[]) {
@@ -88,7 +90,7 @@ function cmdGenerate(flags: Record<string, string | true>) {
       console.error(`level ${i + 1}: failed after ${stats.attempts} attempts`, stats.rejects);
       continue;
     }
-    const level = toLevel(c, { id: `custom-${pad(i + 1, 3)}`, pack: 0, index: i + 1, params: p });
+    const level = toLevel(c, { id: `custom-${pad(i + 1, 3)}`, pack: 'custom', index: i + 1, params: p });
     const file = path.join(out, `level-${pad(i + 1, 3)}.json`);
     writeJson(file, level);
     console.log(renderLevel(level));
@@ -124,7 +126,7 @@ function generateDaily(key: string, tier: DailyTier, index: number): Level {
     const c = generateLevel(params);
     // The board builder can silently place fewer walls/bridges than asked for.
     if (!c || obstacleCount(c.puzzle) < lo || obstacleCount(c.puzzle) > hi) continue;
-    return toLevel(c, { id: `daily-${key}-${tier}`, pack: 0, index, params });
+    return toLevel(c, { id: `daily-${key}-${tier}`, pack: 'daily', index, params });
   }
   throw new Error(`daily ${key} ${tier} failed after ${DAILY_RETRIES} param sets`);
 }
@@ -160,7 +162,7 @@ async function main() {
       return cmdGenerate(flags);
     case 'build': {
       const config = readJson<BuildConfig>(resolve(String(flags.config ?? 'tools/levelgen/levels.config.json')));
-      const packs = typeof flags.pack === 'string' ? flags.pack.split(',').map(Number) : undefined;
+      const packs = typeof flags.pack === 'string' ? flags.pack.split(',').map((p) => p.trim()) : undefined;
       const workers = typeof flags.workers === 'string' ? Number(flags.workers) : undefined;
       if (workers !== undefined && !(Number.isInteger(workers) && workers > 0)) throw new Error('--workers must be a positive integer');
       return buildAll(config, { packs, levels: range(flags.levels), force: !!flags.force, workers });

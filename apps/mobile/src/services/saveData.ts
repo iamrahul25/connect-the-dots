@@ -4,6 +4,7 @@ import {
   isDaySolved,
   totalStars,
   upgradeLegacyDaily,
+  upgradeLegacyLevelIds,
   useProgress,
   type DailyDay,
   type DailyResult,
@@ -14,8 +15,8 @@ import { useSettings, type SettingsState } from '../store/settings';
 import { isThemeId } from '../theme/config';
 
 const APP_ID = 'connect-the-dots';
-/** 2 = daily results split per tier (easy / medium / hard). */
-const FORMAT = 2;
+/** 2 = daily results split per tier (easy / medium / hard). 3 = levels grouped into suites, string pack ids. */
+const FORMAT = 3;
 /**
  * Mixed into the checksum so hand-edited files are rejected. It ships in the bundle, so this
  * deters casual tampering only; changing it invalidates every previously exported file.
@@ -38,7 +39,7 @@ interface SavedProgress {
   };
   inProgress: Record<string, SavedBoard>;
   lastPlayed: string | null;
-  completedPacks: number[];
+  completedPacks: string[];
 }
 
 export interface SaveData {
@@ -112,6 +113,7 @@ export function exportSaveData(): string {
 const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const isInt = (v: unknown, min = 0): v is number => typeof v === 'number' && Number.isInteger(v) && v >= min;
 const isIntArray = (v: unknown): v is number[] => Array.isArray(v) && v.every((n) => isInt(n));
+const isStringArray = (v: unknown): v is string[] => Array.isArray(v) && v.every((s) => typeof s === 'string');
 const isDateKey = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
 
 function validLevel(v: unknown): v is LevelRecord {
@@ -148,7 +150,10 @@ function validDailyDay(v: unknown): v is DailyDay {
   return validRecord(v, validDailyResult, isDailyTier);
 }
 
-/** Format 1 files store one `{ stars, moves }` per day instead of one per tier. */
+/**
+ * Format 1 files store one `{ stars, moves }` per day instead of one per tier.
+ * Formats 1-2 use numbered packs (`completedPacks: [1, 2]`, level ids like `p03-l012`).
+ */
 function validProgress(v: unknown, format: number): v is SavedProgress {
   if (!isObj(v) || !isObj(v.daily)) return false;
   const d = v.daily;
@@ -161,7 +166,7 @@ function validProgress(v: unknown, format: number): v is SavedProgress {
     (d.lastDate === null || isDateKey(d.lastDate)) &&
     validRecord(v.inProgress, validBoard) &&
     (v.lastPlayed === null || typeof v.lastPlayed === 'string') &&
-    isIntArray(v.completedPacks)
+    (format < 3 ? isIntArray(v.completedPacks) : isStringArray(v.completedPacks))
   );
 }
 
@@ -210,6 +215,7 @@ export function parseSaveData(text: string): ParseResult {
     const completed = upgradeLegacyDaily(p.daily.completed as unknown as Record<string, DailyResult>);
     save.progress = { ...p, daily: { ...p.daily, completed }, inProgress: dropLegacyDailyBoards(p.inProgress) };
   }
+  if (file.format < 3) save.progress = { ...save.progress, ...upgradeLegacyLevelIds(save.progress) };
   return { ok: true, data: save, summary: summarize(save, typeof file.exportedAt === 'string' ? file.exportedAt : null) };
 }
 

@@ -86,10 +86,13 @@ export interface GenParamsRecord {
   locks?: number;
 }
 
+export type Obstacle = 'walls' | 'bridges' | 'warps' | 'teleporters' | 'tunnels' | 'rotators' | 'locks';
+
 export interface Level extends Puzzle {
   $schema?: string;
   id: string;
-  pack: number;
+  /** Pack id (e.g. `walls-bridges`); `daily` / `custom` for levels outside the packs. */
+  pack: string;
   index: number;
   /** 2 = uses teleporters, tunnels, rotators or locks. */
   formatVersion: 1 | 2;
@@ -106,9 +109,28 @@ export interface Level extends Puzzle {
   };
 }
 
+/** `single`: one obstacle type per pack, `multi`: a fixed mix, `handcrafted`: hand-designed packs. */
+export type SuiteId = 'single' | 'multi' | 'handcrafted';
+
+export interface ManifestPack {
+  id: string;
+  name: string;
+  theme: string;
+  /** Every level in a `single` / `multi` pack uses exactly these obstacle types. */
+  obstacles: Obstacle[];
+  /** Empty while the pack is still "coming soon". */
+  levels: string[];
+}
+
+export interface ManifestSuite {
+  id: SuiteId;
+  name: string;
+  packs: ManifestPack[];
+}
+
 export interface Manifest {
-  formatVersion: 1;
-  packs: { id: number; name: string; theme: string; levels: string[] }[];
+  formatVersion: 2;
+  suites: ManifestSuite[];
 }
 
 export type DailyTier = 'easy' | 'medium' | 'hard';

@@ -92,12 +92,10 @@ function PackTable({ pack }: { pack: Pack }) {
         style={({ pressed }) => [styles.packHeader, pressed && { opacity: 0.6 }]}
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
-        accessibilityLabel={`Pack ${pack.id}, ${pack.name}`}
+        accessibilityLabel={pack.name}
       >
         <View style={{ flex: 1 }}>
-          <Text style={styles.packTitle}>
-            Pack {pack.id} · {pack.name}
-          </Text>
+          <Text style={styles.packTitle}>{pack.name}</Text>
           <Text style={styles.packSub}>{packSummary(rows)}</Text>
         </View>
         <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={s(18)} color={theme.text.muted} />
@@ -154,14 +152,22 @@ export function LevelDetailsLegend() {
   );
 }
 
-/** Every pack's levels as collapsible tables: grid size, color count and obstacle counts. */
+/** Every pack's levels as collapsible tables, grouped by suite: grid size, color count and obstacle counts. */
 export function LevelDetails() {
   const styles = useStyles();
   return (
-    <View style={styles.group}>
-      {manifest.packs.map((p, i) => (
-        <View key={p.id} style={i > 0 && styles.divider}>
-          <PackTable pack={p} />
+    <View style={styles.suites}>
+      {manifest.suites.map((suite) => (
+        <View key={suite.id} style={styles.suite}>
+          <Text style={styles.suiteTitle}>{suite.name}</Text>
+          <View style={styles.group}>
+            {suite.packs.length === 0 && <Text style={[styles.packSub, styles.emptySuite]}>No packs yet</Text>}
+            {suite.packs.map((p, i) => (
+              <View key={p.id} style={i > 0 && styles.divider}>
+                <PackTable pack={p} />
+              </View>
+            ))}
+          </View>
         </View>
       ))}
     </View>
@@ -169,6 +175,10 @@ export function LevelDetails() {
 }
 
 const useStyles = makeStyles((t, s) => ({
+  suites: { gap: s(18) },
+  suite: { gap: s(8) },
+  suiteTitle: { fontFamily: fonts.bodyBold, fontSize: s(13), color: t.text.secondary, textTransform: 'uppercase', letterSpacing: 1.5, marginLeft: s(6) },
+  emptySuite: { padding: s(16), textAlign: 'center' },
   group: { borderRadius: s(22), backgroundColor: t.box.background, borderWidth: 1, borderColor: t.box.border, overflow: 'hidden' },
   divider: { borderTopWidth: 1, borderTopColor: t.box.border },
   packHeader: { flexDirection: 'row', alignItems: 'center', gap: s(12), paddingHorizontal: s(16), paddingVertical: s(12) },
