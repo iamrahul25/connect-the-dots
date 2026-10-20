@@ -5,76 +5,70 @@
   "index": 3,
   "formatVersion": 1,
   "size": {
-    "width": 7,
-    "height": 7
+    "width": 5,
+    "height": 5
   },
   "dots": [
     {
-      "color": 4,
-      "start": [0, 2],
-      "end": [5, 1]
-    },
-    {
-      "color": 2,
-      "start": [0, 4],
-      "end": [4, 2]
+      "color": 1,
+      "start": [0, 1],
+      "end": [3, 0]
     },
     {
       "color": 3,
-      "start": [0, 5],
-      "end": [6, 4]
-    },
-    {
-      "color": 1,
-      "start": [1, 5],
-      "end": [5, 5]
+      "start": [0, 4],
+      "end": [2, 3]
     },
     {
       "color": 0,
-      "start": [2, 2],
-      "end": [6, 0]
+      "start": [1, 1],
+      "end": [4, 0]
     },
     {
-      "color": 5,
-      "start": [3, 2],
-      "end": [4, 3]
+      "color": 2,
+      "start": [1, 4],
+      "end": [3, 3]
+    },
+    {
+      "color": 4,
+      "start": [4, 2],
+      "end": [4, 4]
     }
   ],
-  "walls": [[5, 2], [1, 4]],
+  "walls": [[0, 2], [2, 1]],
   "bridges": [],
   "warps": [],
   "solution": {
-    "0": [[0, 2], [0, 1], [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, 1]],
-    "1": [[0, 4], [0, 3], [1, 3], [1, 2], [1, 1], [2, 1], [3, 1], [4, 1], [4, 2]],
-    "2": [[0, 5], [0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6], [6, 5], [6, 4]],
-    "3": [[1, 5], [2, 5], [3, 5], [4, 5], [5, 5]],
-    "4": [[2, 2], [2, 3], [2, 4], [3, 4], [4, 4], [5, 4], [5, 3], [6, 3], [6, 2], [6, 1], [6, 0]],
-    "5": [[3, 2], [3, 3], [4, 3]]
+    "0": [[0, 1], [0, 0], [1, 0], [2, 0], [3, 0]],
+    "1": [[0, 4], [0, 3], [1, 3], [2, 3]],
+    "2": [[1, 1], [1, 2], [2, 2], [3, 2], [3, 1], [4, 1], [4, 0]],
+    "3": [[1, 4], [2, 4], [3, 4], [3, 3]],
+    "4": [[4, 2], [4, 3], [4, 4]]
   },
   "difficulty": {
-    "score": 28.4,
-    "band": "easy",
+    "score": 8.6,
+    "band": "relaxed",
     "metrics": {
-      "cells": 47,
-      "colors": 6,
-      "avgPathLength": 7.83,
-      "turnDensity": 0.277,
-      "maxSolverTier": 3,
-      "tierCounts": [37, 0, 4, 0],
-      "searchNodes": 43,
-      "forcedMoveRatio": 0.902
+      "cells": 23,
+      "colors": 5,
+      "avgPathLength": 4.6,
+      "turnDensity": 0.304,
+      "maxSolverTier": 1,
+      "tierCounts": [18, 0, 0, 0],
+      "searchNodes": 19,
+      "forcedMoveRatio": 1
     }
   },
   "stars": {
-    "perfectMoves": 6,
-    "twoStarMoves": 9
+    "perfectMoves": 5,
+    "twoStarMoves": 8
   },
   "meta": {
-    "seed": 2830002930,
-    "generatorVersion": "1.0.0",
+    "seed": 800977476,
+    "generatorVersion": "2.0.0",
     "params": {
-      "size": 7,
-      "colors": [5, 7],
+      "size": 5,
+      "colors": [4, 5],
       "walls": 2,
       "bridges": 0,
       "warps": 0

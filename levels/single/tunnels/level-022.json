@@ -1,0 +1,113 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "tunnels-022",
+  "pack": "tunnels",
+  "index": 22,
+  "formatVersion": 2,
+  "size": {
+    "width": 8,
+    "height": 8
+  },
+  "dots": [
+    {
+      "color": 4,
+      "start": [0, 3],
+      "end": [2, 4]
+    },
+    {
+      "color": 0,
+      "start": [0, 4],
+      "end": [6, 1]
+    },
+    {
+      "color": 5,
+      "start": [0, 5],
+      "end": [2, 7]
+    },
+    {
+      "color": 2,
+      "start": [1, 1],
+      "end": [4, 3]
+    },
+    {
+      "color": 1,
+      "start": [2, 5],
+      "end": [6, 6]
+    },
+    {
+      "color": 6,
+      "start": [3, 0],
+      "end": [4, 4]
+    },
+    {
+      "color": 3,
+      "start": [4, 0],
+      "end": [7, 4]
+    },
+    {
+      "color": 7,
+      "start": [6, 2],
+      "end": [6, 4]
+    }
+  ],
+  "walls": [],
+  "bridges": [],
+  "warps": [],
+  "teleporters": [],
+  "tunnels": [
+    {
+      "cell": [1, 5],
+      "start": "v"
+    },
+    {
+      "cell": [6, 5],
+      "start": "h"
+    }
+  ],
+  "rotators": [],
+  "locks": [],
+  "solution": {
+    "0": [[0, 3], [1, 3], [2, 3], [2, 4]],
+    "1": [[0, 4], [1, 4], [1, 5], [1, 6], [2, 6], [3, 6], [3, 7], [4, 7], [5, 7], [6, 7], [7, 7], [7, 6], [7, 5], [6, 5], [5, 5], [5, 4], [5, 3], [5, 2], [5, 1], [6, 1]],
+    "2": [[0, 5], [0, 6], [0, 7], [1, 7], [2, 7]],
+    "3": [[1, 1], [2, 1], [3, 1], [4, 1], [4, 2], [4, 3]],
+    "4": [[2, 5], [3, 5], [4, 5], [4, 6], [5, 6], [6, 6]],
+    "5": [[3, 0], [2, 0], [1, 0], [0, 0], [0, 1], [0, 2], [1, 2], [2, 2], [3, 2], [3, 3], [3, 4], [4, 4]],
+    "6": [[4, 0], [5, 0], [6, 0], [7, 0], [7, 1], [7, 2], [7, 3], [7, 4]],
+    "7": [[6, 2], [6, 3], [6, 4]]
+  },
+  "difficulty": {
+    "score": 41.3,
+    "band": "medium",
+    "metrics": {
+      "cells": 64,
+      "colors": 8,
+      "avgPathLength": 8,
+      "turnDensity": 0.281,
+      "maxSolverTier": 4,
+      "tierCounts": [50, 1, 4, 1],
+      "searchNodes": 156,
+      "forcedMoveRatio": 0.893
+    }
+  },
+  "stars": {
+    "perfectMoves": 8,
+    "twoStarMoves": 12
+  },
+  "meta": {
+    "seed": 1305590828,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 8,
+      "colors": [6, 8],
+      "walls": 0,
+      "bridges": 0,
+      "warps": 0,
+      "teleporters": 0,
+      "tunnels": 2,
+      "rotators": 0,
+      "locks": 0
+    },
+    "loadBearing": true
+  }
+}

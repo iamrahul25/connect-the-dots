@@ -1,0 +1,83 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "bridges-013",
+  "pack": "bridges",
+  "index": 13,
+  "formatVersion": 1,
+  "size": {
+    "width": 7,
+    "height": 7
+  },
+  "dots": [
+    {
+      "color": 5,
+      "start": [0, 6],
+      "end": [2, 6]
+    },
+    {
+      "color": 2,
+      "start": [1, 1],
+      "end": [6, 2]
+    },
+    {
+      "color": 1,
+      "start": [2, 3],
+      "end": [5, 5]
+    },
+    {
+      "color": 3,
+      "start": [2, 5],
+      "end": [6, 1]
+    },
+    {
+      "color": 4,
+      "start": [3, 2],
+      "end": [4, 5]
+    },
+    {
+      "color": 0,
+      "start": [3, 6],
+      "end": [5, 1]
+    }
+  ],
+  "walls": [],
+  "bridges": [[5, 2]],
+  "warps": [],
+  "solution": {
+    "0": [[0, 6], [1, 6], [2, 6]],
+    "1": [[1, 1], [2, 1], [3, 1], [4, 1], [4, 2], [5, 2], [6, 2]],
+    "2": [[2, 3], [3, 3], [4, 3], [4, 4], [5, 4], [5, 5]],
+    "3": [[2, 5], [1, 5], [0, 5], [0, 4], [0, 3], [0, 2], [0, 1], [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [6, 1]],
+    "4": [[3, 2], [2, 2], [1, 2], [1, 3], [1, 4], [2, 4], [3, 4], [3, 5], [4, 5]],
+    "5": [[3, 6], [4, 6], [5, 6], [6, 6], [6, 5], [6, 4], [6, 3], [5, 3], [5, 2], [5, 1]]
+  },
+  "difficulty": {
+    "score": 27.1,
+    "band": "easy",
+    "metrics": {
+      "cells": 49,
+      "colors": 6,
+      "avgPathLength": 8.33,
+      "turnDensity": 0.3,
+      "maxSolverTier": 3,
+      "tierCounts": [43, 0, 1, 0],
+      "searchNodes": 47,
+      "forcedMoveRatio": 0.977
+    }
+  },
+  "stars": {
+    "perfectMoves": 6,
+    "twoStarMoves": 9
+  },
+  "meta": {
+    "seed": 3481107618,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 7,
+      "colors": [5, 7],
+      "walls": 0,
+      "bridges": 1,
+      "warps": 0
+    }
+  }
+}

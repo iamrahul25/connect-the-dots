@@ -83,6 +83,26 @@ import l_walls_027 from './single/walls/level-027.json';
 import l_walls_028 from './single/walls/level-028.json';
 import l_walls_029 from './single/walls/level-029.json';
 import l_walls_030 from './single/walls/level-030.json';
+import l_walls_031 from './single/walls/level-031.json';
+import l_walls_032 from './single/walls/level-032.json';
+import l_walls_033 from './single/walls/level-033.json';
+import l_walls_034 from './single/walls/level-034.json';
+import l_walls_035 from './single/walls/level-035.json';
+import l_walls_036 from './single/walls/level-036.json';
+import l_walls_037 from './single/walls/level-037.json';
+import l_walls_038 from './single/walls/level-038.json';
+import l_walls_039 from './single/walls/level-039.json';
+import l_walls_040 from './single/walls/level-040.json';
+import l_walls_041 from './single/walls/level-041.json';
+import l_walls_042 from './single/walls/level-042.json';
+import l_walls_043 from './single/walls/level-043.json';
+import l_walls_044 from './single/walls/level-044.json';
+import l_walls_045 from './single/walls/level-045.json';
+import l_walls_046 from './single/walls/level-046.json';
+import l_walls_047 from './single/walls/level-047.json';
+import l_walls_048 from './single/walls/level-048.json';
+import l_walls_049 from './single/walls/level-049.json';
+import l_walls_050 from './single/walls/level-050.json';
 import l_bridges_001 from './single/bridges/level-001.json';
 import l_bridges_002 from './single/bridges/level-002.json';
 import l_bridges_003 from './single/bridges/level-003.json';
@@ -90,6 +110,49 @@ import l_bridges_004 from './single/bridges/level-004.json';
 import l_bridges_005 from './single/bridges/level-005.json';
 import l_bridges_006 from './single/bridges/level-006.json';
 import l_bridges_007 from './single/bridges/level-007.json';
+import l_bridges_008 from './single/bridges/level-008.json';
+import l_bridges_009 from './single/bridges/level-009.json';
+import l_bridges_010 from './single/bridges/level-010.json';
+import l_bridges_011 from './single/bridges/level-011.json';
+import l_bridges_012 from './single/bridges/level-012.json';
+import l_bridges_013 from './single/bridges/level-013.json';
+import l_bridges_014 from './single/bridges/level-014.json';
+import l_bridges_015 from './single/bridges/level-015.json';
+import l_bridges_016 from './single/bridges/level-016.json';
+import l_bridges_017 from './single/bridges/level-017.json';
+import l_bridges_018 from './single/bridges/level-018.json';
+import l_bridges_019 from './single/bridges/level-019.json';
+import l_bridges_020 from './single/bridges/level-020.json';
+import l_bridges_021 from './single/bridges/level-021.json';
+import l_bridges_022 from './single/bridges/level-022.json';
+import l_bridges_023 from './single/bridges/level-023.json';
+import l_bridges_024 from './single/bridges/level-024.json';
+import l_bridges_025 from './single/bridges/level-025.json';
+import l_bridges_026 from './single/bridges/level-026.json';
+import l_bridges_027 from './single/bridges/level-027.json';
+import l_bridges_028 from './single/bridges/level-028.json';
+import l_bridges_029 from './single/bridges/level-029.json';
+import l_bridges_030 from './single/bridges/level-030.json';
+import l_bridges_031 from './single/bridges/level-031.json';
+import l_bridges_032 from './single/bridges/level-032.json';
+import l_bridges_033 from './single/bridges/level-033.json';
+import l_bridges_034 from './single/bridges/level-034.json';
+import l_bridges_035 from './single/bridges/level-035.json';
+import l_bridges_036 from './single/bridges/level-036.json';
+import l_bridges_037 from './single/bridges/level-037.json';
+import l_bridges_038 from './single/bridges/level-038.json';
+import l_bridges_039 from './single/bridges/level-039.json';
+import l_bridges_040 from './single/bridges/level-040.json';
+import l_bridges_041 from './single/bridges/level-041.json';
+import l_bridges_042 from './single/bridges/level-042.json';
+import l_bridges_043 from './single/bridges/level-043.json';
+import l_bridges_044 from './single/bridges/level-044.json';
+import l_bridges_045 from './single/bridges/level-045.json';
+import l_bridges_046 from './single/bridges/level-046.json';
+import l_bridges_047 from './single/bridges/level-047.json';
+import l_bridges_048 from './single/bridges/level-048.json';
+import l_bridges_049 from './single/bridges/level-049.json';
+import l_bridges_050 from './single/bridges/level-050.json';
 import l_warps_001 from './single/warps/level-001.json';
 import l_warps_002 from './single/warps/level-002.json';
 import l_warps_003 from './single/warps/level-003.json';
@@ -100,26 +163,246 @@ import l_warps_007 from './single/warps/level-007.json';
 import l_warps_008 from './single/warps/level-008.json';
 import l_warps_009 from './single/warps/level-009.json';
 import l_warps_010 from './single/warps/level-010.json';
+import l_warps_011 from './single/warps/level-011.json';
+import l_warps_012 from './single/warps/level-012.json';
+import l_warps_013 from './single/warps/level-013.json';
+import l_warps_014 from './single/warps/level-014.json';
+import l_warps_015 from './single/warps/level-015.json';
+import l_warps_016 from './single/warps/level-016.json';
+import l_warps_017 from './single/warps/level-017.json';
+import l_warps_018 from './single/warps/level-018.json';
+import l_warps_019 from './single/warps/level-019.json';
+import l_warps_020 from './single/warps/level-020.json';
+import l_warps_021 from './single/warps/level-021.json';
+import l_warps_022 from './single/warps/level-022.json';
+import l_warps_023 from './single/warps/level-023.json';
+import l_warps_024 from './single/warps/level-024.json';
+import l_warps_025 from './single/warps/level-025.json';
+import l_warps_026 from './single/warps/level-026.json';
+import l_warps_027 from './single/warps/level-027.json';
+import l_warps_028 from './single/warps/level-028.json';
+import l_warps_029 from './single/warps/level-029.json';
+import l_warps_030 from './single/warps/level-030.json';
+import l_warps_031 from './single/warps/level-031.json';
+import l_warps_032 from './single/warps/level-032.json';
+import l_warps_033 from './single/warps/level-033.json';
+import l_warps_034 from './single/warps/level-034.json';
+import l_warps_035 from './single/warps/level-035.json';
+import l_warps_036 from './single/warps/level-036.json';
+import l_warps_037 from './single/warps/level-037.json';
+import l_warps_038 from './single/warps/level-038.json';
+import l_warps_039 from './single/warps/level-039.json';
+import l_warps_040 from './single/warps/level-040.json';
+import l_warps_041 from './single/warps/level-041.json';
+import l_warps_042 from './single/warps/level-042.json';
+import l_warps_043 from './single/warps/level-043.json';
+import l_warps_044 from './single/warps/level-044.json';
+import l_warps_045 from './single/warps/level-045.json';
+import l_warps_046 from './single/warps/level-046.json';
+import l_warps_047 from './single/warps/level-047.json';
+import l_warps_048 from './single/warps/level-048.json';
+import l_warps_049 from './single/warps/level-049.json';
+import l_warps_050 from './single/warps/level-050.json';
 import l_teleporters_001 from './single/teleporters/level-001.json';
 import l_teleporters_002 from './single/teleporters/level-002.json';
 import l_teleporters_003 from './single/teleporters/level-003.json';
 import l_teleporters_004 from './single/teleporters/level-004.json';
 import l_teleporters_005 from './single/teleporters/level-005.json';
+import l_teleporters_006 from './single/teleporters/level-006.json';
+import l_teleporters_007 from './single/teleporters/level-007.json';
+import l_teleporters_008 from './single/teleporters/level-008.json';
+import l_teleporters_009 from './single/teleporters/level-009.json';
+import l_teleporters_010 from './single/teleporters/level-010.json';
+import l_teleporters_011 from './single/teleporters/level-011.json';
+import l_teleporters_012 from './single/teleporters/level-012.json';
+import l_teleporters_013 from './single/teleporters/level-013.json';
+import l_teleporters_014 from './single/teleporters/level-014.json';
+import l_teleporters_015 from './single/teleporters/level-015.json';
+import l_teleporters_016 from './single/teleporters/level-016.json';
+import l_teleporters_017 from './single/teleporters/level-017.json';
+import l_teleporters_018 from './single/teleporters/level-018.json';
+import l_teleporters_019 from './single/teleporters/level-019.json';
+import l_teleporters_020 from './single/teleporters/level-020.json';
+import l_teleporters_021 from './single/teleporters/level-021.json';
+import l_teleporters_022 from './single/teleporters/level-022.json';
+import l_teleporters_023 from './single/teleporters/level-023.json';
+import l_teleporters_024 from './single/teleporters/level-024.json';
+import l_teleporters_025 from './single/teleporters/level-025.json';
+import l_teleporters_026 from './single/teleporters/level-026.json';
+import l_teleporters_027 from './single/teleporters/level-027.json';
+import l_teleporters_028 from './single/teleporters/level-028.json';
+import l_teleporters_029 from './single/teleporters/level-029.json';
+import l_teleporters_030 from './single/teleporters/level-030.json';
+import l_teleporters_031 from './single/teleporters/level-031.json';
+import l_teleporters_032 from './single/teleporters/level-032.json';
+import l_teleporters_033 from './single/teleporters/level-033.json';
+import l_teleporters_034 from './single/teleporters/level-034.json';
+import l_teleporters_035 from './single/teleporters/level-035.json';
+import l_teleporters_036 from './single/teleporters/level-036.json';
+import l_teleporters_037 from './single/teleporters/level-037.json';
+import l_teleporters_038 from './single/teleporters/level-038.json';
+import l_teleporters_039 from './single/teleporters/level-039.json';
+import l_teleporters_040 from './single/teleporters/level-040.json';
+import l_teleporters_041 from './single/teleporters/level-041.json';
+import l_teleporters_042 from './single/teleporters/level-042.json';
+import l_teleporters_043 from './single/teleporters/level-043.json';
+import l_teleporters_044 from './single/teleporters/level-044.json';
+import l_teleporters_045 from './single/teleporters/level-045.json';
+import l_teleporters_046 from './single/teleporters/level-046.json';
+import l_teleporters_047 from './single/teleporters/level-047.json';
+import l_teleporters_048 from './single/teleporters/level-048.json';
+import l_teleporters_049 from './single/teleporters/level-049.json';
+import l_teleporters_050 from './single/teleporters/level-050.json';
 import l_tunnels_001 from './single/tunnels/level-001.json';
 import l_tunnels_002 from './single/tunnels/level-002.json';
 import l_tunnels_003 from './single/tunnels/level-003.json';
 import l_tunnels_004 from './single/tunnels/level-004.json';
 import l_tunnels_005 from './single/tunnels/level-005.json';
+import l_tunnels_006 from './single/tunnels/level-006.json';
+import l_tunnels_007 from './single/tunnels/level-007.json';
+import l_tunnels_008 from './single/tunnels/level-008.json';
+import l_tunnels_009 from './single/tunnels/level-009.json';
+import l_tunnels_010 from './single/tunnels/level-010.json';
+import l_tunnels_011 from './single/tunnels/level-011.json';
+import l_tunnels_012 from './single/tunnels/level-012.json';
+import l_tunnels_013 from './single/tunnels/level-013.json';
+import l_tunnels_014 from './single/tunnels/level-014.json';
+import l_tunnels_015 from './single/tunnels/level-015.json';
+import l_tunnels_016 from './single/tunnels/level-016.json';
+import l_tunnels_017 from './single/tunnels/level-017.json';
+import l_tunnels_018 from './single/tunnels/level-018.json';
+import l_tunnels_019 from './single/tunnels/level-019.json';
+import l_tunnels_020 from './single/tunnels/level-020.json';
+import l_tunnels_021 from './single/tunnels/level-021.json';
+import l_tunnels_022 from './single/tunnels/level-022.json';
+import l_tunnels_023 from './single/tunnels/level-023.json';
+import l_tunnels_024 from './single/tunnels/level-024.json';
+import l_tunnels_025 from './single/tunnels/level-025.json';
+import l_tunnels_026 from './single/tunnels/level-026.json';
+import l_tunnels_027 from './single/tunnels/level-027.json';
+import l_tunnels_028 from './single/tunnels/level-028.json';
+import l_tunnels_029 from './single/tunnels/level-029.json';
+import l_tunnels_030 from './single/tunnels/level-030.json';
+import l_tunnels_031 from './single/tunnels/level-031.json';
+import l_tunnels_032 from './single/tunnels/level-032.json';
+import l_tunnels_033 from './single/tunnels/level-033.json';
+import l_tunnels_034 from './single/tunnels/level-034.json';
+import l_tunnels_035 from './single/tunnels/level-035.json';
+import l_tunnels_036 from './single/tunnels/level-036.json';
+import l_tunnels_037 from './single/tunnels/level-037.json';
+import l_tunnels_038 from './single/tunnels/level-038.json';
+import l_tunnels_039 from './single/tunnels/level-039.json';
+import l_tunnels_040 from './single/tunnels/level-040.json';
+import l_tunnels_041 from './single/tunnels/level-041.json';
+import l_tunnels_042 from './single/tunnels/level-042.json';
+import l_tunnels_043 from './single/tunnels/level-043.json';
+import l_tunnels_044 from './single/tunnels/level-044.json';
+import l_tunnels_045 from './single/tunnels/level-045.json';
+import l_tunnels_046 from './single/tunnels/level-046.json';
+import l_tunnels_047 from './single/tunnels/level-047.json';
+import l_tunnels_048 from './single/tunnels/level-048.json';
+import l_tunnels_049 from './single/tunnels/level-049.json';
+import l_tunnels_050 from './single/tunnels/level-050.json';
 import l_rotators_001 from './single/rotators/level-001.json';
 import l_rotators_002 from './single/rotators/level-002.json';
 import l_rotators_003 from './single/rotators/level-003.json';
 import l_rotators_004 from './single/rotators/level-004.json';
 import l_rotators_005 from './single/rotators/level-005.json';
+import l_rotators_006 from './single/rotators/level-006.json';
+import l_rotators_007 from './single/rotators/level-007.json';
+import l_rotators_008 from './single/rotators/level-008.json';
+import l_rotators_009 from './single/rotators/level-009.json';
+import l_rotators_010 from './single/rotators/level-010.json';
+import l_rotators_011 from './single/rotators/level-011.json';
+import l_rotators_012 from './single/rotators/level-012.json';
+import l_rotators_013 from './single/rotators/level-013.json';
+import l_rotators_014 from './single/rotators/level-014.json';
+import l_rotators_015 from './single/rotators/level-015.json';
+import l_rotators_016 from './single/rotators/level-016.json';
+import l_rotators_017 from './single/rotators/level-017.json';
+import l_rotators_018 from './single/rotators/level-018.json';
+import l_rotators_019 from './single/rotators/level-019.json';
+import l_rotators_020 from './single/rotators/level-020.json';
+import l_rotators_021 from './single/rotators/level-021.json';
+import l_rotators_022 from './single/rotators/level-022.json';
+import l_rotators_023 from './single/rotators/level-023.json';
+import l_rotators_024 from './single/rotators/level-024.json';
+import l_rotators_025 from './single/rotators/level-025.json';
+import l_rotators_026 from './single/rotators/level-026.json';
+import l_rotators_027 from './single/rotators/level-027.json';
+import l_rotators_028 from './single/rotators/level-028.json';
+import l_rotators_029 from './single/rotators/level-029.json';
+import l_rotators_030 from './single/rotators/level-030.json';
+import l_rotators_031 from './single/rotators/level-031.json';
+import l_rotators_032 from './single/rotators/level-032.json';
+import l_rotators_033 from './single/rotators/level-033.json';
+import l_rotators_034 from './single/rotators/level-034.json';
+import l_rotators_035 from './single/rotators/level-035.json';
+import l_rotators_036 from './single/rotators/level-036.json';
+import l_rotators_037 from './single/rotators/level-037.json';
+import l_rotators_038 from './single/rotators/level-038.json';
+import l_rotators_039 from './single/rotators/level-039.json';
+import l_rotators_040 from './single/rotators/level-040.json';
+import l_rotators_041 from './single/rotators/level-041.json';
+import l_rotators_042 from './single/rotators/level-042.json';
+import l_rotators_043 from './single/rotators/level-043.json';
+import l_rotators_044 from './single/rotators/level-044.json';
+import l_rotators_045 from './single/rotators/level-045.json';
+import l_rotators_046 from './single/rotators/level-046.json';
+import l_rotators_047 from './single/rotators/level-047.json';
+import l_rotators_048 from './single/rotators/level-048.json';
+import l_rotators_049 from './single/rotators/level-049.json';
+import l_rotators_050 from './single/rotators/level-050.json';
 import l_locks_001 from './single/locks/level-001.json';
 import l_locks_002 from './single/locks/level-002.json';
 import l_locks_003 from './single/locks/level-003.json';
 import l_locks_004 from './single/locks/level-004.json';
 import l_locks_005 from './single/locks/level-005.json';
+import l_locks_006 from './single/locks/level-006.json';
+import l_locks_007 from './single/locks/level-007.json';
+import l_locks_008 from './single/locks/level-008.json';
+import l_locks_009 from './single/locks/level-009.json';
+import l_locks_010 from './single/locks/level-010.json';
+import l_locks_011 from './single/locks/level-011.json';
+import l_locks_012 from './single/locks/level-012.json';
+import l_locks_013 from './single/locks/level-013.json';
+import l_locks_014 from './single/locks/level-014.json';
+import l_locks_015 from './single/locks/level-015.json';
+import l_locks_016 from './single/locks/level-016.json';
+import l_locks_017 from './single/locks/level-017.json';
+import l_locks_018 from './single/locks/level-018.json';
+import l_locks_019 from './single/locks/level-019.json';
+import l_locks_020 from './single/locks/level-020.json';
+import l_locks_021 from './single/locks/level-021.json';
+import l_locks_022 from './single/locks/level-022.json';
+import l_locks_023 from './single/locks/level-023.json';
+import l_locks_024 from './single/locks/level-024.json';
+import l_locks_025 from './single/locks/level-025.json';
+import l_locks_026 from './single/locks/level-026.json';
+import l_locks_027 from './single/locks/level-027.json';
+import l_locks_028 from './single/locks/level-028.json';
+import l_locks_029 from './single/locks/level-029.json';
+import l_locks_030 from './single/locks/level-030.json';
+import l_locks_031 from './single/locks/level-031.json';
+import l_locks_032 from './single/locks/level-032.json';
+import l_locks_033 from './single/locks/level-033.json';
+import l_locks_034 from './single/locks/level-034.json';
+import l_locks_035 from './single/locks/level-035.json';
+import l_locks_036 from './single/locks/level-036.json';
+import l_locks_037 from './single/locks/level-037.json';
+import l_locks_038 from './single/locks/level-038.json';
+import l_locks_039 from './single/locks/level-039.json';
+import l_locks_040 from './single/locks/level-040.json';
+import l_locks_041 from './single/locks/level-041.json';
+import l_locks_042 from './single/locks/level-042.json';
+import l_locks_043 from './single/locks/level-043.json';
+import l_locks_044 from './single/locks/level-044.json';
+import l_locks_045 from './single/locks/level-045.json';
+import l_locks_046 from './single/locks/level-046.json';
+import l_locks_047 from './single/locks/level-047.json';
+import l_locks_048 from './single/locks/level-048.json';
+import l_locks_049 from './single/locks/level-049.json';
+import l_locks_050 from './single/locks/level-050.json';
 import l_walls_bridges_001 from './multi/walls-bridges/level-001.json';
 import l_walls_bridges_002 from './multi/walls-bridges/level-002.json';
 import l_walls_bridges_003 from './multi/walls-bridges/level-003.json';
@@ -491,6 +774,26 @@ export const levels: Record<string, Level> = {
   'walls-028': l_walls_028 as unknown as Level,
   'walls-029': l_walls_029 as unknown as Level,
   'walls-030': l_walls_030 as unknown as Level,
+  'walls-031': l_walls_031 as unknown as Level,
+  'walls-032': l_walls_032 as unknown as Level,
+  'walls-033': l_walls_033 as unknown as Level,
+  'walls-034': l_walls_034 as unknown as Level,
+  'walls-035': l_walls_035 as unknown as Level,
+  'walls-036': l_walls_036 as unknown as Level,
+  'walls-037': l_walls_037 as unknown as Level,
+  'walls-038': l_walls_038 as unknown as Level,
+  'walls-039': l_walls_039 as unknown as Level,
+  'walls-040': l_walls_040 as unknown as Level,
+  'walls-041': l_walls_041 as unknown as Level,
+  'walls-042': l_walls_042 as unknown as Level,
+  'walls-043': l_walls_043 as unknown as Level,
+  'walls-044': l_walls_044 as unknown as Level,
+  'walls-045': l_walls_045 as unknown as Level,
+  'walls-046': l_walls_046 as unknown as Level,
+  'walls-047': l_walls_047 as unknown as Level,
+  'walls-048': l_walls_048 as unknown as Level,
+  'walls-049': l_walls_049 as unknown as Level,
+  'walls-050': l_walls_050 as unknown as Level,
   'bridges-001': l_bridges_001 as unknown as Level,
   'bridges-002': l_bridges_002 as unknown as Level,
   'bridges-003': l_bridges_003 as unknown as Level,
@@ -498,6 +801,49 @@ export const levels: Record<string, Level> = {
   'bridges-005': l_bridges_005 as unknown as Level,
   'bridges-006': l_bridges_006 as unknown as Level,
   'bridges-007': l_bridges_007 as unknown as Level,
+  'bridges-008': l_bridges_008 as unknown as Level,
+  'bridges-009': l_bridges_009 as unknown as Level,
+  'bridges-010': l_bridges_010 as unknown as Level,
+  'bridges-011': l_bridges_011 as unknown as Level,
+  'bridges-012': l_bridges_012 as unknown as Level,
+  'bridges-013': l_bridges_013 as unknown as Level,
+  'bridges-014': l_bridges_014 as unknown as Level,
+  'bridges-015': l_bridges_015 as unknown as Level,
+  'bridges-016': l_bridges_016 as unknown as Level,
+  'bridges-017': l_bridges_017 as unknown as Level,
+  'bridges-018': l_bridges_018 as unknown as Level,
+  'bridges-019': l_bridges_019 as unknown as Level,
+  'bridges-020': l_bridges_020 as unknown as Level,
+  'bridges-021': l_bridges_021 as unknown as Level,
+  'bridges-022': l_bridges_022 as unknown as Level,
+  'bridges-023': l_bridges_023 as unknown as Level,
+  'bridges-024': l_bridges_024 as unknown as Level,
+  'bridges-025': l_bridges_025 as unknown as Level,
+  'bridges-026': l_bridges_026 as unknown as Level,
+  'bridges-027': l_bridges_027 as unknown as Level,
+  'bridges-028': l_bridges_028 as unknown as Level,
+  'bridges-029': l_bridges_029 as unknown as Level,
+  'bridges-030': l_bridges_030 as unknown as Level,
+  'bridges-031': l_bridges_031 as unknown as Level,
+  'bridges-032': l_bridges_032 as unknown as Level,
+  'bridges-033': l_bridges_033 as unknown as Level,
+  'bridges-034': l_bridges_034 as unknown as Level,
+  'bridges-035': l_bridges_035 as unknown as Level,
+  'bridges-036': l_bridges_036 as unknown as Level,
+  'bridges-037': l_bridges_037 as unknown as Level,
+  'bridges-038': l_bridges_038 as unknown as Level,
+  'bridges-039': l_bridges_039 as unknown as Level,
+  'bridges-040': l_bridges_040 as unknown as Level,
+  'bridges-041': l_bridges_041 as unknown as Level,
+  'bridges-042': l_bridges_042 as unknown as Level,
+  'bridges-043': l_bridges_043 as unknown as Level,
+  'bridges-044': l_bridges_044 as unknown as Level,
+  'bridges-045': l_bridges_045 as unknown as Level,
+  'bridges-046': l_bridges_046 as unknown as Level,
+  'bridges-047': l_bridges_047 as unknown as Level,
+  'bridges-048': l_bridges_048 as unknown as Level,
+  'bridges-049': l_bridges_049 as unknown as Level,
+  'bridges-050': l_bridges_050 as unknown as Level,
   'warps-001': l_warps_001 as unknown as Level,
   'warps-002': l_warps_002 as unknown as Level,
   'warps-003': l_warps_003 as unknown as Level,
@@ -508,26 +854,246 @@ export const levels: Record<string, Level> = {
   'warps-008': l_warps_008 as unknown as Level,
   'warps-009': l_warps_009 as unknown as Level,
   'warps-010': l_warps_010 as unknown as Level,
+  'warps-011': l_warps_011 as unknown as Level,
+  'warps-012': l_warps_012 as unknown as Level,
+  'warps-013': l_warps_013 as unknown as Level,
+  'warps-014': l_warps_014 as unknown as Level,
+  'warps-015': l_warps_015 as unknown as Level,
+  'warps-016': l_warps_016 as unknown as Level,
+  'warps-017': l_warps_017 as unknown as Level,
+  'warps-018': l_warps_018 as unknown as Level,
+  'warps-019': l_warps_019 as unknown as Level,
+  'warps-020': l_warps_020 as unknown as Level,
+  'warps-021': l_warps_021 as unknown as Level,
+  'warps-022': l_warps_022 as unknown as Level,
+  'warps-023': l_warps_023 as unknown as Level,
+  'warps-024': l_warps_024 as unknown as Level,
+  'warps-025': l_warps_025 as unknown as Level,
+  'warps-026': l_warps_026 as unknown as Level,
+  'warps-027': l_warps_027 as unknown as Level,
+  'warps-028': l_warps_028 as unknown as Level,
+  'warps-029': l_warps_029 as unknown as Level,
+  'warps-030': l_warps_030 as unknown as Level,
+  'warps-031': l_warps_031 as unknown as Level,
+  'warps-032': l_warps_032 as unknown as Level,
+  'warps-033': l_warps_033 as unknown as Level,
+  'warps-034': l_warps_034 as unknown as Level,
+  'warps-035': l_warps_035 as unknown as Level,
+  'warps-036': l_warps_036 as unknown as Level,
+  'warps-037': l_warps_037 as unknown as Level,
+  'warps-038': l_warps_038 as unknown as Level,
+  'warps-039': l_warps_039 as unknown as Level,
+  'warps-040': l_warps_040 as unknown as Level,
+  'warps-041': l_warps_041 as unknown as Level,
+  'warps-042': l_warps_042 as unknown as Level,
+  'warps-043': l_warps_043 as unknown as Level,
+  'warps-044': l_warps_044 as unknown as Level,
+  'warps-045': l_warps_045 as unknown as Level,
+  'warps-046': l_warps_046 as unknown as Level,
+  'warps-047': l_warps_047 as unknown as Level,
+  'warps-048': l_warps_048 as unknown as Level,
+  'warps-049': l_warps_049 as unknown as Level,
+  'warps-050': l_warps_050 as unknown as Level,
   'teleporters-001': l_teleporters_001 as unknown as Level,
   'teleporters-002': l_teleporters_002 as unknown as Level,
   'teleporters-003': l_teleporters_003 as unknown as Level,
   'teleporters-004': l_teleporters_004 as unknown as Level,
   'teleporters-005': l_teleporters_005 as unknown as Level,
+  'teleporters-006': l_teleporters_006 as unknown as Level,
+  'teleporters-007': l_teleporters_007 as unknown as Level,
+  'teleporters-008': l_teleporters_008 as unknown as Level,
+  'teleporters-009': l_teleporters_009 as unknown as Level,
+  'teleporters-010': l_teleporters_010 as unknown as Level,
+  'teleporters-011': l_teleporters_011 as unknown as Level,
+  'teleporters-012': l_teleporters_012 as unknown as Level,
+  'teleporters-013': l_teleporters_013 as unknown as Level,
+  'teleporters-014': l_teleporters_014 as unknown as Level,
+  'teleporters-015': l_teleporters_015 as unknown as Level,
+  'teleporters-016': l_teleporters_016 as unknown as Level,
+  'teleporters-017': l_teleporters_017 as unknown as Level,
+  'teleporters-018': l_teleporters_018 as unknown as Level,
+  'teleporters-019': l_teleporters_019 as unknown as Level,
+  'teleporters-020': l_teleporters_020 as unknown as Level,
+  'teleporters-021': l_teleporters_021 as unknown as Level,
+  'teleporters-022': l_teleporters_022 as unknown as Level,
+  'teleporters-023': l_teleporters_023 as unknown as Level,
+  'teleporters-024': l_teleporters_024 as unknown as Level,
+  'teleporters-025': l_teleporters_025 as unknown as Level,
+  'teleporters-026': l_teleporters_026 as unknown as Level,
+  'teleporters-027': l_teleporters_027 as unknown as Level,
+  'teleporters-028': l_teleporters_028 as unknown as Level,
+  'teleporters-029': l_teleporters_029 as unknown as Level,
+  'teleporters-030': l_teleporters_030 as unknown as Level,
+  'teleporters-031': l_teleporters_031 as unknown as Level,
+  'teleporters-032': l_teleporters_032 as unknown as Level,
+  'teleporters-033': l_teleporters_033 as unknown as Level,
+  'teleporters-034': l_teleporters_034 as unknown as Level,
+  'teleporters-035': l_teleporters_035 as unknown as Level,
+  'teleporters-036': l_teleporters_036 as unknown as Level,
+  'teleporters-037': l_teleporters_037 as unknown as Level,
+  'teleporters-038': l_teleporters_038 as unknown as Level,
+  'teleporters-039': l_teleporters_039 as unknown as Level,
+  'teleporters-040': l_teleporters_040 as unknown as Level,
+  'teleporters-041': l_teleporters_041 as unknown as Level,
+  'teleporters-042': l_teleporters_042 as unknown as Level,
+  'teleporters-043': l_teleporters_043 as unknown as Level,
+  'teleporters-044': l_teleporters_044 as unknown as Level,
+  'teleporters-045': l_teleporters_045 as unknown as Level,
+  'teleporters-046': l_teleporters_046 as unknown as Level,
+  'teleporters-047': l_teleporters_047 as unknown as Level,
+  'teleporters-048': l_teleporters_048 as unknown as Level,
+  'teleporters-049': l_teleporters_049 as unknown as Level,
+  'teleporters-050': l_teleporters_050 as unknown as Level,
   'tunnels-001': l_tunnels_001 as unknown as Level,
   'tunnels-002': l_tunnels_002 as unknown as Level,
   'tunnels-003': l_tunnels_003 as unknown as Level,
   'tunnels-004': l_tunnels_004 as unknown as Level,
   'tunnels-005': l_tunnels_005 as unknown as Level,
+  'tunnels-006': l_tunnels_006 as unknown as Level,
+  'tunnels-007': l_tunnels_007 as unknown as Level,
+  'tunnels-008': l_tunnels_008 as unknown as Level,
+  'tunnels-009': l_tunnels_009 as unknown as Level,
+  'tunnels-010': l_tunnels_010 as unknown as Level,
+  'tunnels-011': l_tunnels_011 as unknown as Level,
+  'tunnels-012': l_tunnels_012 as unknown as Level,
+  'tunnels-013': l_tunnels_013 as unknown as Level,
+  'tunnels-014': l_tunnels_014 as unknown as Level,
+  'tunnels-015': l_tunnels_015 as unknown as Level,
+  'tunnels-016': l_tunnels_016 as unknown as Level,
+  'tunnels-017': l_tunnels_017 as unknown as Level,
+  'tunnels-018': l_tunnels_018 as unknown as Level,
+  'tunnels-019': l_tunnels_019 as unknown as Level,
+  'tunnels-020': l_tunnels_020 as unknown as Level,
+  'tunnels-021': l_tunnels_021 as unknown as Level,
+  'tunnels-022': l_tunnels_022 as unknown as Level,
+  'tunnels-023': l_tunnels_023 as unknown as Level,
+  'tunnels-024': l_tunnels_024 as unknown as Level,
+  'tunnels-025': l_tunnels_025 as unknown as Level,
+  'tunnels-026': l_tunnels_026 as unknown as Level,
+  'tunnels-027': l_tunnels_027 as unknown as Level,
+  'tunnels-028': l_tunnels_028 as unknown as Level,
+  'tunnels-029': l_tunnels_029 as unknown as Level,
+  'tunnels-030': l_tunnels_030 as unknown as Level,
+  'tunnels-031': l_tunnels_031 as unknown as Level,
+  'tunnels-032': l_tunnels_032 as unknown as Level,
+  'tunnels-033': l_tunnels_033 as unknown as Level,
+  'tunnels-034': l_tunnels_034 as unknown as Level,
+  'tunnels-035': l_tunnels_035 as unknown as Level,
+  'tunnels-036': l_tunnels_036 as unknown as Level,
+  'tunnels-037': l_tunnels_037 as unknown as Level,
+  'tunnels-038': l_tunnels_038 as unknown as Level,
+  'tunnels-039': l_tunnels_039 as unknown as Level,
+  'tunnels-040': l_tunnels_040 as unknown as Level,
+  'tunnels-041': l_tunnels_041 as unknown as Level,
+  'tunnels-042': l_tunnels_042 as unknown as Level,
+  'tunnels-043': l_tunnels_043 as unknown as Level,
+  'tunnels-044': l_tunnels_044 as unknown as Level,
+  'tunnels-045': l_tunnels_045 as unknown as Level,
+  'tunnels-046': l_tunnels_046 as unknown as Level,
+  'tunnels-047': l_tunnels_047 as unknown as Level,
+  'tunnels-048': l_tunnels_048 as unknown as Level,
+  'tunnels-049': l_tunnels_049 as unknown as Level,
+  'tunnels-050': l_tunnels_050 as unknown as Level,
   'rotators-001': l_rotators_001 as unknown as Level,
   'rotators-002': l_rotators_002 as unknown as Level,
   'rotators-003': l_rotators_003 as unknown as Level,
   'rotators-004': l_rotators_004 as unknown as Level,
   'rotators-005': l_rotators_005 as unknown as Level,
+  'rotators-006': l_rotators_006 as unknown as Level,
+  'rotators-007': l_rotators_007 as unknown as Level,
+  'rotators-008': l_rotators_008 as unknown as Level,
+  'rotators-009': l_rotators_009 as unknown as Level,
+  'rotators-010': l_rotators_010 as unknown as Level,
+  'rotators-011': l_rotators_011 as unknown as Level,
+  'rotators-012': l_rotators_012 as unknown as Level,
+  'rotators-013': l_rotators_013 as unknown as Level,
+  'rotators-014': l_rotators_014 as unknown as Level,
+  'rotators-015': l_rotators_015 as unknown as Level,
+  'rotators-016': l_rotators_016 as unknown as Level,
+  'rotators-017': l_rotators_017 as unknown as Level,
+  'rotators-018': l_rotators_018 as unknown as Level,
+  'rotators-019': l_rotators_019 as unknown as Level,
+  'rotators-020': l_rotators_020 as unknown as Level,
+  'rotators-021': l_rotators_021 as unknown as Level,
+  'rotators-022': l_rotators_022 as unknown as Level,
+  'rotators-023': l_rotators_023 as unknown as Level,
+  'rotators-024': l_rotators_024 as unknown as Level,
+  'rotators-025': l_rotators_025 as unknown as Level,
+  'rotators-026': l_rotators_026 as unknown as Level,
+  'rotators-027': l_rotators_027 as unknown as Level,
+  'rotators-028': l_rotators_028 as unknown as Level,
+  'rotators-029': l_rotators_029 as unknown as Level,
+  'rotators-030': l_rotators_030 as unknown as Level,
+  'rotators-031': l_rotators_031 as unknown as Level,
+  'rotators-032': l_rotators_032 as unknown as Level,
+  'rotators-033': l_rotators_033 as unknown as Level,
+  'rotators-034': l_rotators_034 as unknown as Level,
+  'rotators-035': l_rotators_035 as unknown as Level,
+  'rotators-036': l_rotators_036 as unknown as Level,
+  'rotators-037': l_rotators_037 as unknown as Level,
+  'rotators-038': l_rotators_038 as unknown as Level,
+  'rotators-039': l_rotators_039 as unknown as Level,
+  'rotators-040': l_rotators_040 as unknown as Level,
+  'rotators-041': l_rotators_041 as unknown as Level,
+  'rotators-042': l_rotators_042 as unknown as Level,
+  'rotators-043': l_rotators_043 as unknown as Level,
+  'rotators-044': l_rotators_044 as unknown as Level,
+  'rotators-045': l_rotators_045 as unknown as Level,
+  'rotators-046': l_rotators_046 as unknown as Level,
+  'rotators-047': l_rotators_047 as unknown as Level,
+  'rotators-048': l_rotators_048 as unknown as Level,
+  'rotators-049': l_rotators_049 as unknown as Level,
+  'rotators-050': l_rotators_050 as unknown as Level,
   'locks-001': l_locks_001 as unknown as Level,
   'locks-002': l_locks_002 as unknown as Level,
   'locks-003': l_locks_003 as unknown as Level,
   'locks-004': l_locks_004 as unknown as Level,
   'locks-005': l_locks_005 as unknown as Level,
+  'locks-006': l_locks_006 as unknown as Level,
+  'locks-007': l_locks_007 as unknown as Level,
+  'locks-008': l_locks_008 as unknown as Level,
+  'locks-009': l_locks_009 as unknown as Level,
+  'locks-010': l_locks_010 as unknown as Level,
+  'locks-011': l_locks_011 as unknown as Level,
+  'locks-012': l_locks_012 as unknown as Level,
+  'locks-013': l_locks_013 as unknown as Level,
+  'locks-014': l_locks_014 as unknown as Level,
+  'locks-015': l_locks_015 as unknown as Level,
+  'locks-016': l_locks_016 as unknown as Level,
+  'locks-017': l_locks_017 as unknown as Level,
+  'locks-018': l_locks_018 as unknown as Level,
+  'locks-019': l_locks_019 as unknown as Level,
+  'locks-020': l_locks_020 as unknown as Level,
+  'locks-021': l_locks_021 as unknown as Level,
+  'locks-022': l_locks_022 as unknown as Level,
+  'locks-023': l_locks_023 as unknown as Level,
+  'locks-024': l_locks_024 as unknown as Level,
+  'locks-025': l_locks_025 as unknown as Level,
+  'locks-026': l_locks_026 as unknown as Level,
+  'locks-027': l_locks_027 as unknown as Level,
+  'locks-028': l_locks_028 as unknown as Level,
+  'locks-029': l_locks_029 as unknown as Level,
+  'locks-030': l_locks_030 as unknown as Level,
+  'locks-031': l_locks_031 as unknown as Level,
+  'locks-032': l_locks_032 as unknown as Level,
+  'locks-033': l_locks_033 as unknown as Level,
+  'locks-034': l_locks_034 as unknown as Level,
+  'locks-035': l_locks_035 as unknown as Level,
+  'locks-036': l_locks_036 as unknown as Level,
+  'locks-037': l_locks_037 as unknown as Level,
+  'locks-038': l_locks_038 as unknown as Level,
+  'locks-039': l_locks_039 as unknown as Level,
+  'locks-040': l_locks_040 as unknown as Level,
+  'locks-041': l_locks_041 as unknown as Level,
+  'locks-042': l_locks_042 as unknown as Level,
+  'locks-043': l_locks_043 as unknown as Level,
+  'locks-044': l_locks_044 as unknown as Level,
+  'locks-045': l_locks_045 as unknown as Level,
+  'locks-046': l_locks_046 as unknown as Level,
+  'locks-047': l_locks_047 as unknown as Level,
+  'locks-048': l_locks_048 as unknown as Level,
+  'locks-049': l_locks_049 as unknown as Level,
+  'locks-050': l_locks_050 as unknown as Level,
   'walls-bridges-001': l_walls_bridges_001 as unknown as Level,
   'walls-bridges-002': l_walls_bridges_002 as unknown as Level,
   'walls-bridges-003': l_walls_bridges_003 as unknown as Level,
