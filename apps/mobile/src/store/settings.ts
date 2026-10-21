@@ -12,6 +12,8 @@ export interface SettingsState {
   colorblind: boolean;
   reduceMotion: boolean;
   idleHints: boolean;
+  /** Shows the Handcrafted level editor on the home screen. */
+  handcrafted: boolean;
   unlockAll: boolean;
   unlimitedHints: boolean;
   showLevelDetails: boolean;
@@ -28,6 +30,7 @@ export const useSettings = create<SettingsState>()(
       colorblind: true,
       reduceMotion: false,
       idleHints: true,
+      handcrafted: false,
       unlockAll: false,
       unlimitedHints: false,
       showLevelDetails: false,

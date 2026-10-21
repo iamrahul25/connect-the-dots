@@ -19,7 +19,7 @@ import { musicFor } from '../theme/packs';
 import { makeStyles, usePalette, useTheme } from '../theme/useTheme';
 import { lockColor } from '../theme/config';
 import { useSettings } from '../store/settings';
-import { starsFor, useProgress } from '../store/progress';
+import { starsFor, streaksOf, useProgress } from '../store/progress';
 import { useCustomLevels } from '../store/customLevels';
 import { extendPalette } from '../theme/extraColors';
 import { audio } from '../services/audio';
@@ -175,7 +175,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
       progress.saveBoard(lv.id, null);
       info = {
         stars, moves: gm.moves, best: prev ? Math.min(prev.moves, gm.moves) : gm.moves, perfect: lv.stars.perfectMoves,
-        hintsEarned: r.hintsEarned, packCompleted: false, usedHint, streak: useProgress.getState().daily.streak,
+        hintsEarned: r.hintsEarned, packCompleted: false, usedHint, streak: streaksOf(useProgress.getState().daily.completed).current,
         perfectDay: r.perfectDay,
       };
     } else {

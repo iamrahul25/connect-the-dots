@@ -6,6 +6,7 @@ import {
   DAILY_TIER_SPECS,
   DAILY_TIERS,
   dailyParams,
+  dailyStreaks,
   endpointNodes,
   Game,
   generateAttempt,
@@ -507,5 +508,42 @@ describe('daily tiers', () => {
     const c = generateLevel(p);
     expect(c).not.toBeNull();
     expect(obstacleCount(c!.puzzle)).toBe(total(p));
+  });
+});
+
+describe('daily streaks', () => {
+  const today = new Date(2026, 9, 21);
+
+  it('is zero with no solves', () => {
+    expect(dailyStreaks([], today)).toEqual({ current: 0, best: 0 });
+  });
+
+  it('counts back from today until the first gap', () => {
+    const keys = ['2026-10-21', '2026-10-20', '2026-10-19', '2026-10-17', '2026-10-16'];
+    expect(dailyStreaks(keys, today)).toEqual({ current: 3, best: 3 });
+  });
+
+  it('keeps the streak alive while today is still unsolved', () => {
+    expect(dailyStreaks(['2026-10-20', '2026-10-19'], today)).toEqual({ current: 2, best: 2 });
+  });
+
+  it('breaks once a whole day is missed', () => {
+    expect(dailyStreaks(['2026-10-19', '2026-10-18', '2026-10-17'], today)).toEqual({ current: 0, best: 3 });
+  });
+
+  it('best is the longest run anywhere in history', () => {
+    const keys = ['2026-10-21', '2026-10-01', '2026-10-02', '2026-10-03', '2026-10-04', '2026-10-10'];
+    expect(dailyStreaks(keys, today)).toEqual({ current: 1, best: 4 });
+  });
+
+  it('back-filling a missed day joins the runs on both sides', () => {
+    const keys = ['2026-10-21', '2026-10-19', '2026-10-18'];
+    expect(dailyStreaks(keys, today)).toEqual({ current: 1, best: 2 });
+    expect(dailyStreaks([...keys, '2026-10-20'], today)).toEqual({ current: 4, best: 4 });
+  });
+
+  it('runs across month and year boundaries', () => {
+    expect(dailyStreaks(['2026-01-01', '2025-12-31', '2025-12-30'], new Date(2026, 0, 1))).toEqual({ current: 3, best: 3 });
+    expect(dailyStreaks(['2024-02-28', '2024-02-29', '2024-03-01'], new Date(2024, 2, 1)).current).toBe(3);
   });
 });

@@ -508,7 +508,21 @@
     {
       "id": "handcrafted",
       "name": "Handcrafted",
-      "packs": []
+      "packs": [
+        {
+          "id": "handcrafted",
+          "name": "Handcrafted",
+          "theme": "dawn",
+          "obstacles": [
+            "walls",
+            "bridges",
+            "teleporters",
+            "rotators",
+            "locks"
+          ],
+          "groups": []
+        }
+      ]
     }
   ]
 }

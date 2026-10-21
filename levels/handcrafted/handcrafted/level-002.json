@@ -1,0 +1,72 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "handcrafted-002",
+  "pack": "handcrafted",
+  "index": 2,
+  "formatVersion": 2,
+  "size": {
+    "width": 6,
+    "height": 6
+  },
+  "dots": [
+    {
+      "color": 0,
+      "start": [4, 1],
+      "end": [2, 0]
+    },
+    {
+      "color": 1,
+      "start": [5, 5],
+      "end": [3, 4]
+    }
+  ],
+  "walls": [],
+  "bridges": [[2, 2], [3, 2]],
+  "warps": [],
+  "teleporters": [
+    {
+      "a": [2, 4],
+      "b": [0, 5]
+    }
+  ],
+  "tunnels": [],
+  "rotators": [],
+  "locks": [],
+  "solution": {
+    "0": [[4, 1], [5, 1], [5, 0], [4, 0], [3, 0], [3, 1], [3, 2], [3, 3], [4, 3], [4, 4], [4, 5], [3, 5], [2, 5], [1, 5], [1, 4], [1, 3], [2, 3], [2, 2], [2, 1], [1, 1], [0, 1], [0, 0], [1, 0], [2, 0]],
+    "1": [[5, 5], [5, 4], [5, 3], [5, 2], [4, 2], [3, 2], [2, 2], [1, 2], [0, 2], [0, 3], [0, 4], [0, 5], [2, 4], [3, 4]]
+  },
+  "difficulty": {
+    "score": 62.1,
+    "band": "hard",
+    "metrics": {
+      "cells": 36,
+      "colors": 2,
+      "avgPathLength": 19,
+      "turnDensity": 0.368,
+      "maxSolverTier": 5,
+      "tierCounts": [0, 0, 0, 0],
+      "searchNodes": 56,
+      "forcedMoveRatio": 0
+    }
+  },
+  "stars": {
+    "perfectMoves": 2,
+    "twoStarMoves": 3
+  },
+  "meta": {
+    "seed": 0,
+    "generatorVersion": "custom-1",
+    "params": {
+      "size": 6,
+      "colors": [2, 2],
+      "walls": 0,
+      "bridges": 2,
+      "warps": 0,
+      "teleporters": 1,
+      "tunnels": 0,
+      "rotators": 0,
+      "locks": 0
+    }
+  }
+}

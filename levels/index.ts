@@ -1302,6 +1302,9 @@ import l_all_047 from './multi/all/level-047.json';
 import l_all_048 from './multi/all/level-048.json';
 import l_all_049 from './multi/all/level-049.json';
 import l_all_050 from './multi/all/level-050.json';
+import l_handcrafted_001 from './handcrafted/handcrafted/level-001.json';
+import l_handcrafted_002 from './handcrafted/handcrafted/level-002.json';
+import l_handcrafted_003 from './handcrafted/handcrafted/level-003.json';
 import daily_2026_09 from './daily/2026-09.json';
 import daily_2026_10 from './daily/2026-10.json';
 import daily_2026_11 from './daily/2026-11.json';
@@ -2610,6 +2613,9 @@ export const levels: Record<string, Level> = {
   'all-048': l_all_048 as unknown as Level,
   'all-049': l_all_049 as unknown as Level,
   'all-050': l_all_050 as unknown as Level,
+  'handcrafted-001': l_handcrafted_001 as unknown as Level,
+  'handcrafted-002': l_handcrafted_002 as unknown as Level,
+  'handcrafted-003': l_handcrafted_003 as unknown as Level,
 };
 
 export const dailyBanks: Record<string, DailyBank> = {

@@ -46,6 +46,7 @@ const ROWS: Row[] = [
   { key: 'colorblind', icon: 'eye', label: 'Colorblind mode', sub: 'Accessible palette + symbols on dots' },
   { key: 'reduceMotion', icon: 'pause-circle', label: 'Reduce motion', sub: 'Calmer animations and effects' },
   { key: 'idleHints', icon: 'sparkles', label: 'Idle nudges', sub: 'Gentle shimmer when you pause' },
+  { key: 'handcrafted', icon: 'construct', label: 'Handcrafted levels', sub: 'Create & share your own levels from the home screen' },
 ];
 
 const DEV_ROWS: Row[] = [

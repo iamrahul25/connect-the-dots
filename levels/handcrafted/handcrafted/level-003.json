@@ -1,0 +1,122 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "handcrafted-003",
+  "pack": "handcrafted",
+  "index": 3,
+  "formatVersion": 2,
+  "size": {
+    "width": 8,
+    "height": 8
+  },
+  "dots": [
+    {
+      "color": 0,
+      "start": [1, 2],
+      "end": [3, 7]
+    },
+    {
+      "color": 1,
+      "start": [3, 3],
+      "end": [4, 4]
+    },
+    {
+      "color": 2,
+      "start": [7, 0],
+      "end": [7, 1]
+    },
+    {
+      "color": 3,
+      "start": [0, 0],
+      "end": [3, 2]
+    },
+    {
+      "color": 4,
+      "start": [7, 3],
+      "end": [4, 3]
+    },
+    {
+      "color": 5,
+      "start": [6, 7],
+      "end": [4, 7]
+    }
+  ],
+  "walls": [[7, 4], [3, 6]],
+  "bridges": [[3, 4]],
+  "warps": [],
+  "teleporters": [
+    {
+      "a": [7, 5],
+      "b": [5, 5]
+    },
+    {
+      "a": [4, 6],
+      "b": [2, 5]
+    }
+  ],
+  "tunnels": [],
+  "rotators": [
+    {
+      "cell": [5, 3],
+      "start": "sw"
+    },
+    {
+      "cell": [2, 1],
+      "start": "sw"
+    }
+  ],
+  "locks": [
+    {
+      "key": [0, 2],
+      "door": [7, 7]
+    },
+    {
+      "key": [7, 2],
+      "door": [0, 4]
+    },
+    {
+      "key": [4, 1],
+      "door": [1, 6]
+    }
+  ],
+  "solution": {
+    "0": [[1, 2], [1, 3], [2, 3], [2, 2], [2, 1], [1, 1], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [1, 7], [2, 7], [3, 7]],
+    "1": [[3, 3], [3, 4], [3, 5], [4, 5], [4, 6], [2, 5], [2, 6], [1, 6], [1, 5], [1, 4], [2, 4], [3, 4], [4, 4]],
+    "2": [[7, 0], [6, 0], [6, 1], [6, 2], [7, 2], [7, 1]],
+    "3": [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, 1], [5, 2], [4, 2], [4, 1], [3, 1], [3, 2]],
+    "4": [[7, 3], [6, 3], [6, 4], [6, 5], [7, 5], [5, 5], [5, 4], [5, 3], [4, 3]],
+    "5": [[6, 7], [7, 7], [7, 6], [6, 6], [5, 6], [5, 7], [4, 7]]
+  },
+  "difficulty": {
+    "score": 48.1,
+    "band": "medium",
+    "metrics": {
+      "cells": 62,
+      "colors": 6,
+      "avgPathLength": 10.5,
+      "turnDensity": 0.397,
+      "maxSolverTier": 5,
+      "tierCounts": [9, 0, 0, 0],
+      "searchNodes": 74,
+      "forcedMoveRatio": 1
+    }
+  },
+  "stars": {
+    "perfectMoves": 6,
+    "twoStarMoves": 9
+  },
+  "meta": {
+    "seed": 0,
+    "generatorVersion": "custom-1",
+    "params": {
+      "size": 8,
+      "colors": [6, 6],
+      "walls": 2,
+      "bridges": 1,
+      "warps": 0,
+      "teleporters": 2,
+      "tunnels": 0,
+      "rotators": 2,
+      "locks": 3
+    }
+  }
+}

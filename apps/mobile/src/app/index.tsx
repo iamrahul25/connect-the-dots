@@ -12,7 +12,7 @@ import { fonts, tokens } from '../theme/tokens';
 import { makeStyles, useTheme } from '../theme/useTheme';
 import { withAlpha } from '../board/color';
 import { levelNumber, maxStars, packOfLevel } from '../data/levels';
-import { daySolvedCount, nextToPlay, totalStars, useProgress } from '../store/progress';
+import { daySolvedCount, nextToPlay, streaksOf, totalStars, useProgress } from '../store/progress';
 import { useSettings } from '../store/settings';
 import { audio } from '../services/audio';
 
@@ -49,12 +49,14 @@ export default function Home() {
   const daily = useProgress((s) => s.daily);
   const reduceMotion = useSettings((s) => s.reduceMotion);
   const showLevelDetails = useSettings((s) => __DEV__ && s.showLevelDetails);
+  const handcrafted = useSettings((s) => s.handcrafted);
   const { scale, s } = useLayout();
   const countdown = useCountdown();
   const next = nextToPlay(levels);
   const today = dateKey(new Date());
   const weekday = new Date().getDay();
   const dailySolved = daySolvedCount(daily.completed[today]);
+  const streak = streaksOf(daily.completed).current;
   const stars = totalStars(levels);
 
   useFocusEffect(
@@ -90,7 +92,7 @@ export default function Home() {
           </View>
           <View style={styles.chip}>
             <Ionicons name="flame" size={s(16)} color={theme.icon.streak} />
-            <Text style={styles.chipText}>{daily.streak}</Text>
+            <Text style={styles.chipText}>{streak}</Text>
           </View>
         </View>
       </Rise>
@@ -136,17 +138,19 @@ export default function Home() {
         <GlassButton label="Level Packs" icon="albums" size="lg" outlined onPress={() => router.push('/packs')} style={styles.packs} />
       </Rise>
 
-      <Rise delay={520}>
-        <GlassButton
-          label="Handcrafted"
-          sublabel="Create & play shared levels"
-          icon="construct"
-          size="lg"
-          outlined
-          onPress={() => router.push('/custom')}
-          style={styles.packs}
-        />
-      </Rise>
+      {handcrafted && (
+        <Rise delay={520}>
+          <GlassButton
+            label="Handcrafted"
+            sublabel="Create & play shared levels"
+            icon="construct"
+            size="lg"
+            outlined
+            onPress={() => router.push('/custom')}
+            style={styles.packs}
+          />
+        </Rise>
+      )}
 
       {showLevelDetails && (
         <Rise delay={620}>

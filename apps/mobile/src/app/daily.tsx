@@ -12,7 +12,7 @@ import { makeStyles, useTheme } from '../theme/useTheme';
 import type { UiTheme } from '../theme/config';
 import { useScale } from '../theme/scale';
 import { withAlpha } from '../board/color';
-import { daySolvedCount, isDaySolved, isPerfectDay, useProgress, type DailyDay } from '../store/progress';
+import { daySolvedCount, isDaySolved, isPerfectDay, streaksOf, useProgress, type DailyDay } from '../store/progress';
 import { dailyPreview } from '../data/levels';
 import { audio } from '../services/audio';
 
@@ -53,6 +53,7 @@ export default function Daily() {
   const canNext = month.getFullYear() < today.getFullYear() || month.getMonth() < today.getMonth();
   const shift = (n: number) => setMonth(new Date(month.getFullYear(), month.getMonth() + n, 1));
   const solvedDays = Object.values(daily.completed).filter(isDaySolved).length;
+  const streaks = streaksOf(daily.completed, today);
   const selectedDate = parseDateKey(selected);
   const selectedDay = daily.completed[selected];
   const perfect = isPerfectDay(selectedDay);
@@ -61,8 +62,8 @@ export default function Daily() {
   return (
     <Screen title="Daily Puzzle" subtitle="Three fresh puzzles every day" back scroll center>
       <View style={styles.streakRow}>
-        <Stat icon="flame" color={theme.icon.streak} value={daily.streak} label="Streak" />
-        <Stat icon="trophy" color={theme.icon.hint} value={daily.bestStreak} label="Best" />
+        <Stat icon="flame" color={theme.icon.streak} value={streaks.current} label="Streak" />
+        <Stat icon="trophy" color={theme.icon.hint} value={streaks.best} label="Best" />
         <Stat icon="checkmark-done" color={theme.icon.success} value={solvedDays} label="Days" />
       </View>
 

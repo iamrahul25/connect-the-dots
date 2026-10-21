@@ -64,6 +64,38 @@ export function parseDateKey(key: string): Date {
   return new Date(y, m - 1, d);
 }
 
+function shiftDateKey(key: string, days: number): string {
+  const d = parseDateKey(key);
+  d.setDate(d.getDate() + days);
+  return dateKey(d);
+}
+
+export interface DailyStreaks {
+  /** Consecutive solved days ending today, or ending yesterday while today is still unsolved. */
+  current: number;
+  /** Longest run of consecutive solved days ever. */
+  best: number;
+}
+
+/** Streaks derived from the keys (YYYY-MM-DD) of every day with at least one solve. */
+export function dailyStreaks(solvedKeys: Iterable<string>, today: Date): DailyStreaks {
+  const solved = new Set(solvedKeys);
+
+  let day = dateKey(today);
+  if (!solved.has(day)) day = shiftDateKey(day, -1);
+  let current = 0;
+  for (; solved.has(day); day = shiftDateKey(day, -1)) current++;
+
+  let best = 0;
+  for (const start of solved) {
+    if (solved.has(shiftDateKey(start, -1))) continue;
+    let run = 0;
+    for (let k = start; solved.has(k); k = shiftDateKey(k, 1)) run++;
+    best = Math.max(best, run);
+  }
+  return { current, best };
+}
+
 export function isDailyTier(v: unknown): v is DailyTier {
   return typeof v === 'string' && (DAILY_TIERS as readonly string[]).includes(v);
 }
