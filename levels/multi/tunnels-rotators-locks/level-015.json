@@ -1,0 +1,101 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "tunnels-rotators-locks-015",
+  "pack": "tunnels-rotators-locks",
+  "index": 15,
+  "formatVersion": 2,
+  "size": {
+    "width": 7,
+    "height": 7
+  },
+  "dots": [
+    {
+      "color": 3,
+      "start": [0, 6],
+      "end": [6, 2]
+    },
+    {
+      "color": 0,
+      "start": [1, 6],
+      "end": [4, 5]
+    },
+    {
+      "color": 4,
+      "start": [2, 2],
+      "end": [2, 4]
+    },
+    {
+      "color": 2,
+      "start": [2, 5],
+      "end": [4, 1]
+    },
+    {
+      "color": 1,
+      "start": [4, 2],
+      "end": [5, 5]
+    }
+  ],
+  "walls": [],
+  "bridges": [],
+  "warps": [],
+  "teleporters": [],
+  "tunnels": [
+    {
+      "cell": [0, 1],
+      "start": "v"
+    }
+  ],
+  "rotators": [
+    {
+      "cell": [2, 6],
+      "start": "nw"
+    }
+  ],
+  "locks": [
+    {
+      "key": [0, 4],
+      "door": [5, 1]
+    }
+  ],
+  "solution": {
+    "0": [[0, 6], [0, 5], [0, 4], [0, 3], [0, 2], [0, 1], [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [6, 1], [6, 2]],
+    "1": [[1, 6], [1, 5], [1, 4], [1, 3], [1, 2], [1, 1], [2, 1], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [4, 5]],
+    "2": [[2, 2], [2, 3], [2, 4]],
+    "3": [[2, 5], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6], [6, 5], [6, 4], [6, 3], [5, 3], [5, 2], [5, 1], [4, 1]],
+    "4": [[4, 2], [4, 3], [4, 4], [5, 4], [5, 5]]
+  },
+  "difficulty": {
+    "score": 32.2,
+    "band": "easy",
+    "metrics": {
+      "cells": 49,
+      "colors": 5,
+      "avgPathLength": 9.8,
+      "turnDensity": 0.245,
+      "maxSolverTier": 3,
+      "tierCounts": [38, 2, 4, 0],
+      "searchNodes": 60,
+      "forcedMoveRatio": 0.864
+    }
+  },
+  "stars": {
+    "perfectMoves": 5,
+    "twoStarMoves": 8
+  },
+  "meta": {
+    "seed": 1575279364,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 7,
+      "colors": [5, 7],
+      "walls": 0,
+      "bridges": 0,
+      "warps": 0,
+      "teleporters": 0,
+      "tunnels": 1,
+      "rotators": 1,
+      "locks": 1
+    },
+    "loadBearing": true
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "walls-teleporters-locks-019",
+  "pack": "walls-teleporters-locks",
+  "index": 19,
+  "formatVersion": 2,
+  "size": {
+    "width": 8,
+    "height": 8
+  },
+  "dots": [
+    {
+      "color": 1,
+      "start": [0, 1],
+      "end": [2, 2]
+    },
+    {
+      "color": 0,
+      "start": [1, 3],
+      "end": [7, 1]
+    },
+    {
+      "color": 6,
+      "start": [2, 5],
+      "end": [6, 3]
+    },
+    {
+      "color": 3,
+      "start": [3, 1],
+      "end": [3, 5]
+    },
+    {
+      "color": 4,
+      "start": [3, 7],
+      "end": [6, 1]
+    },
+    {
+      "color": 2,
+      "start": [5, 5],
+      "end": [6, 4]
+    },
+    {
+      "color": 5,
+      "start": [5, 6],
+      "end": [6, 5]
+    }
+  ],
+  "walls": [[7, 2]],
+  "bridges": [],
+  "warps": [],
+  "teleporters": [
+    {
+      "a": [0, 5],
+      "b": [6, 2]
+    }
+  ],
+  "tunnels": [],
+  "rotators": [],
+  "locks": [
+    {
+      "key": [7, 4],
+      "door": [3, 6]
+    }
+  ],
+  "solution": {
+    "0": [[0, 1], [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [4, 1], [4, 2], [3, 2], [2, 2]],
+    "1": [[1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [5, 2], [5, 1], [5, 0], [6, 0], [7, 0], [7, 1]],
+    "2": [[2, 5], [2, 4], [3, 4], [4, 4], [4, 5], [4, 6], [4, 7], [5, 7], [6, 7], [7, 7], [7, 6], [7, 5], [7, 4], [7, 3], [6, 3]],
+    "3": [[3, 1], [2, 1], [1, 1], [1, 2], [0, 2], [0, 3], [0, 4], [1, 4], [1, 5], [1, 6], [2, 6], [3, 6], [3, 5]],
+    "4": [[3, 7], [2, 7], [1, 7], [0, 7], [0, 6], [0, 5], [6, 2], [6, 1]],
+    "5": [[5, 5], [5, 4], [6, 4]],
+    "6": [[5, 6], [6, 6], [6, 5]]
+  },
+  "difficulty": {
+    "score": 41.1,
+    "band": "medium",
+    "metrics": {
+      "cells": 63,
+      "colors": 7,
+      "avgPathLength": 9,
+      "turnDensity": 0.333,
+      "maxSolverTier": 4,
+      "tierCounts": [54, 1, 0, 1],
+      "searchNodes": 58,
+      "forcedMoveRatio": 0.964
+    }
+  },
+  "stars": {
+    "perfectMoves": 7,
+    "twoStarMoves": 11
+  },
+  "meta": {
+    "seed": 3042662961,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 8,
+      "colors": [6, 8],
+      "walls": 1,
+      "bridges": 0,
+      "warps": 0,
+      "teleporters": 1,
+      "tunnels": 0,
+      "rotators": 0,
+      "locks": 1
+    },
+    "loadBearing": true
+  }
+}

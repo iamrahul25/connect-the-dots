@@ -1,0 +1,108 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "walls-warps-rotators-017",
+  "pack": "walls-warps-rotators",
+  "index": 17,
+  "formatVersion": 2,
+  "size": {
+    "width": 7,
+    "height": 7
+  },
+  "dots": [
+    {
+      "color": 4,
+      "start": [0, 0],
+      "end": [5, 1]
+    },
+    {
+      "color": 0,
+      "start": [0, 6],
+      "end": [1, 2]
+    },
+    {
+      "color": 2,
+      "start": [1, 3],
+      "end": [2, 0]
+    },
+    {
+      "color": 1,
+      "start": [1, 5],
+      "end": [5, 5]
+    },
+    {
+      "color": 6,
+      "start": [3, 2],
+      "end": [6, 3]
+    },
+    {
+      "color": 3,
+      "start": [3, 5],
+      "end": [5, 3]
+    },
+    {
+      "color": 5,
+      "start": [4, 5],
+      "end": [6, 6]
+    }
+  ],
+  "walls": [[1, 6]],
+  "bridges": [],
+  "warps": [
+    {
+      "axis": "col",
+      "index": 1
+    }
+  ],
+  "teleporters": [],
+  "tunnels": [],
+  "rotators": [
+    {
+      "cell": [0, 3],
+      "start": "se"
+    }
+  ],
+  "locks": [],
+  "solution": {
+    "0": [[0, 0], [1, 0], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1]],
+    "1": [[0, 6], [0, 5], [0, 4], [1, 4], [2, 4], [2, 3], [2, 2], [1, 2]],
+    "2": [[1, 3], [0, 3], [0, 2], [0, 1], [6, 1], [6, 0], [5, 0], [4, 0], [3, 0], [2, 0]],
+    "3": [[1, 5], [2, 5], [2, 6], [3, 6], [4, 6], [5, 6], [5, 5]],
+    "4": [[3, 2], [4, 2], [5, 2], [6, 2], [6, 3]],
+    "5": [[3, 5], [3, 4], [3, 3], [4, 3], [5, 3]],
+    "6": [[4, 5], [4, 4], [5, 4], [6, 4], [6, 5], [6, 6]]
+  },
+  "difficulty": {
+    "score": 22.4,
+    "band": "easy",
+    "metrics": {
+      "cells": 48,
+      "colors": 7,
+      "avgPathLength": 6.86,
+      "turnDensity": 0.333,
+      "maxSolverTier": 2,
+      "tierCounts": [40, 1, 0, 0],
+      "searchNodes": 48,
+      "forcedMoveRatio": 0.976
+    }
+  },
+  "stars": {
+    "perfectMoves": 7,
+    "twoStarMoves": 11
+  },
+  "meta": {
+    "seed": 2495199030,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 7,
+      "colors": [5, 7],
+      "walls": 1,
+      "bridges": 0,
+      "warps": 1,
+      "teleporters": 0,
+      "tunnels": 0,
+      "rotators": 1,
+      "locks": 0
+    },
+    "loadBearing": true
+  }
+}

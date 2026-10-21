@@ -1,0 +1,91 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "bridges-tunnels-010",
+  "pack": "bridges-tunnels",
+  "index": 10,
+  "formatVersion": 2,
+  "size": {
+    "width": 6,
+    "height": 6
+  },
+  "dots": [
+    {
+      "color": 1,
+      "start": [1, 1],
+      "end": [1, 4]
+    },
+    {
+      "color": 0,
+      "start": [1, 5],
+      "end": [4, 1]
+    },
+    {
+      "color": 2,
+      "start": [2, 1],
+      "end": [2, 4]
+    },
+    {
+      "color": 3,
+      "start": [2, 5],
+      "end": [5, 3]
+    },
+    {
+      "color": 4,
+      "start": [4, 0],
+      "end": [5, 5]
+    }
+  ],
+  "walls": [],
+  "bridges": [[4, 4]],
+  "warps": [],
+  "teleporters": [],
+  "tunnels": [
+    {
+      "cell": [3, 3],
+      "start": "v"
+    }
+  ],
+  "rotators": [],
+  "locks": [],
+  "solution": {
+    "0": [[1, 1], [1, 2], [1, 3], [1, 4]],
+    "1": [[1, 5], [0, 5], [0, 4], [0, 3], [0, 2], [0, 1], [0, 0], [1, 0], [2, 0], [3, 0], [3, 1], [4, 1]],
+    "2": [[2, 1], [2, 2], [2, 3], [2, 4]],
+    "3": [[2, 5], [3, 5], [4, 5], [4, 4], [4, 3], [5, 3]],
+    "4": [[4, 0], [5, 0], [5, 1], [5, 2], [4, 2], [3, 2], [3, 3], [3, 4], [4, 4], [5, 4], [5, 5]]
+  },
+  "difficulty": {
+    "score": 26.4,
+    "band": "easy",
+    "metrics": {
+      "cells": 36,
+      "colors": 5,
+      "avgPathLength": 7.4,
+      "turnDensity": 0.297,
+      "maxSolverTier": 3,
+      "tierCounts": [30, 0, 2, 0],
+      "searchNodes": 35,
+      "forcedMoveRatio": 0.938
+    }
+  },
+  "stars": {
+    "perfectMoves": 5,
+    "twoStarMoves": 8
+  },
+  "meta": {
+    "seed": 4189945093,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 6,
+      "colors": [5, 6],
+      "walls": 0,
+      "bridges": 1,
+      "warps": 0,
+      "teleporters": 0,
+      "tunnels": 1,
+      "rotators": 0,
+      "locks": 0
+    },
+    "loadBearing": true
+  }
+}

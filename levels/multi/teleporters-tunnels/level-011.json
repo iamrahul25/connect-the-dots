@@ -1,0 +1,96 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "teleporters-tunnels-011",
+  "pack": "teleporters-tunnels",
+  "index": 11,
+  "formatVersion": 2,
+  "size": {
+    "width": 6,
+    "height": 6
+  },
+  "dots": [
+    {
+      "color": 4,
+      "start": [0, 1],
+      "end": [5, 1]
+    },
+    {
+      "color": 1,
+      "start": [1, 3],
+      "end": [5, 5]
+    },
+    {
+      "color": 0,
+      "start": [2, 1],
+      "end": [3, 4]
+    },
+    {
+      "color": 2,
+      "start": [3, 1],
+      "end": [5, 3]
+    },
+    {
+      "color": 3,
+      "start": [3, 2],
+      "end": [5, 4]
+    }
+  ],
+  "walls": [],
+  "bridges": [],
+  "warps": [],
+  "teleporters": [
+    {
+      "a": [2, 2],
+      "b": [0, 5]
+    }
+  ],
+  "tunnels": [
+    {
+      "cell": [2, 4],
+      "start": "h"
+    }
+  ],
+  "rotators": [],
+  "locks": [],
+  "solution": {
+    "0": [[0, 1], [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, 1]],
+    "1": [[1, 3], [2, 3], [2, 2], [0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5]],
+    "2": [[2, 1], [1, 1], [1, 2], [0, 2], [0, 3], [0, 4], [1, 4], [2, 4], [3, 4]],
+    "3": [[3, 1], [4, 1], [4, 2], [5, 2], [5, 3]],
+    "4": [[3, 2], [3, 3], [4, 3], [4, 4], [5, 4]]
+  },
+  "difficulty": {
+    "score": 15.3,
+    "band": "easy",
+    "metrics": {
+      "cells": 36,
+      "colors": 5,
+      "avgPathLength": 7.2,
+      "turnDensity": 0.361,
+      "maxSolverTier": 1,
+      "tierCounts": [31, 0, 0, 0],
+      "searchNodes": 32,
+      "forcedMoveRatio": 1
+    }
+  },
+  "stars": {
+    "perfectMoves": 5,
+    "twoStarMoves": 8
+  },
+  "meta": {
+    "seed": 1353095854,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 6,
+      "colors": [5, 6],
+      "walls": 0,
+      "bridges": 0,
+      "warps": 0,
+      "teleporters": 1,
+      "tunnels": 1,
+      "rotators": 0,
+      "locks": 0
+    },
+    "loadBearing": true
+  }
+}

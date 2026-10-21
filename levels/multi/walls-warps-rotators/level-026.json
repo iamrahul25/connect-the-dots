@@ -1,0 +1,114 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "walls-warps-rotators-026",
+  "pack": "walls-warps-rotators",
+  "index": 26,
+  "formatVersion": 2,
+  "size": {
+    "width": 9,
+    "height": 9
+  },
+  "dots": [
+    {
+      "color": 4,
+      "start": [1, 1],
+      "end": [3, 1]
+    },
+    {
+      "color": 2,
+      "start": [1, 2],
+      "end": [7, 7]
+    },
+    {
+      "color": 1,
+      "start": [1, 5],
+      "end": [8, 0]
+    },
+    {
+      "color": 7,
+      "start": [1, 6],
+      "end": [2, 8]
+    },
+    {
+      "color": 0,
+      "start": [2, 7],
+      "end": [3, 0]
+    },
+    {
+      "color": 6,
+      "start": [3, 2],
+      "end": [3, 4]
+    },
+    {
+      "color": 3,
+      "start": [4, 1],
+      "end": [8, 5]
+    },
+    {
+      "color": 5,
+      "start": [6, 1],
+      "end": [6, 4]
+    }
+  ],
+  "walls": [[5, 1], [6, 5], [1, 7]],
+  "bridges": [],
+  "warps": [
+    {
+      "axis": "col",
+      "index": 4
+    }
+  ],
+  "teleporters": [],
+  "tunnels": [],
+  "rotators": [
+    {
+      "cell": [7, 5],
+      "start": "ne"
+    }
+  ],
+  "locks": [],
+  "solution": {
+    "0": [[1, 1], [2, 1], [3, 1]],
+    "1": [[1, 2], [2, 2], [2, 3], [3, 3], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7], [5, 7], [6, 7], [7, 7]],
+    "2": [[1, 5], [0, 5], [0, 4], [8, 4], [8, 3], [8, 2], [8, 1], [8, 0]],
+    "3": [[1, 6], [0, 6], [0, 7], [0, 8], [1, 8], [2, 8]],
+    "4": [[2, 7], [2, 6], [2, 5], [2, 4], [1, 4], [1, 3], [0, 3], [0, 2], [0, 1], [0, 0], [1, 0], [2, 0], [3, 0]],
+    "5": [[3, 2], [4, 2], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6], [6, 6], [7, 6], [8, 6], [8, 7], [8, 8], [7, 8], [6, 8], [5, 8], [4, 8], [3, 8], [3, 7], [3, 6], [3, 5], [3, 4]],
+    "6": [[4, 1], [4, 0], [5, 0], [6, 0], [7, 0], [7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [8, 5]],
+    "7": [[6, 1], [6, 2], [6, 3], [6, 4]]
+  },
+  "difficulty": {
+    "score": 47.6,
+    "band": "medium",
+    "metrics": {
+      "cells": 78,
+      "colors": 8,
+      "avgPathLength": 9.75,
+      "turnDensity": 0.282,
+      "maxSolverTier": 4,
+      "tierCounts": [63, 0, 6, 1],
+      "searchNodes": 73,
+      "forcedMoveRatio": 0.9
+    }
+  },
+  "stars": {
+    "perfectMoves": 8,
+    "twoStarMoves": 12
+  },
+  "meta": {
+    "seed": 2043679523,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 9,
+      "colors": [7, 9],
+      "walls": 3,
+      "bridges": 0,
+      "warps": 1,
+      "teleporters": 0,
+      "tunnels": 0,
+      "rotators": 1,
+      "locks": 0
+    },
+    "loadBearing": true
+  }
+}

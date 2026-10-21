@@ -1,0 +1,96 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "walls-warps-rotators-011",
+  "pack": "walls-warps-rotators",
+  "index": 11,
+  "formatVersion": 2,
+  "size": {
+    "width": 6,
+    "height": 6
+  },
+  "dots": [
+    {
+      "color": 4,
+      "start": [0, 0],
+      "end": [5, 0]
+    },
+    {
+      "color": 2,
+      "start": [1, 4],
+      "end": [3, 3]
+    },
+    {
+      "color": 0,
+      "start": [1, 5],
+      "end": [5, 4]
+    },
+    {
+      "color": 3,
+      "start": [2, 2],
+      "end": [4, 4]
+    },
+    {
+      "color": 1,
+      "start": [2, 5],
+      "end": [5, 5]
+    }
+  ],
+  "walls": [[3, 2]],
+  "bridges": [],
+  "warps": [
+    {
+      "axis": "col",
+      "index": 1
+    }
+  ],
+  "teleporters": [],
+  "tunnels": [],
+  "rotators": [
+    {
+      "cell": [4, 3],
+      "start": "sw"
+    }
+  ],
+  "locks": [],
+  "solution": {
+    "0": [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0]],
+    "1": [[1, 4], [1, 3], [1, 2], [1, 1], [2, 1], [3, 1], [4, 1], [4, 2], [4, 3], [3, 3]],
+    "2": [[1, 5], [0, 5], [0, 4], [0, 3], [0, 2], [0, 1], [5, 1], [5, 2], [5, 3], [5, 4]],
+    "3": [[2, 2], [2, 3], [2, 4], [3, 4], [4, 4]],
+    "4": [[2, 5], [3, 5], [4, 5], [5, 5]]
+  },
+  "difficulty": {
+    "score": 17.4,
+    "band": "easy",
+    "metrics": {
+      "cells": 35,
+      "colors": 5,
+      "avgPathLength": 7,
+      "turnDensity": 0.2,
+      "maxSolverTier": 2,
+      "tierCounts": [29, 1, 0, 0],
+      "searchNodes": 31,
+      "forcedMoveRatio": 0.967
+    }
+  },
+  "stars": {
+    "perfectMoves": 5,
+    "twoStarMoves": 8
+  },
+  "meta": {
+    "seed": 3290270474,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 6,
+      "colors": [5, 6],
+      "walls": 1,
+      "bridges": 0,
+      "warps": 1,
+      "teleporters": 0,
+      "tunnels": 0,
+      "rotators": 1,
+      "locks": 0
+    },
+    "loadBearing": true
+  }
+}

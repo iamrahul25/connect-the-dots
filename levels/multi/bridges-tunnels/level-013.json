@@ -1,0 +1,95 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "bridges-tunnels-013",
+  "pack": "bridges-tunnels",
+  "index": 13,
+  "formatVersion": 2,
+  "size": {
+    "width": 7,
+    "height": 7
+  },
+  "dots": [
+    {
+      "color": 2,
+      "start": [0, 4],
+      "end": [5, 3]
+    },
+    {
+      "color": 1,
+      "start": [1, 1],
+      "end": [5, 1]
+    },
+    {
+      "color": 0,
+      "start": [2, 0],
+      "end": [4, 2]
+    },
+    {
+      "color": 3,
+      "start": [3, 0],
+      "end": [5, 2]
+    },
+    {
+      "color": 4,
+      "start": [3, 3],
+      "end": [5, 4]
+    }
+  ],
+  "walls": [],
+  "bridges": [[1, 3]],
+  "warps": [],
+  "teleporters": [],
+  "tunnels": [
+    {
+      "cell": [4, 3],
+      "start": "v"
+    },
+    {
+      "cell": [2, 6],
+      "start": "h"
+    }
+  ],
+  "rotators": [],
+  "locks": [],
+  "solution": {
+    "0": [[0, 4], [0, 5], [0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6], [6, 5], [6, 4], [6, 3], [5, 3]],
+    "1": [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1]],
+    "2": [[2, 0], [1, 0], [0, 0], [0, 1], [0, 2], [0, 3], [1, 3], [2, 3], [2, 4], [3, 4], [4, 4], [4, 3], [4, 2]],
+    "3": [[3, 0], [4, 0], [5, 0], [6, 0], [6, 1], [6, 2], [5, 2]],
+    "4": [[3, 3], [3, 2], [2, 2], [1, 2], [1, 3], [1, 4], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [5, 4]]
+  },
+  "difficulty": {
+    "score": 23.4,
+    "band": "easy",
+    "metrics": {
+      "cells": 49,
+      "colors": 5,
+      "avgPathLength": 10,
+      "turnDensity": 0.28,
+      "maxSolverTier": 2,
+      "tierCounts": [44, 1, 0, 0],
+      "searchNodes": 47,
+      "forcedMoveRatio": 0.978
+    }
+  },
+  "stars": {
+    "perfectMoves": 5,
+    "twoStarMoves": 8
+  },
+  "meta": {
+    "seed": 2547531855,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 7,
+      "colors": [5, 7],
+      "walls": 0,
+      "bridges": 1,
+      "warps": 0,
+      "teleporters": 0,
+      "tunnels": 2,
+      "rotators": 0,
+      "locks": 0
+    },
+    "loadBearing": true
+  }
+}

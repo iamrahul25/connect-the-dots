@@ -1,0 +1,90 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "walls-teleporters-locks-006",
+  "pack": "walls-teleporters-locks",
+  "index": 6,
+  "formatVersion": 2,
+  "size": {
+    "width": 5,
+    "height": 5
+  },
+  "dots": [
+    {
+      "color": 0,
+      "start": [0, 4],
+      "end": [4, 1]
+    },
+    {
+      "color": 2,
+      "start": [1, 0],
+      "end": [1, 4]
+    },
+    {
+      "color": 3,
+      "start": [2, 2],
+      "end": [4, 0]
+    },
+    {
+      "color": 1,
+      "start": [3, 4],
+      "end": [4, 3]
+    }
+  ],
+  "walls": [[2, 0]],
+  "bridges": [],
+  "warps": [],
+  "teleporters": [
+    {
+      "a": [0, 0],
+      "b": [2, 4]
+    }
+  ],
+  "tunnels": [],
+  "rotators": [],
+  "locks": [
+    {
+      "key": [1, 3],
+      "door": [3, 2]
+    }
+  ],
+  "solution": {
+    "0": [[0, 4], [0, 3], [0, 2], [0, 1], [0, 0], [2, 4], [2, 3], [3, 3], [3, 2], [4, 2], [4, 1]],
+    "1": [[1, 0], [1, 1], [1, 2], [1, 3], [1, 4]],
+    "2": [[2, 2], [2, 1], [3, 1], [3, 0], [4, 0]],
+    "3": [[3, 4], [4, 4], [4, 3]]
+  },
+  "difficulty": {
+    "score": 19.9,
+    "band": "easy",
+    "metrics": {
+      "cells": 24,
+      "colors": 4,
+      "avgPathLength": 6,
+      "turnDensity": 0.333,
+      "maxSolverTier": 2,
+      "tierCounts": [18, 2, 0, 0],
+      "searchNodes": 22,
+      "forcedMoveRatio": 0.9
+    }
+  },
+  "stars": {
+    "perfectMoves": 4,
+    "twoStarMoves": 6
+  },
+  "meta": {
+    "seed": 2617687688,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 5,
+      "colors": [4, 5],
+      "walls": 1,
+      "bridges": 0,
+      "warps": 0,
+      "teleporters": 1,
+      "tunnels": 0,
+      "rotators": 0,
+      "locks": 1
+    },
+    "loadBearing": true
+  }
+}

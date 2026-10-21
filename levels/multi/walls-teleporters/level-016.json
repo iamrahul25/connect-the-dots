@@ -1,0 +1,96 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "walls-teleporters-016",
+  "pack": "walls-teleporters",
+  "index": 16,
+  "formatVersion": 2,
+  "size": {
+    "width": 7,
+    "height": 7
+  },
+  "dots": [
+    {
+      "color": 5,
+      "start": [0, 0],
+      "end": [3, 1]
+    },
+    {
+      "color": 3,
+      "start": [1, 2],
+      "end": [5, 5]
+    },
+    {
+      "color": 0,
+      "start": [1, 6],
+      "end": [5, 4]
+    },
+    {
+      "color": 2,
+      "start": [2, 3],
+      "end": [5, 1]
+    },
+    {
+      "color": 4,
+      "start": [4, 1],
+      "end": [6, 1]
+    },
+    {
+      "color": 1,
+      "start": [5, 3],
+      "end": [5, 6]
+    }
+  ],
+  "walls": [[0, 6]],
+  "bridges": [],
+  "warps": [],
+  "teleporters": [
+    {
+      "a": [6, 2],
+      "b": [3, 5]
+    }
+  ],
+  "tunnels": [],
+  "rotators": [],
+  "locks": [],
+  "solution": {
+    "0": [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1]],
+    "1": [[1, 2], [1, 3], [1, 4], [2, 4], [2, 5], [2, 6], [3, 6], [4, 6], [4, 5], [5, 5]],
+    "2": [[1, 6], [1, 5], [0, 5], [0, 4], [0, 3], [0, 2], [0, 1], [1, 1], [2, 1], [2, 2], [3, 2], [4, 2], [4, 3], [4, 4], [5, 4]],
+    "3": [[2, 3], [3, 3], [3, 4], [3, 5], [6, 2], [5, 2], [5, 1]],
+    "4": [[4, 1], [4, 0], [5, 0], [6, 0], [6, 1]],
+    "5": [[5, 3], [6, 3], [6, 4], [6, 5], [6, 6], [5, 6]]
+  },
+  "difficulty": {
+    "score": 34.3,
+    "band": "easy",
+    "metrics": {
+      "cells": 48,
+      "colors": 6,
+      "avgPathLength": 8,
+      "turnDensity": 0.396,
+      "maxSolverTier": 3,
+      "tierCounts": [35, 2, 5, 0],
+      "searchNodes": 43,
+      "forcedMoveRatio": 0.833
+    }
+  },
+  "stars": {
+    "perfectMoves": 6,
+    "twoStarMoves": 9
+  },
+  "meta": {
+    "seed": 1783514458,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 7,
+      "colors": [5, 7],
+      "walls": 1,
+      "bridges": 0,
+      "warps": 0,
+      "teleporters": 1,
+      "tunnels": 0,
+      "rotators": 0,
+      "locks": 0
+    }
+  }
+}

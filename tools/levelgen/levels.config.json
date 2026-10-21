@@ -152,7 +152,16 @@
             "walls",
             "bridges"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "walls": 1, "bridges": 1, "difficulty": [6, 20], "introduces": "walls-bridges" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "walls": [1, 2], "bridges": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "walls": [1, 3], "bridges": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "walls": [2, 3], "bridges": [1, 2], "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "walls": [2, 4], "bridges": [1, 2], "difficulty": [38, 54] },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "walls": [2, 4], "bridges": [1, 2], "difficulty": [46, 62] },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "walls": [3, 5], "bridges": [1, 2], "difficulty": [54, 70], "attemptsPerLevel": 800 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "walls": [3, 5], "bridges": [2, 3], "difficulty": [60, 78], "attemptsPerLevel": 800 }
+          ]
         },
         {
           "id": "walls-warps",
@@ -162,7 +171,16 @@
             "walls",
             "warps"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "walls": 1, "warps": 1, "difficulty": [6, 20], "introduces": "walls-warps" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "walls": [1, 2], "warps": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "walls": [1, 3], "warps": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "walls": [2, 3], "warps": 1, "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "walls": [2, 4], "warps": [1, 2], "difficulty": [38, 54] },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "walls": [2, 4], "warps": [1, 2], "difficulty": [46, 62] },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "walls": [3, 5], "warps": [1, 2], "difficulty": [54, 70], "attemptsPerLevel": 800 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "walls": [3, 5], "warps": [1, 2], "difficulty": [60, 78], "attemptsPerLevel": 800 }
+          ]
         },
         {
           "id": "walls-teleporters",
@@ -172,7 +190,16 @@
             "walls",
             "teleporters"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "walls": 1, "teleporters": 1, "difficulty": [6, 20], "introduces": "walls-teleporters" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "walls": [1, 2], "teleporters": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "walls": [1, 3], "teleporters": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "walls": [2, 3], "teleporters": 1, "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "walls": [2, 4], "teleporters": [1, 2], "difficulty": [38, 54] },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "walls": [2, 4], "teleporters": [1, 2], "difficulty": [46, 62] },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "walls": [3, 5], "teleporters": [1, 2], "difficulty": [54, 70], "attemptsPerLevel": 800 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "walls": [3, 5], "teleporters": [1, 2], "difficulty": [60, 78], "attemptsPerLevel": 800 }
+          ]
         },
         {
           "id": "bridges-teleporters",
@@ -182,7 +209,16 @@
             "bridges",
             "teleporters"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "bridges": 1, "teleporters": 1, "difficulty": [6, 20], "introduces": "bridges-teleporters" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "bridges": 1, "teleporters": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "bridges": 1, "teleporters": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "bridges": [1, 2], "teleporters": 1, "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "bridges": [1, 2], "teleporters": [1, 2], "difficulty": [38, 54] },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "bridges": [1, 2], "teleporters": [1, 2], "difficulty": [46, 62] },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "bridges": [1, 2], "teleporters": [1, 2], "difficulty": [54, 70], "attemptsPerLevel": 800 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "bridges": [2, 3], "teleporters": [1, 2], "difficulty": [60, 78], "attemptsPerLevel": 800 }
+          ]
         },
         {
           "id": "bridges-tunnels",
@@ -192,7 +228,16 @@
             "bridges",
             "tunnels"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "bridges": 1, "tunnels": 1, "difficulty": [6, 20], "introduces": "bridges-tunnels" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "bridges": 1, "tunnels": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "bridges": 1, "tunnels": [1, 2], "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "bridges": [1, 2], "tunnels": [1, 2], "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "bridges": [1, 2], "tunnels": [2, 3], "difficulty": [38, 54] },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "bridges": [1, 2], "tunnels": [2, 3], "difficulty": [46, 62] },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "bridges": [1, 2], "tunnels": [2, 3], "difficulty": [54, 70], "attemptsPerLevel": 800 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "bridges": [2, 3], "tunnels": [2, 4], "difficulty": [60, 78], "attemptsPerLevel": 800 }
+          ]
         },
         {
           "id": "teleporters-tunnels",
@@ -202,7 +247,16 @@
             "teleporters",
             "tunnels"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "teleporters": 1, "tunnels": 1, "difficulty": [6, 20], "introduces": "teleporters-tunnels" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "teleporters": 1, "tunnels": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "teleporters": 1, "tunnels": [1, 2], "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "teleporters": 1, "tunnels": [1, 2], "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "teleporters": [1, 2], "tunnels": [2, 3], "difficulty": [38, 54] },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "teleporters": [1, 2], "tunnels": [2, 3], "difficulty": [46, 62] },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "teleporters": [1, 2], "tunnels": [2, 3], "difficulty": [54, 70], "attemptsPerLevel": 800 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "teleporters": [1, 2], "tunnels": [2, 4], "difficulty": [60, 78], "attemptsPerLevel": 800 }
+          ]
         },
         {
           "id": "tunnels-rotators",
@@ -212,7 +266,16 @@
             "tunnels",
             "rotators"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "tunnels": 1, "rotators": 1, "difficulty": [6, 20], "introduces": "tunnels-rotators" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "tunnels": 1, "rotators": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "tunnels": [1, 2], "rotators": [1, 2], "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "tunnels": [1, 2], "rotators": [1, 2], "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "tunnels": [2, 3], "rotators": [1, 2], "difficulty": [38, 54], "attemptsPerLevel": 400 },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "tunnels": [2, 3], "rotators": [2, 3], "difficulty": [46, 62], "attemptsPerLevel": 400 },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "tunnels": [2, 3], "rotators": [2, 3], "difficulty": [54, 70], "attemptsPerLevel": 600 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "tunnels": [2, 4], "rotators": [2, 3], "difficulty": [60, 78], "attemptsPerLevel": 1200 }
+          ]
         },
         {
           "id": "rotators-locks",
@@ -222,7 +285,16 @@
             "rotators",
             "locks"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "rotators": 1, "locks": 1, "difficulty": [6, 20], "introduces": "rotators-locks" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "rotators": 1, "locks": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "rotators": [1, 2], "locks": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "rotators": [1, 2], "locks": 1, "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "rotators": [1, 2], "locks": 1, "difficulty": [38, 54], "attemptsPerLevel": 400 },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "rotators": [2, 3], "locks": [1, 2], "difficulty": [46, 62], "attemptsPerLevel": 600 },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "rotators": [2, 3], "locks": [1, 2], "difficulty": [54, 70], "attemptsPerLevel": 1200 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "rotators": [2, 3], "locks": [1, 2], "difficulty": [60, 78], "attemptsPerLevel": 1200 }
+          ]
         },
         {
           "id": "walls-bridges-warps",
@@ -233,7 +305,16 @@
             "bridges",
             "warps"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "walls": 1, "bridges": 1, "warps": 1, "difficulty": [6, 20], "introduces": "walls-bridges-warps" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "walls": 1, "bridges": 1, "warps": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "walls": [1, 2], "bridges": 1, "warps": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "walls": [1, 2], "bridges": 1, "warps": 1, "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "walls": [1, 3], "bridges": 1, "warps": 1, "difficulty": [38, 54] },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "walls": [2, 3], "bridges": 1, "warps": 1, "difficulty": [46, 62] },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "walls": [2, 3], "bridges": [1, 2], "warps": [1, 2], "difficulty": [54, 70], "attemptsPerLevel": 800 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "walls": [2, 4], "bridges": [1, 2], "warps": [1, 2], "difficulty": [60, 78], "attemptsPerLevel": 800 }
+          ]
         },
         {
           "id": "walls-warps-rotators",
@@ -244,7 +325,16 @@
             "warps",
             "rotators"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "walls": 1, "warps": 1, "rotators": 1, "difficulty": [6, 20], "introduces": "walls-warps-rotators" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "walls": 1, "warps": 1, "rotators": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "walls": [1, 2], "warps": 1, "rotators": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "walls": [1, 2], "warps": 1, "rotators": 1, "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "walls": [1, 3], "warps": 1, "rotators": 1, "difficulty": [38, 54], "attemptsPerLevel": 400 },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "walls": [2, 3], "warps": 1, "rotators": 1, "difficulty": [46, 62], "attemptsPerLevel": 400 },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "walls": [2, 3], "warps": [1, 2], "rotators": [1, 2], "difficulty": [54, 70], "attemptsPerLevel": 600 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "walls": [2, 4], "warps": [1, 2], "rotators": [1, 2], "difficulty": [60, 78], "attemptsPerLevel": 1200 }
+          ]
         },
         {
           "id": "walls-teleporters-tunnels",
@@ -255,7 +345,16 @@
             "teleporters",
             "tunnels"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "walls": 1, "teleporters": 1, "tunnels": 1, "difficulty": [6, 20], "introduces": "walls-teleporters-tunnels" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "walls": 1, "teleporters": 1, "tunnels": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "walls": [1, 2], "teleporters": 1, "tunnels": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "walls": [1, 2], "teleporters": 1, "tunnels": 1, "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "walls": [1, 3], "teleporters": 1, "tunnels": 1, "difficulty": [38, 54] },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "walls": [2, 3], "teleporters": 1, "tunnels": 1, "difficulty": [46, 62] },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "walls": [2, 3], "teleporters": [1, 2], "tunnels": [1, 2], "difficulty": [54, 70], "attemptsPerLevel": 800 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "walls": [2, 4], "teleporters": [1, 2], "tunnels": [1, 2], "difficulty": [60, 78], "attemptsPerLevel": 800 }
+          ]
         },
         {
           "id": "walls-teleporters-locks",
@@ -266,7 +365,16 @@
             "teleporters",
             "locks"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "walls": 1, "teleporters": 1, "locks": 1, "difficulty": [6, 20], "introduces": "walls-teleporters-locks" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "walls": 1, "teleporters": 1, "locks": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "walls": [1, 2], "teleporters": 1, "locks": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "walls": [1, 2], "teleporters": 1, "locks": 1, "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "walls": [1, 3], "teleporters": 1, "locks": 1, "difficulty": [38, 54], "attemptsPerLevel": 400 },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "walls": [2, 3], "teleporters": 1, "locks": 1, "difficulty": [46, 62], "attemptsPerLevel": 600 },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "walls": [2, 3], "teleporters": [1, 2], "locks": 1, "difficulty": [54, 70], "attemptsPerLevel": 1200 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "walls": [2, 4], "teleporters": [1, 2], "locks": 1, "difficulty": [60, 78], "attemptsPerLevel": 1200 }
+          ]
         },
         {
           "id": "bridges-warps-tunnels",
@@ -277,7 +385,16 @@
             "warps",
             "tunnels"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "bridges": 1, "warps": 1, "tunnels": 1, "difficulty": [6, 20], "introduces": "bridges-warps-tunnels" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "bridges": 1, "warps": 1, "tunnels": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "bridges": 1, "warps": 1, "tunnels": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "bridges": 1, "warps": 1, "tunnels": 1, "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "bridges": 1, "warps": 1, "tunnels": 1, "difficulty": [38, 54] },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "bridges": 1, "warps": 1, "tunnels": 1, "difficulty": [46, 62] },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "bridges": [1, 2], "warps": [1, 2], "tunnels": [1, 2], "difficulty": [54, 70], "attemptsPerLevel": 800 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "bridges": [1, 2], "warps": [1, 2], "tunnels": [1, 2], "difficulty": [60, 78], "attemptsPerLevel": 800 }
+          ]
         },
         {
           "id": "teleporters-tunnels-rotators",
@@ -288,7 +405,16 @@
             "tunnels",
             "rotators"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "teleporters": 1, "tunnels": 1, "rotators": 1, "difficulty": [6, 20], "introduces": "teleporters-tunnels-rotators" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "teleporters": 1, "tunnels": 1, "rotators": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "teleporters": 1, "tunnels": 1, "rotators": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "teleporters": 1, "tunnels": 1, "rotators": 1, "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "teleporters": 1, "tunnels": 1, "rotators": 1, "difficulty": [38, 54], "attemptsPerLevel": 400 },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "teleporters": 1, "tunnels": 1, "rotators": 1, "difficulty": [46, 62], "attemptsPerLevel": 400 },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "teleporters": [1, 2], "tunnels": [1, 2], "rotators": [1, 2], "difficulty": [54, 70], "attemptsPerLevel": 600 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "teleporters": [1, 2], "tunnels": [1, 2], "rotators": [1, 2], "difficulty": [60, 78], "attemptsPerLevel": 1200 }
+          ]
         },
         {
           "id": "tunnels-rotators-locks",
@@ -299,7 +425,16 @@
             "rotators",
             "locks"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "tunnels": 1, "rotators": 1, "locks": 1, "difficulty": [6, 20], "introduces": "tunnels-rotators-locks" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "tunnels": 1, "rotators": 1, "locks": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "tunnels": 1, "rotators": 1, "locks": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "tunnels": 1, "rotators": 1, "locks": 1, "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "tunnels": 1, "rotators": 1, "locks": 1, "difficulty": [38, 54], "attemptsPerLevel": 400 },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "tunnels": 1, "rotators": 1, "locks": 1, "difficulty": [46, 62], "attemptsPerLevel": 600 },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "tunnels": [1, 2], "rotators": [1, 2], "locks": 1, "difficulty": [54, 70], "attemptsPerLevel": 1200 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "tunnels": [1, 2], "rotators": [1, 2], "locks": 1, "difficulty": [60, 78], "attemptsPerLevel": 1200 }
+          ]
         },
         {
           "id": "bridges-warps-rotators-locks",
@@ -311,7 +446,16 @@
             "rotators",
             "locks"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "bridges": 1, "warps": 1, "rotators": 1, "locks": 1, "difficulty": [6, 20], "introduces": "bridges-warps-rotators-locks" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "bridges": 1, "warps": 1, "rotators": 1, "locks": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "bridges": 1, "warps": 1, "rotators": 1, "locks": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "bridges": 1, "warps": 1, "rotators": 1, "locks": 1, "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "bridges": 1, "warps": 1, "rotators": 1, "locks": 1, "difficulty": [38, 54], "attemptsPerLevel": 600 },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "bridges": 1, "warps": 1, "rotators": 1, "locks": 1, "difficulty": [46, 62], "attemptsPerLevel": 1000 },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "bridges": [1, 2], "warps": [1, 2], "rotators": [1, 2], "locks": 1, "difficulty": [54, 70], "attemptsPerLevel": 1500 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "bridges": [1, 2], "warps": [1, 2], "rotators": [1, 2], "locks": 1, "difficulty": [60, 78], "attemptsPerLevel": 2000 }
+          ]
         },
         {
           "id": "walls-bridges-warps-teleporters-tunnels",
@@ -324,7 +468,16 @@
             "teleporters",
             "tunnels"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "walls": 1, "bridges": 1, "warps": 1, "teleporters": 1, "tunnels": 1, "difficulty": [6, 20], "introduces": "walls-bridges-warps-teleporters-tunnels" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "walls": 1, "bridges": 1, "warps": 1, "teleporters": 1, "tunnels": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "walls": [1, 2], "bridges": 1, "warps": 1, "teleporters": 1, "tunnels": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "walls": [1, 2], "bridges": 1, "warps": 1, "teleporters": 1, "tunnels": 1, "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "walls": [1, 3], "bridges": 1, "warps": 1, "teleporters": 1, "tunnels": 1, "difficulty": [38, 54] },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "walls": [2, 3], "bridges": 1, "warps": 1, "teleporters": 1, "tunnels": 1, "difficulty": [46, 62], "attemptsPerLevel": 400 },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "walls": [2, 3], "bridges": [1, 2], "warps": [1, 2], "teleporters": [1, 2], "tunnels": [1, 2], "difficulty": [54, 70], "attemptsPerLevel": 800 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "walls": [2, 4], "bridges": [1, 2], "warps": [1, 2], "teleporters": [1, 2], "tunnels": [1, 2], "difficulty": [60, 78], "attemptsPerLevel": 1200 }
+          ]
         },
         {
           "id": "all",
@@ -339,7 +492,16 @@
             "rotators",
             "locks"
           ],
-          "groups": []
+          "groups": [
+            { "range": [1, 6], "size": 5, "colors": [4, 5], "walls": 1, "bridges": 1, "warps": 1, "teleporters": 1, "tunnels": 1, "rotators": 1, "locks": 1, "difficulty": [6, 20], "introduces": "all" },
+            { "range": [7, 12], "size": 6, "colors": [5, 6], "walls": 1, "bridges": 1, "warps": 1, "teleporters": 1, "tunnels": 1, "rotators": 1, "locks": 1, "difficulty": [14, 28] },
+            { "range": [13, 18], "size": 7, "colors": [5, 7], "walls": [1, 2], "bridges": 1, "warps": 1, "teleporters": 1, "tunnels": 1, "rotators": 1, "locks": 1, "difficulty": [22, 37] },
+            { "range": [19, 24], "size": 8, "colors": [6, 8], "walls": [1, 2], "bridges": 1, "warps": 1, "teleporters": 1, "tunnels": 1, "rotators": 1, "locks": 1, "difficulty": [30, 46] },
+            { "range": [25, 30], "size": 9, "colors": [7, 9], "walls": [1, 3], "bridges": 1, "warps": 1, "teleporters": 1, "tunnels": 1, "rotators": 1, "locks": 1, "difficulty": [38, 54], "attemptsPerLevel": 600 },
+            { "range": [31, 36], "size": 10, "colors": [8, 10], "walls": [2, 3], "bridges": 1, "warps": 1, "teleporters": 1, "tunnels": 1, "rotators": 1, "locks": 1, "difficulty": [46, 62], "attemptsPerLevel": 1000 },
+            { "range": [37, 43], "size": 11, "colors": [9, 11], "walls": [2, 3], "bridges": [1, 2], "warps": [1, 2], "teleporters": [1, 2], "tunnels": [1, 2], "rotators": [1, 2], "locks": 1, "difficulty": [54, 70], "attemptsPerLevel": 1500 },
+            { "range": [44, 50], "size": 12, "colors": [10, 12], "walls": [2, 4], "bridges": [1, 2], "warps": [1, 2], "teleporters": [1, 2], "tunnels": [1, 2], "rotators": [1, 2], "locks": 1, "difficulty": [60, 78], "attemptsPerLevel": 2000 }
+          ]
         }
       ]
     },
