@@ -60,8 +60,7 @@
             "none-047",
             "none-048",
             "none-049",
-            "none-050",
-            "none-051"
+            "none-050"
           ]
         },
         {
@@ -1465,7 +1464,14 @@
             "bridges-warps-rotators-locks-040",
             "bridges-warps-rotators-locks-041",
             "bridges-warps-rotators-locks-042",
-            "bridges-warps-rotators-locks-043"
+            "bridges-warps-rotators-locks-043",
+            "bridges-warps-rotators-locks-044",
+            "bridges-warps-rotators-locks-045",
+            "bridges-warps-rotators-locks-046",
+            "bridges-warps-rotators-locks-047",
+            "bridges-warps-rotators-locks-048",
+            "bridges-warps-rotators-locks-049",
+            "bridges-warps-rotators-locks-050"
           ]
         },
         {
@@ -1479,7 +1485,58 @@
             "teleporters",
             "tunnels"
           ],
-          "levels": []
+          "levels": [
+            "walls-bridges-warps-teleporters-tunnels-001",
+            "walls-bridges-warps-teleporters-tunnels-002",
+            "walls-bridges-warps-teleporters-tunnels-003",
+            "walls-bridges-warps-teleporters-tunnels-004",
+            "walls-bridges-warps-teleporters-tunnels-005",
+            "walls-bridges-warps-teleporters-tunnels-006",
+            "walls-bridges-warps-teleporters-tunnels-007",
+            "walls-bridges-warps-teleporters-tunnels-008",
+            "walls-bridges-warps-teleporters-tunnels-009",
+            "walls-bridges-warps-teleporters-tunnels-010",
+            "walls-bridges-warps-teleporters-tunnels-011",
+            "walls-bridges-warps-teleporters-tunnels-012",
+            "walls-bridges-warps-teleporters-tunnels-013",
+            "walls-bridges-warps-teleporters-tunnels-014",
+            "walls-bridges-warps-teleporters-tunnels-015",
+            "walls-bridges-warps-teleporters-tunnels-016",
+            "walls-bridges-warps-teleporters-tunnels-017",
+            "walls-bridges-warps-teleporters-tunnels-018",
+            "walls-bridges-warps-teleporters-tunnels-019",
+            "walls-bridges-warps-teleporters-tunnels-020",
+            "walls-bridges-warps-teleporters-tunnels-021",
+            "walls-bridges-warps-teleporters-tunnels-022",
+            "walls-bridges-warps-teleporters-tunnels-023",
+            "walls-bridges-warps-teleporters-tunnels-024",
+            "walls-bridges-warps-teleporters-tunnels-025",
+            "walls-bridges-warps-teleporters-tunnels-026",
+            "walls-bridges-warps-teleporters-tunnels-027",
+            "walls-bridges-warps-teleporters-tunnels-028",
+            "walls-bridges-warps-teleporters-tunnels-029",
+            "walls-bridges-warps-teleporters-tunnels-030",
+            "walls-bridges-warps-teleporters-tunnels-031",
+            "walls-bridges-warps-teleporters-tunnels-032",
+            "walls-bridges-warps-teleporters-tunnels-033",
+            "walls-bridges-warps-teleporters-tunnels-034",
+            "walls-bridges-warps-teleporters-tunnels-035",
+            "walls-bridges-warps-teleporters-tunnels-036",
+            "walls-bridges-warps-teleporters-tunnels-037",
+            "walls-bridges-warps-teleporters-tunnels-038",
+            "walls-bridges-warps-teleporters-tunnels-039",
+            "walls-bridges-warps-teleporters-tunnels-040",
+            "walls-bridges-warps-teleporters-tunnels-041",
+            "walls-bridges-warps-teleporters-tunnels-042",
+            "walls-bridges-warps-teleporters-tunnels-043",
+            "walls-bridges-warps-teleporters-tunnels-044",
+            "walls-bridges-warps-teleporters-tunnels-045",
+            "walls-bridges-warps-teleporters-tunnels-046",
+            "walls-bridges-warps-teleporters-tunnels-047",
+            "walls-bridges-warps-teleporters-tunnels-048",
+            "walls-bridges-warps-teleporters-tunnels-049",
+            "walls-bridges-warps-teleporters-tunnels-050"
+          ]
         },
         {
           "id": "all",
@@ -1534,7 +1591,17 @@
             "all-037",
             "all-038",
             "all-039",
-            "all-040"
+            "all-040",
+            "all-041",
+            "all-042",
+            "all-043",
+            "all-044",
+            "all-045",
+            "all-046",
+            "all-047",
+            "all-048",
+            "all-049",
+            "all-050"
           ]
         }
       ]

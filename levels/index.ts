@@ -52,7 +52,6 @@ import l_none_047 from './single/none/level-047.json';
 import l_none_048 from './single/none/level-048.json';
 import l_none_049 from './single/none/level-049.json';
 import l_none_050 from './single/none/level-050.json';
-import l_none_051 from './single/none/level-051.json';
 import l_walls_001 from './single/walls/level-001.json';
 import l_walls_002 from './single/walls/level-002.json';
 import l_walls_003 from './single/walls/level-003.json';
@@ -1196,6 +1195,63 @@ import l_bridges_warps_rotators_locks_040 from './multi/bridges-warps-rotators-l
 import l_bridges_warps_rotators_locks_041 from './multi/bridges-warps-rotators-locks/level-041.json';
 import l_bridges_warps_rotators_locks_042 from './multi/bridges-warps-rotators-locks/level-042.json';
 import l_bridges_warps_rotators_locks_043 from './multi/bridges-warps-rotators-locks/level-043.json';
+import l_bridges_warps_rotators_locks_044 from './multi/bridges-warps-rotators-locks/level-044.json';
+import l_bridges_warps_rotators_locks_045 from './multi/bridges-warps-rotators-locks/level-045.json';
+import l_bridges_warps_rotators_locks_046 from './multi/bridges-warps-rotators-locks/level-046.json';
+import l_bridges_warps_rotators_locks_047 from './multi/bridges-warps-rotators-locks/level-047.json';
+import l_bridges_warps_rotators_locks_048 from './multi/bridges-warps-rotators-locks/level-048.json';
+import l_bridges_warps_rotators_locks_049 from './multi/bridges-warps-rotators-locks/level-049.json';
+import l_bridges_warps_rotators_locks_050 from './multi/bridges-warps-rotators-locks/level-050.json';
+import l_walls_bridges_warps_teleporters_tunnels_001 from './multi/walls-bridges-warps-teleporters-tunnels/level-001.json';
+import l_walls_bridges_warps_teleporters_tunnels_002 from './multi/walls-bridges-warps-teleporters-tunnels/level-002.json';
+import l_walls_bridges_warps_teleporters_tunnels_003 from './multi/walls-bridges-warps-teleporters-tunnels/level-003.json';
+import l_walls_bridges_warps_teleporters_tunnels_004 from './multi/walls-bridges-warps-teleporters-tunnels/level-004.json';
+import l_walls_bridges_warps_teleporters_tunnels_005 from './multi/walls-bridges-warps-teleporters-tunnels/level-005.json';
+import l_walls_bridges_warps_teleporters_tunnels_006 from './multi/walls-bridges-warps-teleporters-tunnels/level-006.json';
+import l_walls_bridges_warps_teleporters_tunnels_007 from './multi/walls-bridges-warps-teleporters-tunnels/level-007.json';
+import l_walls_bridges_warps_teleporters_tunnels_008 from './multi/walls-bridges-warps-teleporters-tunnels/level-008.json';
+import l_walls_bridges_warps_teleporters_tunnels_009 from './multi/walls-bridges-warps-teleporters-tunnels/level-009.json';
+import l_walls_bridges_warps_teleporters_tunnels_010 from './multi/walls-bridges-warps-teleporters-tunnels/level-010.json';
+import l_walls_bridges_warps_teleporters_tunnels_011 from './multi/walls-bridges-warps-teleporters-tunnels/level-011.json';
+import l_walls_bridges_warps_teleporters_tunnels_012 from './multi/walls-bridges-warps-teleporters-tunnels/level-012.json';
+import l_walls_bridges_warps_teleporters_tunnels_013 from './multi/walls-bridges-warps-teleporters-tunnels/level-013.json';
+import l_walls_bridges_warps_teleporters_tunnels_014 from './multi/walls-bridges-warps-teleporters-tunnels/level-014.json';
+import l_walls_bridges_warps_teleporters_tunnels_015 from './multi/walls-bridges-warps-teleporters-tunnels/level-015.json';
+import l_walls_bridges_warps_teleporters_tunnels_016 from './multi/walls-bridges-warps-teleporters-tunnels/level-016.json';
+import l_walls_bridges_warps_teleporters_tunnels_017 from './multi/walls-bridges-warps-teleporters-tunnels/level-017.json';
+import l_walls_bridges_warps_teleporters_tunnels_018 from './multi/walls-bridges-warps-teleporters-tunnels/level-018.json';
+import l_walls_bridges_warps_teleporters_tunnels_019 from './multi/walls-bridges-warps-teleporters-tunnels/level-019.json';
+import l_walls_bridges_warps_teleporters_tunnels_020 from './multi/walls-bridges-warps-teleporters-tunnels/level-020.json';
+import l_walls_bridges_warps_teleporters_tunnels_021 from './multi/walls-bridges-warps-teleporters-tunnels/level-021.json';
+import l_walls_bridges_warps_teleporters_tunnels_022 from './multi/walls-bridges-warps-teleporters-tunnels/level-022.json';
+import l_walls_bridges_warps_teleporters_tunnels_023 from './multi/walls-bridges-warps-teleporters-tunnels/level-023.json';
+import l_walls_bridges_warps_teleporters_tunnels_024 from './multi/walls-bridges-warps-teleporters-tunnels/level-024.json';
+import l_walls_bridges_warps_teleporters_tunnels_025 from './multi/walls-bridges-warps-teleporters-tunnels/level-025.json';
+import l_walls_bridges_warps_teleporters_tunnels_026 from './multi/walls-bridges-warps-teleporters-tunnels/level-026.json';
+import l_walls_bridges_warps_teleporters_tunnels_027 from './multi/walls-bridges-warps-teleporters-tunnels/level-027.json';
+import l_walls_bridges_warps_teleporters_tunnels_028 from './multi/walls-bridges-warps-teleporters-tunnels/level-028.json';
+import l_walls_bridges_warps_teleporters_tunnels_029 from './multi/walls-bridges-warps-teleporters-tunnels/level-029.json';
+import l_walls_bridges_warps_teleporters_tunnels_030 from './multi/walls-bridges-warps-teleporters-tunnels/level-030.json';
+import l_walls_bridges_warps_teleporters_tunnels_031 from './multi/walls-bridges-warps-teleporters-tunnels/level-031.json';
+import l_walls_bridges_warps_teleporters_tunnels_032 from './multi/walls-bridges-warps-teleporters-tunnels/level-032.json';
+import l_walls_bridges_warps_teleporters_tunnels_033 from './multi/walls-bridges-warps-teleporters-tunnels/level-033.json';
+import l_walls_bridges_warps_teleporters_tunnels_034 from './multi/walls-bridges-warps-teleporters-tunnels/level-034.json';
+import l_walls_bridges_warps_teleporters_tunnels_035 from './multi/walls-bridges-warps-teleporters-tunnels/level-035.json';
+import l_walls_bridges_warps_teleporters_tunnels_036 from './multi/walls-bridges-warps-teleporters-tunnels/level-036.json';
+import l_walls_bridges_warps_teleporters_tunnels_037 from './multi/walls-bridges-warps-teleporters-tunnels/level-037.json';
+import l_walls_bridges_warps_teleporters_tunnels_038 from './multi/walls-bridges-warps-teleporters-tunnels/level-038.json';
+import l_walls_bridges_warps_teleporters_tunnels_039 from './multi/walls-bridges-warps-teleporters-tunnels/level-039.json';
+import l_walls_bridges_warps_teleporters_tunnels_040 from './multi/walls-bridges-warps-teleporters-tunnels/level-040.json';
+import l_walls_bridges_warps_teleporters_tunnels_041 from './multi/walls-bridges-warps-teleporters-tunnels/level-041.json';
+import l_walls_bridges_warps_teleporters_tunnels_042 from './multi/walls-bridges-warps-teleporters-tunnels/level-042.json';
+import l_walls_bridges_warps_teleporters_tunnels_043 from './multi/walls-bridges-warps-teleporters-tunnels/level-043.json';
+import l_walls_bridges_warps_teleporters_tunnels_044 from './multi/walls-bridges-warps-teleporters-tunnels/level-044.json';
+import l_walls_bridges_warps_teleporters_tunnels_045 from './multi/walls-bridges-warps-teleporters-tunnels/level-045.json';
+import l_walls_bridges_warps_teleporters_tunnels_046 from './multi/walls-bridges-warps-teleporters-tunnels/level-046.json';
+import l_walls_bridges_warps_teleporters_tunnels_047 from './multi/walls-bridges-warps-teleporters-tunnels/level-047.json';
+import l_walls_bridges_warps_teleporters_tunnels_048 from './multi/walls-bridges-warps-teleporters-tunnels/level-048.json';
+import l_walls_bridges_warps_teleporters_tunnels_049 from './multi/walls-bridges-warps-teleporters-tunnels/level-049.json';
+import l_walls_bridges_warps_teleporters_tunnels_050 from './multi/walls-bridges-warps-teleporters-tunnels/level-050.json';
 import l_all_001 from './multi/all/level-001.json';
 import l_all_002 from './multi/all/level-002.json';
 import l_all_003 from './multi/all/level-003.json';
@@ -1236,6 +1292,16 @@ import l_all_037 from './multi/all/level-037.json';
 import l_all_038 from './multi/all/level-038.json';
 import l_all_039 from './multi/all/level-039.json';
 import l_all_040 from './multi/all/level-040.json';
+import l_all_041 from './multi/all/level-041.json';
+import l_all_042 from './multi/all/level-042.json';
+import l_all_043 from './multi/all/level-043.json';
+import l_all_044 from './multi/all/level-044.json';
+import l_all_045 from './multi/all/level-045.json';
+import l_all_046 from './multi/all/level-046.json';
+import l_all_047 from './multi/all/level-047.json';
+import l_all_048 from './multi/all/level-048.json';
+import l_all_049 from './multi/all/level-049.json';
+import l_all_050 from './multi/all/level-050.json';
 import daily_2026_09 from './daily/2026-09.json';
 import daily_2026_10 from './daily/2026-10.json';
 import daily_2026_11 from './daily/2026-11.json';
@@ -1294,7 +1360,6 @@ export const levels: Record<string, Level> = {
   'none-048': l_none_048 as unknown as Level,
   'none-049': l_none_049 as unknown as Level,
   'none-050': l_none_050 as unknown as Level,
-  'none-051': l_none_051 as unknown as Level,
   'walls-001': l_walls_001 as unknown as Level,
   'walls-002': l_walls_002 as unknown as Level,
   'walls-003': l_walls_003 as unknown as Level,
@@ -2438,6 +2503,63 @@ export const levels: Record<string, Level> = {
   'bridges-warps-rotators-locks-041': l_bridges_warps_rotators_locks_041 as unknown as Level,
   'bridges-warps-rotators-locks-042': l_bridges_warps_rotators_locks_042 as unknown as Level,
   'bridges-warps-rotators-locks-043': l_bridges_warps_rotators_locks_043 as unknown as Level,
+  'bridges-warps-rotators-locks-044': l_bridges_warps_rotators_locks_044 as unknown as Level,
+  'bridges-warps-rotators-locks-045': l_bridges_warps_rotators_locks_045 as unknown as Level,
+  'bridges-warps-rotators-locks-046': l_bridges_warps_rotators_locks_046 as unknown as Level,
+  'bridges-warps-rotators-locks-047': l_bridges_warps_rotators_locks_047 as unknown as Level,
+  'bridges-warps-rotators-locks-048': l_bridges_warps_rotators_locks_048 as unknown as Level,
+  'bridges-warps-rotators-locks-049': l_bridges_warps_rotators_locks_049 as unknown as Level,
+  'bridges-warps-rotators-locks-050': l_bridges_warps_rotators_locks_050 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-001': l_walls_bridges_warps_teleporters_tunnels_001 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-002': l_walls_bridges_warps_teleporters_tunnels_002 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-003': l_walls_bridges_warps_teleporters_tunnels_003 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-004': l_walls_bridges_warps_teleporters_tunnels_004 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-005': l_walls_bridges_warps_teleporters_tunnels_005 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-006': l_walls_bridges_warps_teleporters_tunnels_006 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-007': l_walls_bridges_warps_teleporters_tunnels_007 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-008': l_walls_bridges_warps_teleporters_tunnels_008 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-009': l_walls_bridges_warps_teleporters_tunnels_009 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-010': l_walls_bridges_warps_teleporters_tunnels_010 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-011': l_walls_bridges_warps_teleporters_tunnels_011 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-012': l_walls_bridges_warps_teleporters_tunnels_012 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-013': l_walls_bridges_warps_teleporters_tunnels_013 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-014': l_walls_bridges_warps_teleporters_tunnels_014 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-015': l_walls_bridges_warps_teleporters_tunnels_015 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-016': l_walls_bridges_warps_teleporters_tunnels_016 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-017': l_walls_bridges_warps_teleporters_tunnels_017 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-018': l_walls_bridges_warps_teleporters_tunnels_018 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-019': l_walls_bridges_warps_teleporters_tunnels_019 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-020': l_walls_bridges_warps_teleporters_tunnels_020 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-021': l_walls_bridges_warps_teleporters_tunnels_021 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-022': l_walls_bridges_warps_teleporters_tunnels_022 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-023': l_walls_bridges_warps_teleporters_tunnels_023 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-024': l_walls_bridges_warps_teleporters_tunnels_024 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-025': l_walls_bridges_warps_teleporters_tunnels_025 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-026': l_walls_bridges_warps_teleporters_tunnels_026 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-027': l_walls_bridges_warps_teleporters_tunnels_027 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-028': l_walls_bridges_warps_teleporters_tunnels_028 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-029': l_walls_bridges_warps_teleporters_tunnels_029 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-030': l_walls_bridges_warps_teleporters_tunnels_030 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-031': l_walls_bridges_warps_teleporters_tunnels_031 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-032': l_walls_bridges_warps_teleporters_tunnels_032 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-033': l_walls_bridges_warps_teleporters_tunnels_033 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-034': l_walls_bridges_warps_teleporters_tunnels_034 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-035': l_walls_bridges_warps_teleporters_tunnels_035 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-036': l_walls_bridges_warps_teleporters_tunnels_036 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-037': l_walls_bridges_warps_teleporters_tunnels_037 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-038': l_walls_bridges_warps_teleporters_tunnels_038 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-039': l_walls_bridges_warps_teleporters_tunnels_039 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-040': l_walls_bridges_warps_teleporters_tunnels_040 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-041': l_walls_bridges_warps_teleporters_tunnels_041 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-042': l_walls_bridges_warps_teleporters_tunnels_042 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-043': l_walls_bridges_warps_teleporters_tunnels_043 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-044': l_walls_bridges_warps_teleporters_tunnels_044 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-045': l_walls_bridges_warps_teleporters_tunnels_045 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-046': l_walls_bridges_warps_teleporters_tunnels_046 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-047': l_walls_bridges_warps_teleporters_tunnels_047 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-048': l_walls_bridges_warps_teleporters_tunnels_048 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-049': l_walls_bridges_warps_teleporters_tunnels_049 as unknown as Level,
+  'walls-bridges-warps-teleporters-tunnels-050': l_walls_bridges_warps_teleporters_tunnels_050 as unknown as Level,
   'all-001': l_all_001 as unknown as Level,
   'all-002': l_all_002 as unknown as Level,
   'all-003': l_all_003 as unknown as Level,
@@ -2478,6 +2600,16 @@ export const levels: Record<string, Level> = {
   'all-038': l_all_038 as unknown as Level,
   'all-039': l_all_039 as unknown as Level,
   'all-040': l_all_040 as unknown as Level,
+  'all-041': l_all_041 as unknown as Level,
+  'all-042': l_all_042 as unknown as Level,
+  'all-043': l_all_043 as unknown as Level,
+  'all-044': l_all_044 as unknown as Level,
+  'all-045': l_all_045 as unknown as Level,
+  'all-046': l_all_046 as unknown as Level,
+  'all-047': l_all_047 as unknown as Level,
+  'all-048': l_all_048 as unknown as Level,
+  'all-049': l_all_049 as unknown as Level,
+  'all-050': l_all_050 as unknown as Level,
 };
 
 export const dailyBanks: Record<string, DailyBank> = {

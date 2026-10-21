@@ -1,0 +1,101 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "walls-bridges-warps-teleporters-tunnels-008",
+  "pack": "walls-bridges-warps-teleporters-tunnels",
+  "index": 8,
+  "formatVersion": 2,
+  "size": {
+    "width": 6,
+    "height": 6
+  },
+  "dots": [
+    {
+      "color": 0,
+      "start": [0, 4],
+      "end": [3, 0]
+    },
+    {
+      "color": 4,
+      "start": [1, 0],
+      "end": [1, 4]
+    },
+    {
+      "color": 2,
+      "start": [1, 1],
+      "end": [3, 5]
+    },
+    {
+      "color": 1,
+      "start": [2, 2],
+      "end": [4, 1]
+    },
+    {
+      "color": 3,
+      "start": [4, 0],
+      "end": [4, 4]
+    }
+  ],
+  "walls": [[0, 3]],
+  "bridges": [[3, 3]],
+  "warps": [
+    {
+      "axis": "row",
+      "index": 2
+    }
+  ],
+  "teleporters": [
+    {
+      "a": [0, 2],
+      "b": [2, 4]
+    }
+  ],
+  "tunnels": [
+    {
+      "cell": [4, 5],
+      "start": "h"
+    }
+  ],
+  "rotators": [],
+  "locks": [],
+  "solution": {
+    "0": [[0, 4], [0, 5], [1, 5], [2, 5], [2, 0], [3, 0]],
+    "1": [[1, 0], [0, 0], [0, 1], [0, 2], [2, 4], [1, 4]],
+    "2": [[1, 1], [1, 2], [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [5, 4], [5, 5], [4, 5], [3, 5]],
+    "3": [[2, 2], [2, 1], [3, 1], [4, 1]],
+    "4": [[4, 0], [5, 0], [5, 1], [5, 2], [4, 2], [3, 2], [3, 3], [3, 4], [4, 4]]
+  },
+  "difficulty": {
+    "score": 17.9,
+    "band": "easy",
+    "metrics": {
+      "cells": 35,
+      "colors": 5,
+      "avgPathLength": 7.2,
+      "turnDensity": 0.333,
+      "maxSolverTier": 1,
+      "tierCounts": [31, 0, 0, 0],
+      "searchNodes": 32,
+      "forcedMoveRatio": 1
+    }
+  },
+  "stars": {
+    "perfectMoves": 5,
+    "twoStarMoves": 8
+  },
+  "meta": {
+    "seed": 1335383626,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 6,
+      "colors": [5, 6],
+      "walls": 1,
+      "bridges": 1,
+      "warps": 1,
+      "teleporters": 1,
+      "tunnels": 1,
+      "rotators": 0,
+      "locks": 0
+    },
+    "loadBearing": true
+  }
+}

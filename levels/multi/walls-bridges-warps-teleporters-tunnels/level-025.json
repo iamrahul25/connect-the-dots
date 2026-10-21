@@ -1,0 +1,119 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "walls-bridges-warps-teleporters-tunnels-025",
+  "pack": "walls-bridges-warps-teleporters-tunnels",
+  "index": 25,
+  "formatVersion": 2,
+  "size": {
+    "width": 9,
+    "height": 9
+  },
+  "dots": [
+    {
+      "color": 7,
+      "start": [0, 0],
+      "end": [7, 4]
+    },
+    {
+      "color": 3,
+      "start": [0, 8],
+      "end": [1, 2]
+    },
+    {
+      "color": 4,
+      "start": [2, 4],
+      "end": [7, 1]
+    },
+    {
+      "color": 0,
+      "start": [2, 8],
+      "end": [8, 3]
+    },
+    {
+      "color": 2,
+      "start": [3, 3],
+      "end": [6, 1]
+    },
+    {
+      "color": 5,
+      "start": [4, 3],
+      "end": [5, 5]
+    },
+    {
+      "color": 6,
+      "start": [4, 6],
+      "end": [7, 3]
+    },
+    {
+      "color": 1,
+      "start": [5, 8],
+      "end": [8, 4]
+    }
+  ],
+  "walls": [[1, 8]],
+  "bridges": [[2, 7]],
+  "warps": [
+    {
+      "axis": "row",
+      "index": 3
+    }
+  ],
+  "teleporters": [
+    {
+      "a": [5, 1],
+      "b": [4, 5]
+    }
+  ],
+  "tunnels": [
+    {
+      "cell": [8, 1],
+      "start": "v"
+    }
+  ],
+  "rotators": [],
+  "locks": [],
+  "solution": {
+    "0": [[0, 0], [1, 0], [2, 0], [3, 0], [3, 8], [4, 8], [4, 7], [5, 7], [6, 7], [7, 7], [7, 6], [7, 5], [7, 4]],
+    "1": [[0, 8], [0, 7], [1, 7], [2, 7], [3, 7], [3, 6], [3, 5], [2, 5], [1, 5], [1, 4], [1, 3], [1, 2]],
+    "2": [[2, 4], [2, 3], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2], [7, 2], [7, 1]],
+    "3": [[2, 8], [2, 7], [2, 6], [1, 6], [0, 6], [0, 5], [0, 4], [0, 3], [0, 2], [0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [8, 1], [8, 2], [8, 3]],
+    "4": [[3, 3], [3, 4], [4, 4], [4, 5], [5, 1], [6, 1]],
+    "5": [[4, 3], [5, 3], [5, 4], [5, 5]],
+    "6": [[4, 6], [5, 6], [6, 6], [6, 5], [6, 4], [6, 3], [7, 3]],
+    "7": [[5, 8], [6, 8], [7, 8], [8, 8], [8, 7], [8, 6], [8, 5], [8, 4]]
+  },
+  "difficulty": {
+    "score": 47.7,
+    "band": "medium",
+    "metrics": {
+      "cells": 80,
+      "colors": 8,
+      "avgPathLength": 10.13,
+      "turnDensity": 0.284,
+      "maxSolverTier": 4,
+      "tierCounts": [69, 0, 0, 4],
+      "searchNodes": 119,
+      "forcedMoveRatio": 0.945
+    }
+  },
+  "stars": {
+    "perfectMoves": 8,
+    "twoStarMoves": 12
+  },
+  "meta": {
+    "seed": 3731999304,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 9,
+      "colors": [7, 9],
+      "walls": 1,
+      "bridges": 1,
+      "warps": 1,
+      "teleporters": 1,
+      "tunnels": 1,
+      "rotators": 0,
+      "locks": 0
+    },
+    "loadBearing": true
+  }
+}

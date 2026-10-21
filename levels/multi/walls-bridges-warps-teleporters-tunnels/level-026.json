@@ -1,0 +1,125 @@
+{
+  "$schema": "../../schema/level.schema.json",
+  "id": "walls-bridges-warps-teleporters-tunnels-026",
+  "pack": "walls-bridges-warps-teleporters-tunnels",
+  "index": 26,
+  "formatVersion": 2,
+  "size": {
+    "width": 9,
+    "height": 9
+  },
+  "dots": [
+    {
+      "color": 1,
+      "start": [0, 0],
+      "end": [1, 2]
+    },
+    {
+      "color": 5,
+      "start": [0, 5],
+      "end": [3, 8]
+    },
+    {
+      "color": 0,
+      "start": [1, 7],
+      "end": [8, 4]
+    },
+    {
+      "color": 3,
+      "start": [2, 1],
+      "end": [2, 3]
+    },
+    {
+      "color": 4,
+      "start": [2, 4],
+      "end": [8, 5]
+    },
+    {
+      "color": 6,
+      "start": [4, 8],
+      "end": [7, 0]
+    },
+    {
+      "color": 7,
+      "start": [5, 1],
+      "end": [6, 2]
+    },
+    {
+      "color": 2,
+      "start": [6, 6],
+      "end": [8, 3]
+    },
+    {
+      "color": 8,
+      "start": [6, 7],
+      "end": [7, 1]
+    }
+  ],
+  "walls": [[3, 3], [1, 6]],
+  "bridges": [[5, 4]],
+  "warps": [
+    {
+      "axis": "col",
+      "index": 4
+    }
+  ],
+  "teleporters": [
+    {
+      "a": [7, 2],
+      "b": [3, 6]
+    }
+  ],
+  "tunnels": [
+    {
+      "cell": [1, 0],
+      "start": "h"
+    }
+  ],
+  "rotators": [],
+  "locks": [],
+  "solution": {
+    "0": [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1], [3, 2], [2, 2], [1, 2]],
+    "1": [[0, 5], [0, 6], [0, 7], [0, 8], [1, 8], [2, 8], [3, 8]],
+    "2": [[1, 7], [2, 7], [2, 6], [2, 5], [1, 5], [1, 4], [0, 4], [8, 4]],
+    "3": [[2, 1], [1, 1], [0, 1], [0, 2], [0, 3], [1, 3], [2, 3]],
+    "4": [[2, 4], [3, 4], [3, 5], [4, 5], [4, 6], [5, 6], [5, 7], [5, 8], [6, 8], [7, 8], [8, 8], [8, 7], [8, 6], [8, 5]],
+    "5": [[4, 8], [4, 7], [3, 7], [3, 6], [7, 2], [8, 2], [8, 1], [8, 0], [7, 0]],
+    "6": [[5, 1], [5, 2], [6, 2]],
+    "7": [[6, 6], [6, 5], [5, 5], [5, 4], [5, 3], [6, 3], [7, 3], [8, 3]],
+    "8": [[6, 7], [7, 7], [7, 6], [7, 5], [7, 4], [6, 4], [5, 4], [4, 4], [4, 3], [4, 2], [4, 1], [4, 0], [5, 0], [6, 0], [6, 1], [7, 1]]
+  },
+  "difficulty": {
+    "score": 50.2,
+    "band": "medium",
+    "metrics": {
+      "cells": 79,
+      "colors": 9,
+      "avgPathLength": 8.89,
+      "turnDensity": 0.375,
+      "maxSolverTier": 4,
+      "tierCounts": [65, 0, 4, 2],
+      "searchNodes": 92,
+      "forcedMoveRatio": 0.915
+    }
+  },
+  "stars": {
+    "perfectMoves": 9,
+    "twoStarMoves": 14
+  },
+  "meta": {
+    "seed": 3744136189,
+    "generatorVersion": "2.0.0",
+    "params": {
+      "size": 9,
+      "colors": [7, 9],
+      "walls": 2,
+      "bridges": 1,
+      "warps": 1,
+      "teleporters": 1,
+      "tunnels": 1,
+      "rotators": 0,
+      "locks": 0
+    },
+    "loadBearing": true
+  }
+}
