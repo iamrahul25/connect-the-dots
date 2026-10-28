@@ -18,6 +18,8 @@ interface Props {
   label?: string;
   sublabel?: string;
   icon?: IconName;
+  /** A character drawn in the bold title font in place of an icon, e.g. `?`. */
+  glyph?: string;
   iconColor?: string;
   onPress?: () => void;
   /** Defaults to `solid` for labeled buttons and `glass` for icon-only ones. */
@@ -38,6 +40,7 @@ export const GlassButton = memo(function GlassButton({
   label,
   sublabel,
   icon,
+  glyph,
   iconColor,
   onPress,
   variant,
@@ -94,6 +97,9 @@ export const GlassButton = memo(function GlassButton({
         ]}
       >
         {icon && <Ionicons name={icon} size={s(size === 'lg' ? 26 : 22)} color={iconColor ?? (primary ? ink : btn.icon)} />}
+        {glyph && (
+          <Text style={[styles.glyph, { fontSize: s(size === 'lg' ? 28 : 24), color: iconColor ?? (primary ? ink : btn.icon) }]}>{glyph}</Text>
+        )}
         {label && (
           <View style={{ alignItems: iconOnly ? 'center' : 'flex-start' }}>
             <Text style={[styles.label, { fontSize: s(size === 'lg' ? 22 : 17), color: ink }]}>{label}</Text>
@@ -122,6 +128,7 @@ const useStyles = makeStyles((t, s) => ({
     shadowOffset: { width: 0, height: 4 },
   },
   label: { fontFamily: fonts.title, letterSpacing: 0.3 },
+  glyph: { fontFamily: fonts.titleBold, includeFontPadding: false },
   sub: { fontFamily: fonts.body, fontSize: s(12), marginTop: -2 },
   badge: {
     position: 'absolute',

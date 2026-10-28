@@ -14,6 +14,7 @@ import { LANDSCAPE_H } from '../ui/Background';
 import { useLayout } from '../ui/layout';
 import { ResultModal, type ResultInfo } from './ResultModal';
 import { ObstacleInfo, obstaclesIn } from './ObstacleInfo';
+import { HowToPlay } from './HowToPlay';
 import { fonts, tokens } from '../theme/tokens';
 import { musicFor } from '../theme/packs';
 import { makeStyles, usePalette, useTheme } from '../theme/useTheme';
@@ -78,7 +79,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
   const [version, setVersion] = useState(0);
   const bump = useCallback(() => setVersion((v) => v + 1), []);
   const [result, setResult] = useState<ResultInfo | null>(null);
-  const [infoOpen, setInfoOpen] = useState(false);
+  const [info, setInfo] = useState<'obstacles' | 'rules' | null>(null);
   const hasObstacles = obstaclesIn(level).length > 0;
   const wonRef = useRef(false);
 
@@ -438,21 +439,21 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
     const onKey = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
-      if (infoOpen) {
-        if (k === 'escape' || k === 'i') setInfoOpen(false);
+      if (info) {
+        if (k === 'escape' || k === 'i') setInfo(null);
         return;
       }
       if (k === 'z') onUndo();
       else if (k === 'r' && !e.ctrlKey && !e.metaKey) onRestart();
       else if (k === 'h') onHint();
-      else if (k === 'i' && hasObstacles) setInfoOpen(true);
+      else if (k === 'i') setInfo(hasObstacles ? 'obstacles' : 'rules');
       else if (k === 'escape') onLevels();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onUndo, onRestart, onHint, onLevels, infoOpen, hasObstacles]);
+  }, [onUndo, onRestart, onHint, onLevels, info, hasObstacles]);
 
-  const openInfo = useCallback(() => setInfoOpen(true), []);
+  const openInfo = useCallback(() => setInfo(hasObstacles ? 'obstacles' : 'rules'), [hasObstacles]);
   const view = game.view();
   const connected = game.connectedCount(view);
   const fill = game.fillRatio(view);
@@ -508,14 +509,18 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
         <View style={[styles.controls, { width: sectionWidth, paddingHorizontal: controlsInset }]} onLayout={onControlsLayout}>
           <GlassButton icon="arrow-undo" label="Undo" onPress={onUndo} disabled={!game.canUndo()} style={styles.controlButton} />
           <GlassButton icon="bulb" label="Hint" variant="primary" onPress={onHint} badge={unlimitedHints ? '∞' : hints} style={styles.controlButton} />
-          {hasObstacles && (
-            <GlassButton icon="information-circle" iconColor={theme.icon.info} onPress={openInfo} accessibilityLabel="Obstacle info" />
-          )}
+          <GlassButton
+            icon="information-circle"
+            iconColor={theme.icon.info}
+            onPress={openInfo}
+            accessibilityLabel={hasObstacles ? 'Obstacle info' : 'How to play'}
+          />
         </View>
       </View>
 
       {toast.node}
-      {infoOpen && <ObstacleInfo puzzle={level} palette={palette} onClose={() => setInfoOpen(false)} />}
+      {info === 'obstacles' && <ObstacleInfo puzzle={level} palette={palette} onClose={() => setInfo(null)} onRules={() => setInfo('rules')} />}
+      {info === 'rules' && <HowToPlay palette={palette} onClose={() => setInfo(null)} />}
       {result && (
         <ResultModal
           result={result}

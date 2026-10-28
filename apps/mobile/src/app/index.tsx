@@ -9,7 +9,8 @@ import { Logo } from '../ui/Logo';
 import { GlassButton } from '../ui/GlassButton';
 import { useLayout } from '../ui/layout';
 import { fonts, tokens } from '../theme/tokens';
-import { makeStyles, useTheme } from '../theme/useTheme';
+import { makeStyles, usePalette, useTheme } from '../theme/useTheme';
+import { HowToPlay } from '../game/HowToPlay';
 import { withAlpha } from '../board/color';
 import { levelNumber, maxStars, packOfLevel } from '../data/levels';
 import { daySolvedCount, nextToPlay, streaksOf, totalStars, useProgress } from '../store/progress';
@@ -58,6 +59,8 @@ export default function Home() {
   const dailySolved = daySolvedCount(daily.completed[today]);
   const streak = streaksOf(daily.completed).current;
   const stars = totalStars(levels);
+  const palette = usePalette();
+  const [helpOpen, setHelpOpen] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -66,98 +69,110 @@ export default function Home() {
   );
 
   return (
-    <Screen scroll center right={<GlassButton icon="settings-sharp" size="sm" onPress={() => router.push('/settings')} accessibilityLabel="Settings" />}>
-      <Rise delay={0}>
-        <View style={styles.hero}>
-          <Logo reduceMotion={reduceMotion} scale={scale} />
-          <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit>
-            Connect the Dots
-          </Text>
-          <Text style={styles.tagline}>Link the colors · fill every cell</Text>
-        </View>
-      </Rise>
-
-      <Rise delay={120}>
-        <View style={styles.statsRow}>
-          <View style={styles.chip}>
-            <Ionicons name="star" size={s(16)} color={theme.icon.star} />
-            <Text style={styles.chipText}>
-              {stars}
-              <Text style={styles.chipDim}> / {maxStars()}</Text>
+    <>
+      <Screen
+        scroll
+        center
+        right={
+          <>
+            <GlassButton glyph="?" size="sm" onPress={() => setHelpOpen(true)} accessibilityLabel="How to play" />
+            <GlassButton icon="settings-sharp" size="sm" onPress={() => router.push('/settings')} accessibilityLabel="Settings" />
+          </>
+        }
+      >
+        <Rise delay={0}>
+          <View style={styles.hero}>
+            <Logo reduceMotion={reduceMotion} scale={scale} />
+            <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit>
+              Connect the Dots
             </Text>
+            <Text style={styles.tagline}>Link the colors · fill every cell</Text>
           </View>
-          <View style={styles.chip}>
-            <Ionicons name="bulb" size={s(16)} color={theme.icon.hint} />
-            <Text style={styles.chipText}>{unlimitedHints ? '∞' : hints}</Text>
-          </View>
-          <View style={styles.chip}>
-            <Ionicons name="flame" size={s(16)} color={theme.icon.streak} />
-            <Text style={styles.chipText}>{streak}</Text>
-          </View>
-        </View>
-      </Rise>
+        </Rise>
 
-      <Rise delay={220}>
-        <GlassButton
-          label="Play"
-          sublabel={`${packOfLevel(next)?.name} · Level ${levelNumber(next)}`}
-          icon="play"
-          variant="primary"
-          size="lg"
-          onPress={() => router.push(`/play/${next}`)}
-          style={styles.play}
-        />
-      </Rise>
-
-      <Rise delay={320}>
-        <Pressable
-          onPress={() => router.push('/daily')}
-          style={({ pressed }) => [styles.dailyCard, { borderColor: withAlpha(theme.text.primary, 0.25) }, pressed && { transform: [{ scale: 0.98 }] }]}
-        >
-          <View style={[styles.dailyIcon, { backgroundColor: withAlpha(theme.icon.streak, 0.18) }]}>
-            {dailySolved === DAILY_TIERS.length ? (
-              <Text style={{ fontSize: s(26) }}>👑</Text>
-            ) : (
-              <Ionicons name={dailySolved > 0 ? 'checkmark-circle' : 'calendar'} size={s(28)} color={theme.icon.streak} />
-            )}
+        <Rise delay={120}>
+          <View style={styles.statsRow}>
+            <View style={styles.chip}>
+              <Ionicons name="star" size={s(16)} color={theme.icon.star} />
+              <Text style={styles.chipText}>
+                {stars}
+                <Text style={styles.chipDim}> / {maxStars()}</Text>
+              </Text>
+            </View>
+            <View style={styles.chip}>
+              <Ionicons name="bulb" size={s(16)} color={theme.icon.hint} />
+              <Text style={styles.chipText}>{unlimitedHints ? '∞' : hints}</Text>
+            </View>
+            <View style={styles.chip}>
+              <Ionicons name="flame" size={s(16)} color={theme.icon.streak} />
+              <Text style={styles.chipText}>{streak}</Text>
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.dailyTitle}>Daily Puzzle</Text>
-            <Text style={styles.dailySub}>
-              {WEEKDAY_NAMES[weekday]} · {dailySolved > 0 ? `${dailySolved}/${DAILY_TIERS.length} solved` : 'Easy · Medium · Hard'}
-            </Text>
-          </View>
-          <View style={{ alignItems: 'flex-end' }}>
-            <Text style={styles.dailyTimerLabel}>next in</Text>
-            <Text style={styles.dailyTimer}>{countdown}</Text>
-          </View>
-        </Pressable>
-      </Rise>
+        </Rise>
 
-      <Rise delay={420}>
-        <GlassButton label="Level Packs" icon="albums" size="lg" outlined onPress={() => router.push('/packs')} style={styles.packs} />
-      </Rise>
-
-      {handcrafted && (
-        <Rise delay={520}>
+        <Rise delay={220}>
           <GlassButton
-            label="Handcrafted"
-            sublabel="Create & play shared levels"
-            icon="construct"
+            label="Play"
+            sublabel={`${packOfLevel(next)?.name} · Level ${levelNumber(next)}`}
+            icon="play"
+            variant="primary"
             size="lg"
-            outlined
-            onPress={() => router.push('/custom')}
-            style={styles.packs}
+            onPress={() => router.push(`/play/${next}`)}
+            style={styles.play}
           />
         </Rise>
-      )}
 
-      {showLevelDetails && (
-        <Rise delay={620}>
-          <GlassButton label="Level Stats" icon="grid" size="lg" outlined onPress={() => router.push('/level-stats')} style={styles.packs} />
+        <Rise delay={320}>
+          <Pressable
+            onPress={() => router.push('/daily')}
+            style={({ pressed }) => [styles.dailyCard, { borderColor: withAlpha(theme.text.primary, 0.25) }, pressed && { transform: [{ scale: 0.98 }] }]}
+          >
+            <View style={[styles.dailyIcon, { backgroundColor: withAlpha(theme.icon.streak, 0.18) }]}>
+              {dailySolved === DAILY_TIERS.length ? (
+                <Text style={{ fontSize: s(26) }}>👑</Text>
+              ) : (
+                <Ionicons name={dailySolved > 0 ? 'checkmark-circle' : 'calendar'} size={s(28)} color={theme.icon.streak} />
+              )}
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.dailyTitle}>Daily Puzzle</Text>
+              <Text style={styles.dailySub}>
+                {WEEKDAY_NAMES[weekday]} · {dailySolved > 0 ? `${dailySolved}/${DAILY_TIERS.length} solved` : 'Easy · Medium · Hard'}
+              </Text>
+            </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={styles.dailyTimerLabel}>next in</Text>
+              <Text style={styles.dailyTimer}>{countdown}</Text>
+            </View>
+          </Pressable>
         </Rise>
-      )}
-    </Screen>
+
+        <Rise delay={420}>
+          <GlassButton label="Level Packs" icon="albums" size="lg" outlined onPress={() => router.push('/packs')} style={styles.packs} />
+        </Rise>
+
+        {handcrafted && (
+          <Rise delay={520}>
+            <GlassButton
+              label="Handcrafted"
+              sublabel="Create & play shared levels"
+              icon="construct"
+              size="lg"
+              outlined
+              onPress={() => router.push('/custom')}
+              style={styles.packs}
+            />
+          </Rise>
+        )}
+
+        {showLevelDetails && (
+          <Rise delay={620}>
+            <GlassButton label="Level Stats" icon="grid" size="lg" outlined onPress={() => router.push('/level-stats')} style={styles.packs} />
+          </Rise>
+        )}
+      </Screen>
+      {helpOpen && <HowToPlay palette={palette} onClose={() => setHelpOpen(false)} />}
+    </>
   );
 }
 

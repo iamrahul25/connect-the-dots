@@ -16,7 +16,7 @@ import { makeStyles, useTheme } from '../theme/useTheme';
 
 export type ObstacleKind = 'walls' | 'bridges' | 'warps' | 'teleporters' | 'tunnels' | 'rotators' | 'locks';
 
-const KINDS: ObstacleKind[] = ['walls', 'bridges', 'warps', 'teleporters', 'tunnels', 'rotators', 'locks'];
+export const OBSTACLE_KINDS: ObstacleKind[] = ['walls', 'bridges', 'warps', 'teleporters', 'tunnels', 'rotators', 'locks'];
 
 const INFO: Record<ObstacleKind, { name: string; looks: string; rule: string }> = {
   walls: {
@@ -59,17 +59,49 @@ const INFO: Record<ObstacleKind, { name: string; looks: string; rule: string }> 
 const countOf = (puzzle: Puzzle, k: ObstacleKind) => (puzzle[k] ?? []).length;
 
 export function obstaclesIn(puzzle: Puzzle): ObstacleKind[] {
-  return KINDS.filter((k) => countOf(puzzle, k) > 0);
+  return OBSTACLE_KINDS.filter((k) => countOf(puzzle, k) > 0);
 }
 
 interface Props {
   puzzle: Puzzle;
   palette: Palette;
   onClose: () => void;
+  /** Shows a button that switches to the full how-to-play guide. */
+  onRules?: () => void;
 }
 
 /** Explains the level's obstacles, each with a mini board showing how it is drawn. */
-export function ObstacleInfo({ puzzle, palette, onClose }: Props) {
+export function ObstacleInfo({ puzzle, palette, onClose, onRules }: Props) {
+  const styles = useStyles();
+  return (
+    <InfoSheet
+      title="Obstacles"
+      subtitle="Found in this level"
+      onClose={onClose}
+      footer={onRules && <GlassButton label="How to play" icon="help-circle" outlined onPress={onRules} style={styles.footerButton} />}
+    >
+      {obstaclesIn(puzzle).map((k) => (
+        <ObstacleRow key={k} kind={k} palette={palette} count={countOf(puzzle, k)} />
+      ))}
+    </InfoSheet>
+  );
+}
+
+/** Centered card over a dimmed backdrop; tapping the backdrop or "Got it" closes it. */
+export function InfoSheet({
+  title,
+  subtitle,
+  onClose,
+  footer,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  onClose: () => void;
+  /** Extra button placed beside "Got it". */
+  footer?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   const styles = useStyles();
   const backdrop = useSharedValue(0);
   const card = useSharedValue(0);
@@ -83,41 +115,48 @@ export function ObstacleInfo({ puzzle, palette, onClose }: Props) {
     transform: [{ translateY: (1 - card.value) * 120 }, { scale: 0.94 + 0.06 * card.value }],
   }));
 
-  const kinds = obstaclesIn(puzzle);
-  const color = (i: number) => palette[i % palette.length];
-
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, backdropStyle]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close obstacle info" />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={`Close ${title.toLowerCase()}`} />
       </Animated.View>
       <View style={styles.center} pointerEvents="box-none">
         <Animated.View style={[styles.card, cardStyle]}>
-          <Text style={styles.title}>Obstacles</Text>
-          <Text style={styles.subtitle}>Found in this level</Text>
+          <Text style={styles.title}>{title}</Text>
+          {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
           <ScrollView style={{ alignSelf: 'stretch' }} contentContainerStyle={{ gap: 12 }} showsVerticalScrollIndicator={false}>
-            {kinds.map((k) => (
-              <View key={k} style={styles.row}>
-                {k === 'walls' && <WallPreview color={color(0)} />}
-                {k === 'bridges' && <BridgePreview across={color(1)} over={color(2)} />}
-                {k === 'warps' && <WarpPreview color={color(3)} />}
-                {k === 'teleporters' && <TeleportPreview color={color(4)} />}
-                {k === 'tunnels' && <PiecePreview kind="tunnel" color={color(5)} />}
-                {k === 'rotators' && <PiecePreview kind="rotator" color={color(6)} />}
-                {k === 'locks' && <LockPreview color={color(7)} />}
-                <View style={{ flex: 1 }}>
-                  <View style={styles.nameRow}>
-                    <Text style={styles.name}>{INFO[k].name}</Text>
-                    <Text style={styles.count}>×{countOf(puzzle, k)}</Text>
-                  </View>
-                  <Text style={styles.looks}>{INFO[k].looks}</Text>
-                  <Text style={styles.rule}>{INFO[k].rule}</Text>
-                </View>
-              </View>
-            ))}
+            {children}
           </ScrollView>
-          <GlassButton label="Got it" onPress={onClose} style={{ alignSelf: 'stretch', marginTop: 16 }} />
+          <View style={styles.footer}>
+            {footer}
+            <GlassButton label="Got it" onPress={onClose} style={styles.footerButton} />
+          </View>
         </Animated.View>
+      </View>
+    </View>
+  );
+}
+
+/** One obstacle: its mini board preview beside how it looks and how it plays. */
+export function ObstacleRow({ kind: k, palette, count }: { kind: ObstacleKind; palette: Palette; count?: number }) {
+  const styles = useStyles();
+  const color = (i: number) => palette[i % palette.length];
+  return (
+    <View style={styles.row}>
+      {k === 'walls' && <WallPreview color={color(0)} />}
+      {k === 'bridges' && <BridgePreview across={color(1)} over={color(2)} />}
+      {k === 'warps' && <WarpPreview color={color(3)} />}
+      {k === 'teleporters' && <TeleportPreview color={color(4)} />}
+      {k === 'tunnels' && <PiecePreview kind="tunnel" color={color(5)} />}
+      {k === 'rotators' && <PiecePreview kind="rotator" color={color(6)} />}
+      {k === 'locks' && <LockPreview color={color(7)} />}
+      <View style={{ flex: 1 }}>
+        <View style={styles.nameRow}>
+          <Text style={styles.name}>{INFO[k].name}</Text>
+          {count !== undefined && <Text style={styles.count}>×{count}</Text>}
+        </View>
+        <Text style={styles.looks}>{INFO[k].looks}</Text>
+        <Text style={styles.rule}>{INFO[k].rule}</Text>
       </View>
     </View>
   );
@@ -125,13 +164,13 @@ export function ObstacleInfo({ puzzle, palette, onClose }: Props) {
 
 // ---- Mini board previews: plain views mirroring the Skia board styling -------
 
-const C = 28;
+export const C = 28;
 const PAD = 12;
 const WARP_T = 8;
 const WARP_GLOW = 3;
-type Pt = [row: number, col: number];
+export type Pt = [row: number, col: number];
 
-function Plate({ rows, cols, children }: { rows: number; cols: number; children: React.ReactNode }) {
+export function Plate({ rows, cols, children }: { rows: number; cols: number; children: React.ReactNode }) {
   const styles = useStyles();
   return (
     <View style={[styles.plate, { width: cols * C + PAD * 2, height: rows * C + PAD * 2 }]}>
@@ -140,7 +179,7 @@ function Plate({ rows, cols, children }: { rows: number; cols: number; children:
   );
 }
 
-function Tiles({ rows, cols, walls = [] }: { rows: number; cols: number; walls?: Pt[] }) {
+export function Tiles({ rows, cols, walls = [] }: { rows: number; cols: number; walls?: Pt[] }) {
   const styles = useStyles();
   const { board } = useTheme();
   const out: React.ReactNode[] = [];
@@ -159,7 +198,7 @@ function Tiles({ rows, cols, walls = [] }: { rows: number; cols: number; walls?:
   return <>{out}</>;
 }
 
-function Pipe({ from, to, color }: { from: Pt; to: Pt; color: DotStyle }) {
+export function Pipe({ from, to, color }: { from: Pt; to: Pt; color: DotStyle }) {
   const { board } = useTheme();
   const w = C * tokens.pathWidthRatio;
   const x1 = (Math.min(from[1], to[1]) + 0.5) * C;
@@ -182,7 +221,7 @@ function Pipe({ from, to, color }: { from: Pt; to: Pt; color: DotStyle }) {
   );
 }
 
-function Dot({ at, color }: { at: Pt; color: DotStyle }) {
+export function Dot({ at, color }: { at: Pt; color: DotStyle }) {
   const d = C * tokens.dotRatio;
   return (
     <View
@@ -355,6 +394,8 @@ const useStyles = makeStyles((t, s) => ({
     shadowOffset: { width: 0, height: 16 },
     elevation: 12,
   },
+  footer: { flexDirection: 'row', alignSelf: 'stretch', gap: s(10), marginTop: 16 },
+  footerButton: { flex: 1 },
   title: { fontFamily: fonts.titleBold, fontSize: s(28), color: t.text.primary },
   subtitle: { fontFamily: fonts.body, fontSize: s(13), color: t.text.secondary, marginBottom: s(16), textAlign: 'center' },
   row: {
