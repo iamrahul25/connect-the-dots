@@ -168,7 +168,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
       useCustomLevels.getState().recordResult(lv.id, stars, gm.moves);
       info = {
         stars, moves: gm.moves, best: prev ? Math.min(prev.bestMoves, gm.moves) : gm.moves, perfect: lv.stars.perfectMoves,
-        hintsEarned: 0, packCompleted: false, usedHint,
+        packCompleted: false, usedHint,
       };
     } else if (mode === 'daily' && daily) {
       const prev = progress.daily.completed[daily.key]?.[daily.tier];
@@ -176,7 +176,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
       progress.saveBoard(lv.id, null);
       info = {
         stars, moves: gm.moves, best: prev ? Math.min(prev.moves, gm.moves) : gm.moves, perfect: lv.stars.perfectMoves,
-        hintsEarned: r.hintsEarned, packCompleted: false, usedHint, streak: streaksOf(useProgress.getState().daily.completed).current,
+        packCompleted: false, usedHint, streak: streaksOf(useProgress.getState().daily.completed).current,
         perfectDay: r.perfectDay,
       };
     } else {
@@ -184,7 +184,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
       const r = progress.completeLevel(lv.id, stars, gm.moves, usedHint);
       info = {
         stars, moves: gm.moves, best: prev ? Math.min(prev.bestMoves, gm.moves) : gm.moves, perfect: lv.stars.perfectMoves,
-        hintsEarned: r.hintsEarned, packCompleted: r.packCompleted, usedHint,
+        packCompleted: r.packCompleted, usedHint,
       };
       if (r.packCompleted) setTimeout(() => audio.play('pack_unlock'), 1400);
     }
@@ -397,7 +397,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
     const pair = game.hintPair(level.solution);
     if (pair < 0) return;
     if (!custom && !useProgress.getState().spendHint()) {
-      toast.show('No hints left · earn them with ★★★ levels');
+      toast.show('No hints left');
       return;
     }
     const cells = level.solution[String(pair)];

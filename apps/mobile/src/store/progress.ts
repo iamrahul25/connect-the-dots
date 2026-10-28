@@ -24,7 +24,6 @@ export interface CompletionResult {
   stars: number;
   isNewBest: boolean;
   firstSolve: boolean;
-  hintsEarned: number;
   packCompleted: boolean;
 }
 
@@ -60,7 +59,7 @@ interface ProgressState {
 
 const initial = {
   levels: {},
-  hints: 5,
+  hints: 10,
   daily: { completed: {} },
   inProgress: {},
   lastPlayed: null,
@@ -77,8 +76,6 @@ export const useProgress = create<ProgressState>()(
         const firstSolve = !prev;
         const bestStars = Math.max(prev?.stars ?? 0, stars);
         const isNewBest = !prev || moves < prev.bestMoves;
-        let hintsEarned = 0;
-        if (stars === 3 && (prev?.stars ?? 0) < 3) hintsEarned += 1;
 
         const levels = {
           ...get().levels,
@@ -96,30 +93,27 @@ export const useProgress = create<ProgressState>()(
         if (pack && !completedPacks.includes(pack.id) && pack.levels.every((l) => levels[l])) {
           packCompleted = true;
           completedPacks.push(pack.id);
-          hintsEarned += 3;
         }
         const inProgress = { ...get().inProgress };
         delete inProgress[id];
-        set({ levels, completedPacks, inProgress, hints: get().hints + hintsEarned });
-        return { stars, isNewBest, firstSolve, hintsEarned, packCompleted };
+        set({ levels, completedPacks, inProgress });
+        return { stars, isNewBest, firstSolve, packCompleted };
       },
 
       completeDaily: (key, tier, stars, moves) => {
         const d = get().daily;
         const day = d.completed[key] ?? {};
         const prev = day[tier];
-        const hintsEarned = isDaySolved(day) ? 0 : 1;
         const nextDay: DailyDay = {
           ...day,
           [tier]: { stars: Math.max(prev?.stars ?? 0, stars), moves: prev ? Math.min(prev.moves, moves) : moves },
         };
         const completed = { ...d.completed, [key]: nextDay };
-        set({ daily: { completed }, hints: get().hints + hintsEarned });
+        set({ daily: { completed } });
         return {
           stars,
           isNewBest: !prev || moves < prev.moves,
           firstSolve: !prev,
-          hintsEarned,
           packCompleted: false,
           perfectDay: !prev && isPerfectDay(nextDay),
         };

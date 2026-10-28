@@ -21,7 +21,6 @@ export interface ResultInfo {
   moves: number;
   best: number;
   perfect: number;
-  hintsEarned: number;
   packCompleted: boolean;
   usedHint: boolean;
   streak?: number;
@@ -99,9 +98,7 @@ export function ResultModal({ result, nextLabel, onNext, onReplay, onLevels, red
             <Text style={[styles.reward, styles.streak]}>🔥 {result.streak}-day streak</Text>
           )}
           {result.perfectDay && <Text style={[styles.reward, styles.crown]}>👑 Perfect day: all 3 solved!</Text>}
-          {result.packCompleted && <Text style={styles.reward}>Pack complete! 🎉</Text>}
-          {result.hintsEarned > 0 && <Text style={styles.reward}>+{result.hintsEarned} hint{result.hintsEarned > 1 ? 's' : ''} 💡</Text>}
-          <GlassButton label={nextLabel} icon="play" variant="primary" size="lg" onPress={onNext} style={styles.next} />
+          {result.packCompleted && <Text style={styles.reward}>Pack complete! 🎉</Text>}          <GlassButton label={nextLabel} icon="play" variant="primary" size="lg" onPress={onNext} style={styles.next} />
           <View style={styles.row}>
             <GlassButton label="Replay" icon="refresh" onPress={onReplay} style={{ flex: 1 }} />
             <GlassButton label="Levels" icon="grid" onPress={onLevels} style={{ flex: 1 }} />

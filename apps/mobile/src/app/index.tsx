@@ -49,7 +49,6 @@ export default function Home() {
   const unlimitedHints = useSettings((s) => __DEV__ && s.unlimitedHints);
   const daily = useProgress((s) => s.daily);
   const reduceMotion = useSettings((s) => s.reduceMotion);
-  const showLevelDetails = useSettings((s) => __DEV__ && s.showLevelDetails);
   const handcrafted = useSettings((s) => s.handcrafted);
   const { scale, s } = useLayout();
   const countdown = useCountdown();
@@ -162,12 +161,6 @@ export default function Home() {
               onPress={() => router.push('/custom')}
               style={styles.packs}
             />
-          </Rise>
-        )}
-
-        {showLevelDetails && (
-          <Rise delay={620}>
-            <GlassButton label="Level Stats" icon="grid" size="lg" outlined onPress={() => router.push('/level-stats')} style={styles.packs} />
           </Rise>
         )}
       </Screen>

@@ -19,7 +19,7 @@ const BASICS: { icon: IconName; tone: IconTone; text: string }[] = [
 
 const SCORING: { icon: IconName; tone: IconTone; text: string }[] = [
   { icon: 'star', tone: 'star', text: 'Fewer moves earn more stars. Each time you switch to drawing a different flow counts as a move.' },
-  { icon: 'bulb', tone: 'hint', text: 'A hint draws one correct flow, but caps the level at two stars. Earn hints with new ★★★ solves, finished packs and daily puzzles.' },
+  { icon: 'bulb', tone: 'hint', text: 'A hint draws one correct flow, but caps the level at two stars.' },
   { icon: 'arrow-undo', tone: 'info', text: 'Undo takes back your last drag. Restart clears the whole board.' },
 ];
 
