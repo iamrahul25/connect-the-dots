@@ -11,54 +11,60 @@
   "dots": [
     {
       "color": 2,
-      "start": [1, 0],
-      "end": [4, 3]
+      "start": [0, 0],
+      "end": [1, 3]
+    },
+    {
+      "color": 4,
+      "start": [0, 1],
+      "end": [1, 4]
     },
     {
       "color": 3,
-      "start": [1, 1],
+      "start": [2, 0],
+      "end": [3, 1]
+    },
+    {
+      "color": 1,
+      "start": [3, 0],
       "end": [3, 3]
     },
     {
       "color": 0,
-      "start": [3, 0],
-      "end": [4, 2]
-    },
-    {
-      "color": 1,
-      "start": [3, 1],
-      "end": [4, 0]
+      "start": [3, 2],
+      "end": [4, 4]
     }
   ],
   "walls": [],
   "bridges": [],
   "warps": [],
   "solution": {
-    "0": [[1, 0], [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 4], [3, 4], [4, 4], [4, 3]],
-    "1": [[1, 1], [1, 2], [1, 3], [2, 3], [3, 3]],
-    "2": [[3, 0], [2, 0], [2, 1], [2, 2], [3, 2], [4, 2]],
-    "3": [[3, 1], [4, 1], [4, 0]]
+    "0": [[0, 0], [1, 0], [1, 1], [1, 2], [1, 3]],
+    "1": [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4]],
+    "2": [[2, 0], [2, 1], [3, 1]],
+    "3": [[3, 0], [4, 0], [4, 1], [4, 2], [4, 3], [3, 3]],
+    "4": [[3, 2], [2, 2], [2, 3], [2, 4], [3, 4], [4, 4]]
   },
   "difficulty": {
-    "score": 8.4,
+    "score": 7.3,
     "band": "relaxed",
     "metrics": {
       "cells": 25,
-      "colors": 4,
-      "avgPathLength": 6.25,
+      "colors": 5,
+      "avgPathLength": 5,
       "turnDensity": 0.28,
       "maxSolverTier": 1,
-      "tierCounts": [21, 0, 0, 0],
-      "searchNodes": 22,
+      "tierCounts": [20, 0, 0, 0],
+      "searchNodes": 21,
       "forcedMoveRatio": 1
     }
   },
   "stars": {
-    "perfectMoves": 4,
-    "twoStarMoves": 6
+    "perfectMoves": 5,
+    "twoStarMoves": 8
   },
   "meta": {
-    "seed": 777081841,
+    "seed": 1298682558,
     "generatorVersion": "1.0.0",
     "params": {
       "size": 5,

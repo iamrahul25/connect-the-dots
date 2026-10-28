@@ -2,6 +2,7 @@ import { isDailyTier, type Layer } from '@ctd/core';
 import {
   dropLegacyDailyBoards,
   isDaySolved,
+  renumberNoObstacleIds,
   totalStars,
   upgradeLegacyDaily,
   upgradeLegacyLevelIds,
@@ -18,8 +19,9 @@ const APP_ID = 'connect-the-dots';
 /**
  * 2 = daily results split per tier (easy / medium / hard). 3 = levels grouped into suites, string pack ids.
  * 4 = daily streak counters dropped; streaks are derived from the completed days.
+ * 5 = three levels added at the start of the No Obstacles pack; the old ones were renumbered.
  */
-const FORMAT = 4;
+const FORMAT = 5;
 /**
  * Mixed into the checksum so hand-edited files are rejected. It ships in the bundle, so this
  * deters casual tampering only; changing it invalidates every previously exported file.
@@ -214,6 +216,7 @@ export function parseSaveData(text: string): ParseResult {
   }
   save.progress = { ...save.progress, daily: { completed: save.progress.daily.completed } };
   if (file.format < 3) save.progress = { ...save.progress, ...upgradeLegacyLevelIds(save.progress) };
+  else if (file.format < 5) save.progress = { ...save.progress, ...renumberNoObstacleIds(save.progress) };
   return { ok: true, data: save, summary: summarize(save, typeof file.exportedAt === 'string' ? file.exportedAt : null) };
 }
 

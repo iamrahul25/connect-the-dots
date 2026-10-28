@@ -52,6 +52,9 @@ import l_none_047 from './single/none/level-047.json';
 import l_none_048 from './single/none/level-048.json';
 import l_none_049 from './single/none/level-049.json';
 import l_none_050 from './single/none/level-050.json';
+import l_none_051 from './single/none/level-051.json';
+import l_none_052 from './single/none/level-052.json';
+import l_none_053 from './single/none/level-053.json';
 import l_walls_001 from './single/walls/level-001.json';
 import l_walls_002 from './single/walls/level-002.json';
 import l_walls_003 from './single/walls/level-003.json';
@@ -1363,6 +1366,9 @@ export const levels: Record<string, Level> = {
   'none-048': l_none_048 as unknown as Level,
   'none-049': l_none_049 as unknown as Level,
   'none-050': l_none_050 as unknown as Level,
+  'none-051': l_none_051 as unknown as Level,
+  'none-052': l_none_052 as unknown as Level,
+  'none-053': l_none_053 as unknown as Level,
   'walls-001': l_walls_001 as unknown as Level,
   'walls-002': l_walls_002 as unknown as Level,
   'walls-003': l_walls_003 as unknown as Level,

@@ -34,7 +34,7 @@ export function Screen({ title, subtitle, back, right, children, scroll, center,
   const columnWidth = Math.min(layout.contentWidth(width), layout.width - insets.left - insets.right - layout.gutter * 2);
   const column = <View style={[styles.column, { width: columnWidth }, contentStyle]}>{children}</View>;
   // Side gutters live inside the body (not on the root) so a ScrollView body doesn't clip
-  // children that bleed into the gutter, like the edge-to-edge pack carousel.
+  // children that bleed into the gutter.
   const bodyPadding = { paddingHorizontal: layout.gutter, paddingBottom: insets.bottom + layout.landscapeClearance };
 
   return (

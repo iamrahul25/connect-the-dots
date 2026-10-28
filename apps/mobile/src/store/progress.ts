@@ -146,14 +146,16 @@ export const useProgress = create<ProgressState>()(
     {
       name: 'progress.v1',
       storage: persistStorage,
-      version: 4,
+      version: 5,
       migrate: (persisted, version) => {
         const s = persisted as ProgressState;
         if (version < 2 && s?.daily) {
           s.daily = { ...s.daily, completed: upgradeLegacyDaily(s.daily.completed as unknown as Record<string, DailyResult>) };
           s.inProgress = dropLegacyDailyBoards(s.inProgress ?? {});
         }
+        // Legacy ids map straight to current ids, so only saves made at versions 3-4 need renumbering.
         if (version < 3 && s) Object.assign(s, upgradeLegacyLevelIds({ ...initial, ...s }));
+        else if (version < 5 && s) Object.assign(s, renumberNoObstacleIds({ ...initial, ...s }));
         if (version < 4 && s) s.daily = { completed: s.daily?.completed ?? {} };
         return s;
       },
@@ -178,6 +180,19 @@ export function upgradeLegacyLevelIds(p: LevelProgress): LevelProgress & { compl
     lastPlayed: p.lastPlayed && upgrade(p.lastPlayed),
     completedPacks: allPacks.filter((pk) => pk.levels.length > 0 && pk.levels.every((id) => levels[id])).map((pk) => pk.id),
   };
+}
+
+/** Levels added at the start of the No Obstacles pack, pushing `none-001`..`none-050` to `none-004`..`none-053`. */
+const NONE_INSERTED = 3;
+
+/** Moves progress on the original No Obstacles levels to their renumbered ids. */
+export function renumberNoObstacleIds(p: LevelProgress): LevelProgress {
+  const shift = (id: string) => {
+    const m = /^none-(\d{3})$/.exec(id);
+    return m ? `none-${String(Number(m[1]) + NONE_INSERTED).padStart(3, '0')}` : id;
+  };
+  const rekey = <T,>(r: Record<string, T>) => Object.fromEntries(Object.entries(r).map(([id, v]) => [shift(id), v]));
+  return { levels: rekey(p.levels), inProgress: rekey(p.inProgress), lastPlayed: p.lastPlayed && shift(p.lastPlayed) };
 }
 
 /** Before tiers existed each day had one puzzle; those solves count as the Medium tier. */

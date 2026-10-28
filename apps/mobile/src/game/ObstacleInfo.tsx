@@ -56,6 +56,8 @@ const INFO: Record<ObstacleKind, { name: string; looks: string; rule: string }> 
   },
 };
 
+export const obstacleName = (k: ObstacleKind) => INFO[k].name;
+
 const countOf = (puzzle: Puzzle, k: ObstacleKind) => (puzzle[k] ?? []).length;
 
 export function obstaclesIn(puzzle: Puzzle): ObstacleKind[] {
