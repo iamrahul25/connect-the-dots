@@ -13,6 +13,8 @@ interface Props {
   title?: string;
   subtitle?: string;
   back?: boolean | (() => void);
+  /** Shown in the top-left corner when there is no back button. */
+  left?: React.ReactNode;
   right?: React.ReactNode;
   children: React.ReactNode;
   /** Wrap the body in a vertical ScrollView. */
@@ -25,7 +27,7 @@ interface Props {
 }
 
 /** Safe-area screen: header buttons pinned to the corners, body in a centered, responsive column. */
-export function Screen({ title, subtitle, back, right, children, scroll, center, width = 'narrow', contentStyle }: Props) {
+export function Screen({ title, subtitle, back, left, right, children, scroll, center, width = 'narrow', contentStyle }: Props) {
   const insets = useSafeAreaInsets();
   const styles = useStyles();
   const layout = useLayout();
@@ -48,9 +50,9 @@ export function Screen({ title, subtitle, back, right, children, scroll, center,
         },
       ]}
     >
-      {(title || back || right) && (
+      {(title || back || left || right) && (
         <View style={[styles.header, { marginHorizontal: layout.gutter }]}>
-          <View style={styles.side}>{back && <GlassButton icon="chevron-back" size="sm" onPress={onBack} accessibilityLabel="Back" />}</View>
+          <View style={styles.side}>{back ? <GlassButton icon="chevron-back" size="sm" onPress={onBack} accessibilityLabel="Back" /> : left}</View>
           <View style={styles.titleWrap}>
             {title && (
               <Text style={styles.title} numberOfLines={1}>
@@ -80,7 +82,8 @@ export function Screen({ title, subtitle, back, right, children, scroll, center,
 const useStyles = makeStyles((t, s) => ({
   root: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', height: s(HEADER_H), marginBottom: s(8) },
-  side: { width: s(96), flexDirection: 'row', alignItems: 'center', gap: s(8) },
+  /** A minimum, not a fixed width, so a wider `left` (like the rank pill) fits on screens without a title. */
+  side: { minWidth: s(96), flexDirection: 'row', alignItems: 'center', gap: s(8) },
   sideRight: { justifyContent: 'flex-end' },
   titleWrap: { flex: 1, alignItems: 'center' },
   title: { fontFamily: fonts.title, fontSize: s(22), color: t.text.primary, letterSpacing: 0.5 },

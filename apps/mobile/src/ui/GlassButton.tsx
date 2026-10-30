@@ -20,6 +20,8 @@ interface Props {
   icon?: IconName;
   /** A character drawn in the bold title font in place of an icon, e.g. `?`. */
   glyph?: string;
+  /** Base glyph font size before UI scaling; defaults to a size matching the icons. */
+  glyphSize?: number;
   iconColor?: string;
   onPress?: () => void;
   /** Defaults to `solid` for labeled buttons and `glass` for icon-only ones. */
@@ -41,6 +43,7 @@ export const GlassButton = memo(function GlassButton({
   sublabel,
   icon,
   glyph,
+  glyphSize,
   iconColor,
   onPress,
   variant,
@@ -98,7 +101,7 @@ export const GlassButton = memo(function GlassButton({
       >
         {icon && <Ionicons name={icon} size={s(size === 'lg' ? 26 : 22)} color={iconColor ?? (primary ? ink : btn.icon)} />}
         {glyph && (
-          <Text style={[styles.glyph, { fontSize: s(size === 'lg' ? 28 : 24), color: iconColor ?? (primary ? ink : btn.icon) }]}>{glyph}</Text>
+          <Text style={[styles.glyph, { fontSize: s(glyphSize ?? (size === 'lg' ? 28 : 24)), color: iconColor ?? (primary ? ink : btn.icon) }]}>{glyph}</Text>
         )}
         {label && (
           <View style={{ alignItems: iconOnly ? 'center' : 'flex-start' }}>

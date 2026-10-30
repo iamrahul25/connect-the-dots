@@ -10,6 +10,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { GlassButton } from '../ui/GlassButton';
+import { RankBadge } from '../ui/RankBadge';
+import type { Rank } from '../data/ranks';
+import { TIER_COLORS } from '../theme/ranks';
+import { withAlpha } from '../board/color';
 import { fonts, tokens } from '../theme/tokens';
 import { makeStyles, useTheme } from '../theme/useTheme';
 import { useScale } from '../theme/scale';
@@ -26,6 +30,8 @@ export interface ResultInfo {
   streak?: number;
   /** Daily: all three tiers of the day are now solved. */
   perfectDay?: boolean;
+  /** The rank this solve's stars just reached. */
+  rankUp?: Rank;
 }
 
 interface Props {
@@ -99,6 +105,7 @@ export function ResultModal({ result, nextLabel, onNext, onReplay, onLevels, red
           )}
           {result.perfectDay && <Text style={[styles.reward, styles.crown]}>👑 Perfect day: all 3 solved!</Text>}
           {result.packCompleted && <Text style={styles.reward}>Pack complete! 🎉</Text>}
+          {result.rankUp && <RankUpBanner rank={result.rankUp} reduceMotion={reduceMotion} />}
           <GlassButton label={nextLabel} icon="play" variant="primary" size="lg" onPress={onNext} style={styles.next} />
           <View style={styles.row}>
             <GlassButton label="Replay" icon="refresh" onPress={onReplay} style={{ flex: 1 }} />
@@ -107,6 +114,31 @@ export function ResultModal({ result, nextLabel, onNext, onReplay, onLevels, red
         </Animated.View>
       </View>
     </View>
+  );
+}
+
+function RankUpBanner({ rank, reduceMotion }: { rank: Rank; reduceMotion: boolean }) {
+  const styles = useStyles();
+  const { s } = useScale();
+  const accent = TIER_COLORS[rank.tier].accent;
+  const pop = useSharedValue(reduceMotion ? 1 : 0);
+  useEffect(() => {
+    if (reduceMotion) return;
+    pop.value = withDelay(1100, withSequence(withSpring(1.12, { damping: 8, stiffness: 220 }), withSpring(1, tokens.motion.spring)));
+  }, [pop, reduceMotion]);
+  const style = useAnimatedStyle(() => ({ opacity: Math.min(1, pop.value), transform: [{ scale: 0.6 + 0.4 * pop.value }] }));
+  return (
+    <Animated.View
+      style={[styles.rankUp, { borderColor: withAlpha(accent, 0.6), backgroundColor: withAlpha(accent, 0.14) }, style]}
+      accessible
+      accessibilityLabel={`Rank up! You reached ${rank.name}`}
+    >
+      <RankBadge rank={rank} size={s(48)} />
+      <View>
+        <Text style={styles.rankUpLabel}>Rank up!</Text>
+        <Text style={[styles.rankUpName, { color: accent }]}>{rank.name}</Text>
+      </View>
+    </Animated.View>
   );
 }
 
@@ -148,6 +180,19 @@ const useStyles = makeStyles((t, s) => ({
   reward: { fontFamily: fonts.bodyBold, fontSize: s(15), color: t.icon.hint, marginTop: s(10) },
   streak: { color: t.icon.streak },
   crown: { color: t.icon.star },
+  rankUp: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: s(10),
+    marginTop: s(12),
+    paddingVertical: s(6),
+    paddingLeft: s(8),
+    paddingRight: s(18),
+    borderRadius: tokens.radius.pill,
+    borderWidth: 1.5,
+  },
+  rankUpLabel: { fontFamily: fonts.bodyBold, fontSize: s(11), letterSpacing: 1.5, textTransform: 'uppercase', color: t.text.secondary },
+  rankUpName: { fontFamily: fonts.titleBold, fontSize: s(20), lineHeight: s(24) },
   next: { alignSelf: 'stretch', marginTop: s(18) },
   row: { flexDirection: 'row', gap: s(10), marginTop: s(10), alignSelf: 'stretch' },
 }));

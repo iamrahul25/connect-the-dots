@@ -1,12 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
+import Animated, {
+  cancelAnimation,
+  Easing,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { DAILY_TIERS, dateKey, WEEKDAY_NAMES } from '@ctd/core';
 import { Screen } from '../ui/Screen';
 import { Logo } from '../ui/Logo';
 import { GlassButton } from '../ui/GlassButton';
+import { RankButton } from '../ui/RankButton';
 import { useLayout } from '../ui/layout';
 import { fonts, tokens } from '../theme/tokens';
 import { makeStyles, usePalette, useTheme } from '../theme/useTheme';
@@ -41,6 +53,53 @@ function Rise({ delay, children }: { delay: number; children: React.ReactNode })
   return <Animated.View style={style}>{children}</Animated.View>;
 }
 
+/** Both idle loops share this period so the header buttons take turns instead of moving together. */
+const IDLE_PERIOD = 6000;
+
+/** Pops a header button in, then gives it a small periodic flourish: a wiggle or a full turn. */
+function HeaderPop({ delay, idle, still, children }: { delay: number; idle: 'wiggle' | 'spin'; still: boolean; children: React.ReactNode }) {
+  const pop = useSharedValue(still ? 1 : 0);
+  const turn = useSharedValue(0);
+  useEffect(() => {
+    if (still) {
+      cancelAnimation(pop);
+      cancelAnimation(turn);
+      pop.value = 1;
+      turn.value = 0;
+      return;
+    }
+    pop.value = withDelay(delay, withSpring(1, { damping: 9, stiffness: 170 }));
+    const ease = Easing.inOut(Easing.cubic);
+    const flourish =
+      idle === 'wiggle'
+        ? withSequence(
+            withTiming(-14, { duration: 90 }),
+            withTiming(12, { duration: 120 }),
+            withTiming(-7, { duration: 110 }),
+            withTiming(4, { duration: 100 }),
+            withTiming(0, { duration: 120 }),
+            withDelay(IDLE_PERIOD - 540, withTiming(0, { duration: 0 })),
+          )
+        : withSequence(
+            withTiming(360, { duration: 900, easing: ease }),
+            withTiming(0, { duration: 0 }),
+            withDelay(IDLE_PERIOD - 900, withTiming(0, { duration: 0 })),
+          );
+    turn.value = withDelay(delay + (idle === 'wiggle' ? 1500 : 4500), withRepeat(flourish, -1, false));
+    return () => {
+      cancelAnimation(pop);
+      cancelAnimation(turn);
+    };
+  }, [still, delay, idle, pop, turn]);
+
+  const entryTilt = idle === 'spin' ? -120 : -30;
+  const style = useAnimatedStyle(() => ({
+    opacity: Math.min(1, pop.value),
+    transform: [{ scale: 0.4 + 0.6 * pop.value }, { rotate: `${(1 - pop.value) * entryTilt + turn.value}deg` }],
+  }));
+  return <Animated.View style={style}>{children}</Animated.View>;
+}
+
 export default function Home() {
   const theme = useTheme();
   const styles = useStyles();
@@ -49,6 +108,8 @@ export default function Home() {
   const unlimitedHints = useSettings((s) => __DEV__ && s.unlimitedHints);
   const daily = useProgress((s) => s.daily);
   const reduceMotion = useSettings((s) => s.reduceMotion);
+  const systemReduceMotion = useReducedMotion();
+  const still = reduceMotion || systemReduceMotion;
   const handcrafted = useSettings((s) => s.handcrafted);
   const { scale, s } = useLayout();
   const countdown = useCountdown();
@@ -72,10 +133,15 @@ export default function Home() {
       <Screen
         scroll
         center
+        left={<RankButton stars={stars} onPress={() => router.push('/ranks')} />}
         right={
           <>
-            <GlassButton glyph="?" size="sm" onPress={() => setHelpOpen(true)} accessibilityLabel="How to play" />
-            <GlassButton icon="settings-sharp" size="sm" onPress={() => router.push('/settings')} accessibilityLabel="Settings" />
+            <HeaderPop delay={150} idle="wiggle" still={still}>
+              <GlassButton glyph="?" size="sm" onPress={() => setHelpOpen(true)} accessibilityLabel="How to play" />
+            </HeaderPop>
+            <HeaderPop delay={260} idle="spin" still={still}>
+              <GlassButton icon="settings-sharp" size="sm" onPress={() => router.push('/settings')} accessibilityLabel="Settings" />
+            </HeaderPop>
           </>
         }
       >

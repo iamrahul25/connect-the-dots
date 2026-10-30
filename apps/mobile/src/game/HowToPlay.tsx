@@ -29,6 +29,7 @@ export function HowToPlay({ palette, onClose }: { palette: Palette; onClose: () 
   return (
     <InfoSheet title="How to Play" subtitle="Link the colors · fill every cell" onClose={onClose}>
       <Text style={styles.section}>The basics</Text>
+      <Text style={styles.sectionNote}>Connect the matching dots and fill every box on the board.</Text>
       <View style={styles.basics}>
         <BasicsPreview palette={palette} />
         <View style={styles.basicsRules}>

@@ -10,6 +10,7 @@ import { newTrack, pointerMove, resetTrack, type PointerTrack } from '../board/d
 import type { Effect, EffectInput } from '../board/effects';
 import { BUTTON_H, GlassButton } from '../ui/GlassButton';
 import { useToast } from '../ui/Toast';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { LANDSCAPE_H } from '../ui/Background';
 import { useLayout } from '../ui/layout';
 import { ResultModal, type ResultInfo } from './ResultModal';
@@ -20,7 +21,8 @@ import { musicFor } from '../theme/packs';
 import { makeStyles, usePalette, useTheme } from '../theme/useTheme';
 import { lockColor } from '../theme/config';
 import { useSettings } from '../store/settings';
-import { starsFor, streaksOf, useProgress } from '../store/progress';
+import { starsFor, streaksOf, totalStars, useProgress } from '../store/progress';
+import { rankFor } from '../data/ranks';
 import { useCustomLevels } from '../store/customLevels';
 import { extendPalette } from '../theme/extraColors';
 import { audio } from '../services/audio';
@@ -80,6 +82,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
   const bump = useCallback(() => setVersion((v) => v + 1), []);
   const [result, setResult] = useState<ResultInfo | null>(null);
   const [info, setInfo] = useState<'obstacles' | 'rules' | null>(null);
+  const [confirmHint, setConfirmHint] = useState(false);
   const hasObstacles = obstaclesIn(level).length > 0;
   const wonRef = useRef(false);
 
@@ -181,12 +184,15 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
       };
     } else {
       const prev = progress.levels[lv.id];
+      const rankBefore = rankFor(totalStars(progress.levels));
       const r = progress.completeLevel(lv.id, stars, gm.moves, usedHint);
+      const rankAfter = rankFor(totalStars(useProgress.getState().levels));
+      const rankUp = rankAfter.index > rankBefore.index ? rankAfter : undefined;
       info = {
         stars, moves: gm.moves, best: prev ? Math.min(prev.bestMoves, gm.moves) : gm.moves, perfect: lv.stars.perfectMoves,
-        packCompleted: r.packCompleted, usedHint,
+        packCompleted: r.packCompleted, usedHint, rankUp,
       };
-      if (r.packCompleted) setTimeout(() => audio.play('pack_unlock'), 1400);
+      if (r.packCompleted || rankUp) setTimeout(() => audio.play('pack_unlock'), 1400);
     }
     setTimeout(() => setResult(info), ref.current.reduceMotion ? 300 : 1150);
   }, [emit, mode, daily]);
@@ -417,6 +423,16 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game, level, emit, geom, bump, save, onWin, toast, custom]);
 
+  /** Asks before spending a hint; with none left there is nothing to confirm. */
+  const requestHint = useCallback(() => {
+    if (wonRef.current || game.hintPair(level.solution) < 0) return;
+    if (!unlimitedHints && useProgress.getState().hints <= 0) {
+      toast.show('No hints left');
+      return;
+    }
+    setConfirmHint(true);
+  }, [game, level, unlimitedHints, toast]);
+
   // Idle nudge: shimmer an unconnected pair after a long pause.
   useEffect(() => {
     if (!idleHints || result) return;
@@ -439,19 +455,20 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
     const onKey = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
+      if (confirmHint) return;
       if (info) {
         if (k === 'escape' || k === 'i') setInfo(null);
         return;
       }
       if (k === 'z') onUndo();
       else if (k === 'r' && !e.ctrlKey && !e.metaKey) onRestart();
-      else if (k === 'h') onHint();
+      else if (k === 'h') requestHint();
       else if (k === 'i') setInfo(hasObstacles ? 'obstacles' : 'rules');
       else if (k === 'escape') onLevels();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onUndo, onRestart, onHint, onLevels, info, hasObstacles]);
+  }, [onUndo, onRestart, requestHint, onLevels, info, confirmHint, hasObstacles]);
 
   const openInfo = useCallback(() => setInfo(hasObstacles ? 'obstacles' : 'rules'), [hasObstacles]);
   const view = game.view();
@@ -508,9 +525,10 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
 
         <View style={[styles.controls, { width: sectionWidth, paddingHorizontal: controlsInset }]} onLayout={onControlsLayout}>
           <GlassButton icon="arrow-undo" label="Undo" onPress={onUndo} disabled={!game.canUndo()} style={styles.controlButton} />
-          <GlassButton icon="bulb" label="Hint" variant="primary" onPress={onHint} badge={unlimitedHints ? '∞' : hints} style={styles.controlButton} />
+          <GlassButton icon="bulb" label="Hint" variant="primary" onPress={requestHint} badge={unlimitedHints ? '∞' : hints} style={styles.controlButton} />
           <GlassButton
-            icon="information-circle"
+            glyph="?"
+            glyphSize={32}
             iconColor={theme.icon.info}
             onPress={openInfo}
             accessibilityLabel={hasObstacles ? 'Obstacle info' : 'How to play'}
@@ -519,6 +537,18 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
       </View>
 
       {toast.node}
+      <ConfirmDialog
+        visible={confirmHint}
+        icon="bulb"
+        title="Use a hint?"
+        message={`${unlimitedHints ? '' : `This uses 1 of your ${hints} ${hints === 1 ? 'hint' : 'hints'}. `}A hinted solve earns at most 2 stars.`}
+        confirmLabel="Use hint"
+        onConfirm={() => {
+          setConfirmHint(false);
+          onHint();
+        }}
+        onCancel={() => setConfirmHint(false)}
+      />
       {info === 'obstacles' && <ObstacleInfo puzzle={level} palette={palette} onClose={() => setInfo(null)} onRules={() => setInfo('rules')} />}
       {info === 'rules' && <HowToPlay palette={palette} onClose={() => setInfo(null)} />}
       {result && (
