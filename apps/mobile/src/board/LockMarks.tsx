@@ -109,3 +109,9 @@ export function ClosedDoor({ rect, cell, color, padlock }: { rect: TileRect; cel
   );
   return <Sketch draw={draw} />;
 }
+
+export function OpenDoor({ rect, cell, color }: { rect: TileRect; cell: number; color: string }) {
+  const { x, y, width, height, r } = rect;
+  const draw = useCallback((b: Brush) => drawOpenDoor(b, { x, y, width, height, r }, cell, color), [x, y, width, height, r, cell, color]);
+  return <Sketch draw={draw} />;
+}

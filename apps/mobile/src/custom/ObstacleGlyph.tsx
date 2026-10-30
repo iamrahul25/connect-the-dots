@@ -1,24 +1,29 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
-import { Canvas } from '@shopify/react-native-skia';
+import { Image, View } from 'react-native';
+import { Canvas, drawAsPicture, Group, Path, RoundedRect, Skia } from '@shopify/react-native-skia';
 import { useSharedValue } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import { bakedPixels, useBakedImage } from '../ui/bakedImage';
 import { HatchedTile } from '../ui/HatchedTile';
 import { KeyBadge, KeyMark, keyPath } from '../board/LockMarks';
 import { TeleportGate } from '../board/TeleportGate';
 import { TurnPiece } from '../board/TurnPiece';
-import { lockColor, teleporterColor } from '../theme/config';
+import { lockColor, teleporterColor, type UiTheme } from '../theme/config';
 import { tokens } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 export type GlyphKind = 'wall' | 'bridge' | 'warp' | 'teleporter' | 'tunnel' | 'rotator' | 'lock';
 
+type BoardColors = UiTheme['board'];
+
+/** Art is drawn at a board-like cell size and scaled, so stroke minimums keep the board's proportions at any size. */
+const REF = 48;
+
 /**
  * One board square showing an obstacle the way the board draws it, so tools and labels match the board.
- * `flat` draws every kind with plain views (no WebGL context), for screens that show many at once:
+ * `baked` renders it once into a cached image instead of a live canvas, for screens that show many at once:
  * browsers only allow a handful of live WebGL contexts.
  */
-export function ObstacleGlyph({ kind, size, flat = false }: { kind: GlyphKind; size: number; flat?: boolean }) {
+export function ObstacleGlyph({ kind, size, baked = false }: { kind: GlyphKind; size: number; baked?: boolean }) {
   const { board } = useTheme();
   const radius = size * board.cellRadius;
   if (kind === 'wall') return <HatchedTile size={size} radius={radius} color={board.cellWall} stripe={board.wallStripe} />;
@@ -29,135 +34,118 @@ export function ObstacleGlyph({ kind, size, flat = false }: { kind: GlyphKind; s
         height: size,
         borderRadius: radius,
         backgroundColor: kind === 'warp' ? board.warpTint : board.cellEmpty,
-        alignItems: 'center',
-        justifyContent: 'center',
         overflow: 'hidden',
       }}
     >
-      {kind === 'bridge' && <Bridge size={size} />}
-      {kind === 'warp' && <Warp size={size} />}
-      {kind === 'teleporter' && (flat ? <FlatGate size={size} /> : <Gate size={size} />)}
-      {(kind === 'tunnel' || kind === 'rotator') && (flat ? <FlatPiece kind={kind} size={size} /> : <Piece kind={kind} size={size} />)}
-      {kind === 'lock' && (flat ? <FlatKey size={size} /> : <Key size={size} />)}
-    </View>
-  );
-}
-
-function Bridge({ size }: { size: number }) {
-  const { board } = useTheme();
-  const deck = size * 0.76;
-  const rail = { position: 'absolute', top: '16%', bottom: '16%', width: 1, borderRadius: 1, backgroundColor: board.bridgeRail } as const;
-  return (
-    <View style={{ width: deck, height: deck, borderRadius: size * 0.18, backgroundColor: board.bridgeBox, borderWidth: 1.5, borderColor: board.bridgeBorder }}>
-      <View style={[rail, { left: '14%' }]} />
-      <View style={[rail, { right: '14%' }]} />
-    </View>
-  );
-}
-
-function Warp({ size }: { size: number }) {
-  const { board } = useTheme();
-  return (
-    <View
-      style={{
-        width: size * 0.32,
-        height: size * 0.8,
-        borderRadius: size * 0.16,
-        backgroundColor: board.warp,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Ionicons name="chevron-forward" size={size * 0.34} color={board.warpArrow} />
-    </View>
-  );
-}
-
-function Gate({ size }: { size: number }) {
-  const clock = useSharedValue(0);
-  const pulse = useSharedValue(0.8);
-  return (
-    <Canvas style={{ width: size, height: size }} pointerEvents="none">
-      <TeleportGate x={size / 2} y={size / 2} cell={size} color={teleporterColor(0)} clock={clock} pulse={pulse} reduceMotion />
-    </Canvas>
-  );
-}
-
-function Piece({ kind, size }: { kind: 'tunnel' | 'rotator'; size: number }) {
-  const { board } = useTheme();
-  return (
-    <Canvas style={{ width: size, height: size }} pointerEvents="none">
-      <TurnPiece
-        kind={kind}
-        cx={size / 2}
-        cy={size / 2}
-        cell={size}
-        deck={size * 0.76}
-        pathW={size * tokens.pathWidthRatio}
-        turn={0}
-        reduceMotion
-        colors={{ box: board.bridgeBox, border: board.bridgeBorder, shadow: board.bridgeShadow }}
-      />
-    </Canvas>
-  );
-}
-
-function FlatGate({ size }: { size: number }) {
-  const color = teleporterColor(0);
-  const ring = size * 0.66;
-  return (
-    <View style={{ width: ring, height: ring, borderRadius: ring / 2, borderWidth: size * 0.11, borderColor: color, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ width: size * 0.16, height: size * 0.16, borderRadius: size, backgroundColor: color }} />
-    </View>
-  );
-}
-
-function FlatPiece({ kind, size }: { kind: 'tunnel' | 'rotator'; size: number }) {
-  const { board } = useTheme();
-  const deck = size * 0.76;
-  const groove = Math.max(2, size * tokens.pathWidthRatio * 0.75);
-  const half = deck / 2;
-  const bar = { position: 'absolute', backgroundColor: board.bridgeBorder } as const;
-  return (
-    <View
-      style={{
-        width: deck,
-        height: deck,
-        borderRadius: kind === 'tunnel' ? size * 0.18 : half,
-        backgroundColor: board.bridgeBox,
-        borderWidth: 1.5,
-        borderColor: board.bridgeBorder,
-        overflow: 'hidden',
-      }}
-    >
-      {kind === 'tunnel' ? (
-        <View style={[bar, { left: 0, right: 0, top: half - groove / 2 - 1.5, height: groove }]} />
+      {baked ? (
+        <BakedArt kind={kind} size={size} board={board} />
       ) : (
-        <>
-          <View style={[bar, { top: 0, height: half - 1.5 + groove / 2, left: half - groove / 2 - 1.5, width: groove }]} />
-          <View style={[bar, { right: 0, left: half - groove / 2 - 1.5, top: half - groove / 2 - 1.5, height: groove }]} />
-        </>
+        <Canvas style={{ width: size, height: size }} pointerEvents="none">
+          <Group transform={[{ scale: size / REF }]}>
+            <GlyphArt kind={kind} board={board} />
+          </Group>
+        </Canvas>
       )}
     </View>
   );
 }
 
-function FlatKey({ size }: { size: number }) {
-  const badge = size * 0.72;
+/** The obstacle drawn with the board's own pieces, in a REF-sized cell. */
+function GlyphArt({ kind, board }: { kind: Exclude<GlyphKind, 'wall'>; board: BoardColors }) {
+  const clock = useSharedValue(0);
+  const pulse = useSharedValue(0.8);
+  const c = REF / 2;
+  const pieceColors = { box: board.bridgeBox, border: board.bridgeBorder, shadow: board.bridgeShadow };
+  switch (kind) {
+    case 'bridge':
+      return <BridgeArt board={board} />;
+    case 'warp':
+      return <WarpArt board={board} />;
+    case 'teleporter':
+      return <TeleportGate x={c} y={c} cell={REF} color={teleporterColor(0)} clock={clock} pulse={pulse} reduceMotion />;
+    case 'tunnel':
+    case 'rotator':
+      return (
+        <TurnPiece kind={kind} cx={c} cy={c} cell={REF} deck={REF * 0.76} pathW={REF * tokens.pathWidthRatio} turn={0} reduceMotion colors={pieceColors} />
+      );
+    case 'lock':
+      return <KeyArt />;
+  }
+}
+
+function BridgeArt({ board }: { board: BoardColors }) {
+  const deck = REF * 0.76;
+  const inset = (REF - deck) / 2;
+  const corner = REF * 0.18;
+  const rails = useMemo(() => {
+    const b = Skia.PathBuilder.Make();
+    for (const f of [0.2, 0.8]) {
+      b.moveTo(inset + deck * f, inset + deck * 0.16);
+      b.lineTo(inset + deck * f, inset + deck * 0.84);
+    }
+    return b.build();
+  }, [inset, deck]);
   return (
-    <View style={{ width: badge, height: badge, borderRadius: badge / 2, backgroundColor: lockColor(0), alignItems: 'center', justifyContent: 'center' }}>
-      <Ionicons name="key" size={size * 0.4} color="#FFFFFF" />
-    </View>
+    <Group>
+      <RoundedRect x={inset} y={inset + REF * 0.07} width={deck} height={deck} r={corner} color={board.bridgeShadow} />
+      <RoundedRect x={inset} y={inset} width={deck} height={deck} r={corner} color={board.bridgeBox} />
+      <Path path={rails} color={board.bridgeRail} style="stroke" strokeWidth={Math.max(1.5, REF * 0.05)} strokeCap="round" />
+      <RoundedRect x={inset} y={inset} width={deck} height={deck} r={corner} color={board.bridgeBorder} style="stroke" strokeWidth={Math.max(2, REF * 0.07)} />
+    </Group>
   );
 }
 
-function Key({ size }: { size: number }) {
-  const path = useMemo(() => keyPath(size / 2, size / 2, size), [size]);
+/** A warp gate on its tinted lane, with the glow and outward chevron the board frame shows. */
+function WarpArt({ board }: { board: BoardColors }) {
+  const t = REF * 0.28;
+  const len = REF * 0.8;
+  const glow = t * 0.45;
+  const x = (REF - t) / 2;
+  const y = (REF - len) / 2;
+  const arrow = useMemo(() => {
+    const a = t * 0.3;
+    const b = Skia.PathBuilder.Make();
+    b.moveTo(REF / 2 - a * 0.5, REF / 2 + a);
+    b.lineTo(REF / 2 + a * 0.5, REF / 2);
+    b.lineTo(REF / 2 - a * 0.5, REF / 2 - a);
+    return b.build();
+  }, [t]);
+  return (
+    <Group>
+      <RoundedRect x={x - glow} y={y - glow} width={t + glow * 2} height={len + glow * 2} r={t / 2 + glow} color={board.warpGlow} opacity={0.8} />
+      <RoundedRect x={x} y={y} width={t} height={len} r={t / 2} color={board.warp} />
+      <Path path={arrow} color={board.warpArrow} style="stroke" strokeWidth={Math.max(1.2, t * 0.18)} strokeCap="round" strokeJoin="round" />
+    </Group>
+  );
+}
+
+function KeyArt() {
+  const path = useMemo(() => keyPath(REF / 2, REF / 2, REF), []);
   const color = lockColor(0);
   return (
-    <Canvas style={{ width: size, height: size }} pointerEvents="none">
-      <KeyBadge x={size / 2} y={size / 2} cell={size} color={color} />
-      <KeyMark path={path} cell={size} color={color} />
-    </Canvas>
+    <Group>
+      <KeyBadge x={REF / 2} y={REF / 2} cell={REF} color={color} />
+      <KeyMark path={path} cell={REF} color={color} />
+    </Group>
   );
+}
+
+// ---- Baked: drawn once into a cached image instead of a live canvas ----
+
+const glyphKey = (kind: GlyphKind, px: number, board: BoardColors) =>
+  ['glyph', kind, px, board.cellEmpty, board.bridgeBox, board.bridgeBorder, board.bridgeShadow, board.bridgeRail, board.warp, board.warpGlow, board.warpArrow].join('|');
+
+function BakedArt({ kind, size, board }: { kind: Exclude<GlyphKind, 'wall'>; size: number; board: BoardColors }) {
+  const px = bakedPixels(size);
+  const uri = useBakedImage(glyphKey(kind, px, board), px, async (canvas) => {
+    const picture = await drawAsPicture(
+      <Group transform={[{ scale: px / REF }]}>
+        <GlyphArt kind={kind} board={board} />
+      </Group>,
+    );
+    canvas.drawPicture(picture);
+    picture.dispose();
+  });
+  if (!uri) return null;
+  return <Image source={{ uri }} style={{ width: size, height: size }} accessibilityIgnoresInvertColors />;
 }

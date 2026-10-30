@@ -1,18 +1,21 @@
-import React, { useEffect, useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Animated, { useAnimatedStyle, useDerivedValue, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
-import { Canvas, useClock } from '@shopify/react-native-skia';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useDerivedValue, useSharedValue, withSpring, withTiming, type SharedValue } from 'react-native-reanimated';
+import { Canvas, Skia, useClock } from '@shopify/react-native-skia';
 import { Ionicons } from '@expo/vector-icons';
 import type { Puzzle } from '@ctd/core';
+import { bakedPixels, useBakedImage } from '../ui/bakedImage';
 import { GlassButton } from '../ui/GlassButton';
+import { symbolPath } from '../board/symbols';
 import { HatchedTile } from '../ui/HatchedTile';
-import { ClosedDoor, KeyBadge, KeyMark, keyPath, padlockPaths } from '../board/LockMarks';
+import { ClosedDoor, KeyBadge, KeyMark, keyPath, OpenDoor, padlockPaths } from '../board/LockMarks';
 import { TeleportGate } from '../board/TeleportGate';
 import { TurnPiece } from '../board/TurnPiece';
 import { useSettings } from '../store/settings';
 import { fonts, tokens } from '../theme/tokens';
 import { lockColor, teleporterColor, type DotStyle, type Palette } from '../theme/config';
 import { makeStyles, useTheme } from '../theme/useTheme';
+import { C, Flow, FlowHead, TapRipple, useFade, useFlow, useScript, useTap, type FlowControl, type Pt } from './previewMotion';
 
 export type ObstacleKind = 'walls' | 'bridges' | 'warps' | 'teleporters' | 'tunnels' | 'rotators' | 'locks';
 
@@ -142,16 +145,16 @@ export function InfoSheet({
 /** One obstacle: its mini board preview beside how it looks and how it plays. */
 export function ObstacleRow({ kind: k, palette, count }: { kind: ObstacleKind; palette: Palette; count?: number }) {
   const styles = useStyles();
-  const color = (i: number) => palette[i % palette.length];
+  const color = (i: number) => inkOf(palette, i);
   return (
     <View style={styles.row}>
       {k === 'walls' && <WallPreview color={color(0)} />}
       {k === 'bridges' && <BridgePreview across={color(1)} over={color(2)} />}
       {k === 'warps' && <WarpPreview color={color(3)} />}
       {k === 'teleporters' && <TeleportPreview color={color(4)} />}
-      {k === 'tunnels' && <PiecePreview kind="tunnel" color={color(5)} />}
-      {k === 'rotators' && <PiecePreview kind="rotator" color={color(6)} />}
-      {k === 'locks' && <LockPreview color={color(7)} />}
+      {k === 'tunnels' && <PiecePreview kind="tunnel" a={color(5)} b={color(1)} />}
+      {k === 'rotators' && <PiecePreview kind="rotator" a={color(6)} b={color(2)} />}
+      {k === 'locks' && <LockPreview keyColor={color(7)} doorColor={color(4)} />}
       <View style={{ flex: 1 }}>
         <View style={styles.nameRow}>
           <Text style={styles.name}>{INFO[k].name}</Text>
@@ -164,13 +167,76 @@ export function ObstacleRow({ kind: k, palette, count }: { kind: ObstacleKind; p
   );
 }
 
-// ---- Mini board previews: plain views mirroring the Skia board styling -------
+// ---- Mini board previews: plain views mirroring the Skia board styling, each looping a short demo -------
 
-export const C = 28;
+export { C, type Pt };
 const PAD = 12;
 const WARP_T = 8;
 const WARP_GLOW = 3;
-export type Pt = [row: number, col: number];
+
+const BASICS_A: Pt[][] = [[[0, 0], [0, 2]]];
+const BASICS_B: Pt[][] = [[[1, 0], [1, 2], [2, 2], [2, 0]]];
+const WALL_BUMP: Pt[][] = [[[1, 0], [1, 0.45]]];
+const WALL_ROUTE: Pt[][] = [[[1, 0], [0, 0], [0, 2], [1, 2]]];
+const BRIDGE_ACROSS: Pt[][] = [[[1, 0], [1, 2]]];
+const BRIDGE_OVER: Pt[][] = [[[0, 1], [2, 1]]];
+const WARP_ROUTE: Pt[][] = [[[0, 0], [0, -0.25]], [[0, 3.25], [0, 2]]];
+const TELEPORT_ROUTE: Pt[][] = [[[0, 0], [0, 1]], [[0, 3], [0, 4]]];
+const TUNNEL_A: Pt[][] = [[[1, 0], [1, 2]]];
+const TUNNEL_B: Pt[][] = [[[0, 1], [2, 1]]];
+const ROTATOR_A: Pt[][] = [[[2, 1], [1, 1], [1, 2]]];
+const ROTATOR_B: Pt[][] = [[[1, 0], [1, 1], [0, 1]]];
+const LOCK_KEY: Pt[][] = [[[0, 0], [0, 2]]];
+const LOCK_DOOR: Pt[][] = [[[1, 0], [1, 2]]];
+
+const endsOf = (strokes: Pt[][]): Pt[] => [strokes[0][0], strokes[strokes.length - 1][strokes[strokes.length - 1].length - 1]];
+
+/** A flow's two dots and its drag head; placed after every `Flow` line so they sit on top. */
+function Ends({ strokes, color, flow, fade }: { strokes: Pt[][]; color: Ink; flow: FlowControl; fade: SharedValue<number> }) {
+  return (
+    <>
+      {endsOf(strokes).map((at, i) => (
+        <Dot key={i} at={at} color={color} />
+      ))}
+      <FlowHead strokes={strokes} color={color} flow={flow} fade={fade} />
+    </>
+  );
+}
+
+/** Two flows drawn one after the other: the core rule of linking each pair. */
+export function BasicsPreview({ palette }: { palette: Palette }) {
+  const a = useFlow();
+  const b = useFlow();
+  const { fade, out, show } = useFade();
+  const ca = inkOf(palette, 0);
+  const cb = inkOf(palette, 1);
+  useScript({
+    length: 5200,
+    steps: [
+      [300, () => a.draw(800)],
+      [1400, () => b.draw(1400)],
+      [4100, () => out()],
+    ],
+    reset: () => {
+      a.set(0);
+      b.set(0);
+      show();
+    },
+    final: () => {
+      a.set(1);
+      b.set(1);
+    },
+  });
+  return (
+    <Plate rows={3} cols={3}>
+      <Tiles rows={3} cols={3} />
+      <Flow strokes={BASICS_A} color={ca} flow={a} fade={fade} />
+      <Flow strokes={BASICS_B} color={cb} flow={b} fade={fade} />
+      <Ends strokes={BASICS_A} color={ca} flow={a} fade={fade} />
+      <Ends strokes={BASICS_B} color={cb} flow={b} fade={fade} />
+    </Plate>
+  );
+}
 
 export function Plate({ rows, cols, children }: { rows: number; cols: number; children: React.ReactNode }) {
   const styles = useStyles();
@@ -200,30 +266,12 @@ export function Tiles({ rows, cols, walls = [] }: { rows: number; cols: number; 
   return <>{out}</>;
 }
 
-export function Pipe({ from, to, color }: { from: Pt; to: Pt; color: DotStyle }) {
-  const { board } = useTheme();
-  const w = C * tokens.pathWidthRatio;
-  const x1 = (Math.min(from[1], to[1]) + 0.5) * C;
-  const x2 = (Math.max(from[1], to[1]) + 0.5) * C;
-  const y1 = (Math.min(from[0], to[0]) + 0.5) * C;
-  const y2 = (Math.max(from[0], to[0]) + 0.5) * C;
-  return (
-    <View
-      style={{
-        position: 'absolute',
-        left: x1 - w / 2,
-        top: y1 - w / 2,
-        width: x2 - x1 + w,
-        height: y2 - y1 + w,
-        borderRadius: w / 2,
-        backgroundColor: color.line,
-        opacity: board.lineOpacity,
-      }}
-    />
-  );
-}
+/** A palette color plus its index, which picks the dot's colorblind symbol as on the board. */
+export type Ink = DotStyle & { symbol: number };
+export const inkOf = (palette: Palette, i: number): Ink => ({ ...palette[i % palette.length], symbol: i });
 
-export function Dot({ at, color }: { at: Pt; color: DotStyle }) {
+export function Dot({ at, color }: { at: Pt; color: Ink }) {
+  const colorblind = useSettings((s) => s.colorblind);
   const d = C * tokens.dotRatio;
   return (
     <View
@@ -236,46 +284,116 @@ export function Dot({ at, color }: { at: Pt; color: DotStyle }) {
         borderRadius: d / 2,
         backgroundColor: color.dot,
       }}
-    />
+    >
+      {colorblind && <DotSymbol index={color.symbol} size={d} />}
+    </View>
   );
 }
 
-function WallPreview({ color }: { color: DotStyle }) {
+function DotSymbol({ index, size }: { index: number; size: number }) {
+  const { board } = useTheme();
+  const px = bakedPixels(size);
+  const uri = useBakedImage(['symbol', index % 12, px, board.colorblindSymbol].join('|'), px, (canvas) => {
+    const path = symbolPath(index, px / 2, px / 2, (px / 2) * 0.45);
+    const paint = Skia.Paint();
+    paint.setAntiAlias(true);
+    paint.setColor(Skia.Color(board.colorblindSymbol));
+    canvas.drawPath(path, paint);
+    paint.dispose();
+    path.dispose?.();
+  });
+  if (!uri) return null;
+  return <Image source={{ uri }} style={{ width: size, height: size }} accessibilityIgnoresInvertColors />;
+}
+
+/** The flow bumps into the wall, backs off, then routes around it. */
+function WallPreview({ color }: { color: Ink }) {
+  const bump = useFlow();
+  const route = useFlow();
+  const { fade, out, show } = useFade();
+  useScript({
+    length: 5000,
+    steps: [
+      [300, () => bump.draw(350)],
+      [750, () => bump.cut(250)],
+      [1200, () => route.draw(1400)],
+      [3900, () => out()],
+    ],
+    reset: () => {
+      bump.set(0);
+      route.set(0);
+      show();
+    },
+    final: () => route.set(1),
+  });
   return (
     <Plate rows={3} cols={3}>
       <Tiles rows={3} cols={3} walls={[[1, 1]]} />
-      <Pipe from={[1, 0]} to={[0, 0]} color={color} />
-      <Pipe from={[0, 0]} to={[0, 2]} color={color} />
-      <Pipe from={[0, 2]} to={[1, 2]} color={color} />
-      <Dot at={[1, 0]} color={color} />
-      <Dot at={[1, 2]} color={color} />
+      <Flow strokes={WALL_BUMP} color={color} flow={bump} fade={fade} />
+      <Flow strokes={WALL_ROUTE} color={color} flow={route} fade={fade} />
+      <Ends strokes={WALL_ROUTE} color={color} flow={route} fade={fade} />
+      <FlowHead strokes={WALL_BUMP} color={color} flow={bump} fade={fade} />
     </Plate>
   );
 }
 
-function BridgePreview({ across, over }: { across: DotStyle; over: DotStyle }) {
+/** One flow runs under the bridge, then a second crosses straight over it. */
+function BridgePreview({ across, over }: { across: Ink; over: Ink }) {
   const styles = useStyles();
+  const a = useFlow();
+  const b = useFlow();
+  const { fade, out, show } = useFade();
+  useScript({
+    length: 4400,
+    steps: [
+      [300, () => a.draw(800)],
+      [1400, () => b.draw(800)],
+      [3300, () => out()],
+    ],
+    reset: () => {
+      a.set(0);
+      b.set(0);
+      show();
+    },
+    final: () => {
+      a.set(1);
+      b.set(1);
+    },
+  });
   return (
     <Plate rows={3} cols={3}>
       <Tiles rows={3} cols={3} />
-      <Pipe from={[1, 0]} to={[1, 2]} color={across} />
+      <Flow strokes={BRIDGE_ACROSS} color={across} flow={a} fade={fade} />
       <View style={[styles.bridge, styles.bridgeShadow]} />
       <View style={styles.bridge}>
         <View style={[styles.rail, { left: '14%' }]} />
         <View style={[styles.rail, { right: '14%' }]} />
       </View>
-      <Pipe from={[0, 1]} to={[2, 1]} color={over} />
-      <Dot at={[1, 0]} color={across} />
-      <Dot at={[1, 2]} color={across} />
-      <Dot at={[0, 1]} color={over} />
-      <Dot at={[2, 1]} color={over} />
+      <Flow strokes={BRIDGE_OVER} color={over} flow={b} fade={fade} />
+      <Ends strokes={BRIDGE_ACROSS} color={across} flow={a} fade={fade} />
+      <Ends strokes={BRIDGE_OVER} color={over} flow={b} fade={fade} />
     </Plate>
   );
 }
 
-function WarpPreview({ color }: { color: DotStyle }) {
+/** The flow leaves through one gate and comes back in through the other. */
+function WarpPreview({ color }: { color: Ink }) {
   const styles = useStyles();
   const { board } = useTheme();
+  const flow = useFlow();
+  const { fade, out, show } = useFade();
+  useScript({
+    length: 4000,
+    steps: [
+      [300, () => flow.draw(1500)],
+      [2900, () => out()],
+    ],
+    reset: () => {
+      flow.set(0);
+      show();
+    },
+    final: () => flow.set(1),
+  });
   return (
     <Plate rows={1} cols={4}>
       <Tiles rows={1} cols={4} />
@@ -287,10 +405,8 @@ function WarpPreview({ color }: { color: DotStyle }) {
           </View>
         </View>
       ))}
-      <Pipe from={[0, 2]} to={[0, 3.25]} color={color} />
-      <Pipe from={[0, -0.25]} to={[0, 0]} color={color} />
-      <Dot at={[0, 2]} color={color} />
-      <Dot at={[0, 0]} color={color} />
+      <Flow strokes={WARP_ROUTE} color={color} flow={flow} fade={fade} />
+      <Ends strokes={WARP_ROUTE} color={color} flow={flow} fade={fade} />
     </Plate>
   );
 }
@@ -304,11 +420,26 @@ function Sketch({ rows, cols, children }: { rows: number; cols: number; children
   );
 }
 
-function TeleportPreview({ color }: { color: DotStyle }) {
+/** The flow enters one portal and carries on out of its twin. */
+function TeleportPreview({ color }: { color: Ink }) {
   const gate = teleporterColor(0);
   const reduceMotion = useSettings((s) => s.reduceMotion);
   const clock = useClock();
   const pulse = useDerivedValue(() => (reduceMotion ? 0.8 : 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(clock.value / 450))), [reduceMotion]);
+  const flow = useFlow();
+  const { fade, out, show } = useFade();
+  useScript({
+    length: 4000,
+    steps: [
+      [300, () => flow.draw(1500)],
+      [2900, () => out()],
+    ],
+    reset: () => {
+      flow.set(0);
+      show();
+    },
+    final: () => flow.set(1),
+  });
   return (
     <Plate rows={1} cols={5}>
       <Tiles rows={1} cols={5} />
@@ -317,18 +448,69 @@ function TeleportPreview({ color }: { color: DotStyle }) {
           <TeleportGate key={c} x={(c + 0.5) * C} y={0.5 * C} cell={C} color={gate} clock={clock} pulse={pulse} reduceMotion={reduceMotion} />
         ))}
       </Sketch>
-      <Pipe from={[0, 0]} to={[0, 1]} color={color} />
-      <Pipe from={[0, 3]} to={[0, 4]} color={color} />
-      <Dot at={[0, 0]} color={color} />
-      <Dot at={[0, 4]} color={color} />
+      <Flow strokes={TELEPORT_ROUTE} color={color} flow={flow} fade={fade} />
+      <Ends strokes={TELEPORT_ROUTE} color={color} flow={flow} fade={fade} />
     </Plate>
   );
 }
 
-function PiecePreview({ kind, color }: { kind: 'tunnel' | 'rotator'; color: DotStyle }) {
+/**
+ * Two flows take turns through the piece: a tap turns it, cutting the flow inside, and the
+ * other pair's flow follows the groove. A tunnel lines up with a pair every quarter turn; a
+ * rotator (base up + right) links the A pair at one turn and the B pair at three.
+ */
+function PiecePreview({ kind, a: ca, b: cb }: { kind: 'tunnel' | 'rotator'; a: Ink; b: Ink }) {
   const { board } = useTheme();
-  // Tunnel left + right; rotator turned once from up + right to down + right.
-  const ends: Pt[] = kind === 'tunnel' ? [[1, 0], [1, 2]] : [[2, 1], [1, 2]];
+  const tunnel = kind === 'tunnel';
+  const [A, B] = tunnel ? [TUNNEL_A, TUNNEL_B] : [ROTATOR_A, ROTATOR_B];
+  const a = useFlow();
+  const b = useFlow();
+  const { t, tap } = useTap();
+  const [turn, setTurn] = useState(0);
+  const { fade } = useFade();
+  const rotate = (cut?: FlowControl) => {
+    tap();
+    setTurn((v) => (v + 1) % (tunnel ? 2 : 4));
+    cut?.cut();
+  };
+  useScript(
+    tunnel
+      ? {
+          length: 4600,
+          steps: [
+            [400, () => a.draw(800)],
+            [1900, () => rotate(a)],
+            [2400, () => b.draw(800)],
+            [3900, () => rotate(b)],
+          ],
+          reset: () => {
+            a.set(0);
+            b.set(0);
+            setTurn(0);
+          },
+          final: () => a.set(1),
+        }
+      : {
+          length: 5600,
+          steps: [
+            [400, () => rotate()],
+            [800, () => a.draw(700)],
+            [2300, () => rotate(a)],
+            [2900, () => rotate()],
+            [3300, () => b.draw(700)],
+            [4800, () => rotate(b)],
+          ],
+          reset: () => {
+            a.set(0);
+            b.set(0);
+            setTurn(0);
+          },
+          final: () => {
+            setTurn(1);
+            a.set(1);
+          },
+        },
+  );
   return (
     <Plate rows={3} cols={3}>
       <Tiles rows={3} cols={3} />
@@ -340,39 +522,79 @@ function PiecePreview({ kind, color }: { kind: 'tunnel' | 'rotator'; color: DotS
           cell={C}
           deck={C * 0.76}
           pathW={C * tokens.pathWidthRatio}
-          turn={kind === 'tunnel' ? 0 : 1}
-          reduceMotion
+          turn={turn}
+          reduceMotion={false}
           colors={{ box: board.bridgeBox, border: board.bridgeBorder, shadow: board.bridgeShadow }}
         />
       </Sketch>
-      {ends.map((e, i) => (
-        <Pipe key={i} from={e} to={[1, 1]} color={color} />
-      ))}
-      {ends.map((e, i) => (
-        <Dot key={`d${i}`} at={e} color={color} />
-      ))}
+      <Flow strokes={A} color={ca} flow={a} fade={fade} />
+      <Flow strokes={B} color={cb} flow={b} fade={fade} />
+      <Ends strokes={A} color={ca} flow={a} fade={fade} />
+      <Ends strokes={B} color={cb} flow={b} fade={fade} />
+      <TapRipple at={[1, 1]} t={t} />
     </Plate>
   );
 }
 
-function LockPreview({ color }: { color: DotStyle }) {
+/** A flow through the key opens the door, a second flow fills it, and breaking the key flow locks it again. */
+function LockPreview({ keyColor, doorColor }: { keyColor: Ink; doorColor: Ink }) {
   const { board } = useTheme();
   const lock = lockColor(0);
   const shapes = useMemo(() => ({ key: keyPath(1.5 * C, 0.5 * C, C), padlock: padlockPaths(1.5 * C, 1.5 * C, C) }), []);
   const door = { x: C + 1.5, y: C + 1.5, width: C - 3, height: C - 3, r: C * board.cellRadius };
+  const k = useFlow();
+  const d = useFlow();
+  const { t, tap } = useTap();
+  const { fade } = useFade();
+  const [open, setOpen] = useState(false);
+  useScript({
+    length: 5400,
+    steps: [
+      [400, () => k.draw(900)],
+      [
+        1350,
+        () => {
+          setOpen(true);
+          tap();
+        },
+      ],
+      [1900, () => d.draw(900)],
+      [3500, () => k.cut(400)],
+      [
+        3900,
+        () => {
+          setOpen(false);
+          tap();
+          d.cut(300);
+        },
+      ],
+    ],
+    reset: () => {
+      k.set(0);
+      d.set(0);
+      setOpen(false);
+    },
+    final: () => {
+      setOpen(true);
+      k.set(1);
+      d.set(1);
+    },
+  });
   return (
     <Plate rows={2} cols={3}>
       <Tiles rows={2} cols={3} />
       <Sketch rows={2} cols={3}>
         <KeyBadge x={1.5 * C} y={0.5 * C} cell={C} color={lock} />
-        <ClosedDoor rect={door} cell={C} color={lock} padlock={shapes.padlock} />
+        {open ? <OpenDoor rect={door} cell={C} color={lock} /> : <ClosedDoor rect={door} cell={C} color={lock} padlock={shapes.padlock} />}
       </Sketch>
-      <Pipe from={[0, 0]} to={[0, 2]} color={color} />
-      <Dot at={[0, 0]} color={color} />
-      <Dot at={[0, 2]} color={color} />
+      <Flow strokes={LOCK_KEY} color={keyColor} flow={k} fade={fade} />
+      <Flow strokes={LOCK_DOOR} color={doorColor} flow={d} fade={fade} />
+      <Ends strokes={LOCK_KEY} color={keyColor} flow={k} fade={fade} />
+      <Ends strokes={LOCK_DOOR} color={doorColor} flow={d} fade={fade} />
       <Sketch rows={2} cols={3}>
         <KeyMark path={shapes.key} cell={C} color={lock} />
       </Sketch>
+      <TapRipple at={[1, 1]} t={t} />
     </Plate>
   );
 }

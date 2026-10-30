@@ -122,6 +122,25 @@ export default function Home() {
         </Rise>
 
         <Rise delay={320}>
+          <GlassButton label="Level Packs" icon="albums" size="lg" outlined onPress={() => router.push('/packs')} style={styles.packs} />
+        </Rise>
+
+        {handcrafted && (
+          <Rise delay={420}>
+            <GlassButton
+              label="Handcrafted"
+              sublabel="Create & play shared levels"
+              icon="construct"
+              size="lg"
+              outlined
+              onPress={() => router.push('/custom')}
+              style={styles.packs}
+            />
+          </Rise>
+        )}
+
+        {/* Always the last item on the menu. */}
+        <Rise delay={handcrafted ? 520 : 420}>
           <Pressable
             onPress={() => router.push('/daily')}
             style={({ pressed }) => [styles.dailyCard, { borderColor: withAlpha(theme.text.primary, 0.25) }, pressed && { transform: [{ scale: 0.98 }] }]}
@@ -141,28 +160,16 @@ export default function Home() {
             </View>
             <View style={{ alignItems: 'flex-end' }}>
               <Text style={styles.dailyTimerLabel}>next in</Text>
-              <Text style={styles.dailyTimer}>{countdown}</Text>
+              <View style={styles.timerRow} accessible accessibilityLabel={countdown}>
+                {countdown.split('').map((ch, i) => (
+                  <Text key={i} style={[styles.dailyTimer, ch === ':' ? styles.timerColon : styles.timerDigit]}>
+                    {ch}
+                  </Text>
+                ))}
+              </View>
             </View>
           </Pressable>
         </Rise>
-
-        <Rise delay={420}>
-          <GlassButton label="Level Packs" icon="albums" size="lg" outlined onPress={() => router.push('/packs')} style={styles.packs} />
-        </Rise>
-
-        {handcrafted && (
-          <Rise delay={520}>
-            <GlassButton
-              label="Handcrafted"
-              sublabel="Create & play shared levels"
-              icon="construct"
-              size="lg"
-              outlined
-              onPress={() => router.push('/custom')}
-              style={styles.packs}
-            />
-          </Rise>
-        )}
       </Screen>
       {helpOpen && <HowToPlay palette={palette} onClose={() => setHelpOpen(false)} />}
     </>
@@ -207,5 +214,9 @@ const useStyles = makeStyles((t, s) => ({
   dailyTitle: { fontFamily: fonts.title, fontSize: s(19), color: t.text.primary },
   dailySub: { fontFamily: fonts.body, fontSize: s(13), color: t.text.secondary },
   dailyTimerLabel: { fontFamily: fonts.body, fontSize: s(11), color: t.text.muted, textTransform: 'uppercase', letterSpacing: 1 },
-  dailyTimer: { fontFamily: fonts.title, fontSize: s(16), color: t.text.primary },
+  dailyTimer: { fontFamily: fonts.title, fontSize: s(16), color: t.text.primary, textAlign: 'center' },
+  /** Fixed cells so the countdown keeps its width as digits change, whatever the font's digit widths. */
+  timerRow: { flexDirection: 'row' },
+  timerDigit: { width: s(10.5) },
+  timerColon: { width: s(5) },
 }));

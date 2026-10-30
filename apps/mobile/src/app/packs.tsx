@@ -24,6 +24,11 @@ const SUITE_BLURBS: Record<SuiteId, string> = {
   multi: 'Obstacles mixed together',
   handcrafted: 'Puzzles designed by hand',
 };
+const MORE_NOTES: Record<SuiteId, string> = {
+  single: 'New obstacle packs on the way',
+  multi: 'New obstacle mixes on the way',
+  handcrafted: 'New hand-designed puzzles on the way',
+};
 
 const GLYPHS: Record<Obstacle, GlyphKind> = {
   walls: 'wall',
@@ -115,6 +120,16 @@ export default function Packs() {
             />
           ))
         )}
+        {suite.packs.length > 0 && (
+          <PackCard
+            width={cardW}
+            label={`PACK ${suite.packs.length + 1}`}
+            name="More coming soon"
+            note={MORE_NOTES[suite.id]}
+            icon="sparkles"
+            theme={suite.packs[suite.packs.length - 1].theme}
+          />
+        )}
       </View>
       <Text style={styles.hint}>
         {suite.packs.length === 0
@@ -136,6 +151,7 @@ function PackCard({
   name,
   theme: packTheme,
   icon,
+  note = 'Coming soon',
   mix = false,
   solved = 0,
   stars = 0,
@@ -144,6 +160,8 @@ function PackCard({
   width: number;
   label: string;
   name: string;
+  /** Line shown under the name on a "coming soon" card. */
+  note?: string;
   theme: string;
   icon?: keyof typeof Ionicons.glyphMap;
   mix?: boolean;
@@ -163,7 +181,7 @@ function PackCard({
     <Pressable
       disabled={soon}
       onPress={() => pack && router.push(`/pack/${pack.id}`)}
-      accessibilityLabel={soon ? `${name}, coming soon` : `${name}, ${solved} of ${total} solved`}
+      accessibilityLabel={soon ? `${name}, ${note.toLowerCase()}` : `${name}, ${solved} of ${total} solved`}
       style={({ pressed }) => [{ width, transform: [{ scale: pressed ? 0.98 : 1 }] }]}
     >
       <View style={[styles.card, { borderLeftColor: soon ? withAlpha(accent, 0.35) : accent }]}>
@@ -184,21 +202,11 @@ function PackCard({
         </View>
 
         <View style={styles.main}>
-          <View
-            style={[
-              styles.tile,
-              { width: tile, height: tile, backgroundColor: theme.statusBar === 'light' ? theme.box.background : '#FFFFFF', borderColor: accent },
-              soon && { opacity: 0.45 },
-            ]}
-          >
+          <View style={[styles.tile, { width: tile, height: tile }, soon && { opacity: 0.45 }]}>
             {obstacles.length === 1 ? (
-              <ObstacleGlyph kind={GLYPHS[obstacles[0]]} size={Math.round(tile * 0.6)} flat />
+              <ObstacleGlyph kind={GLYPHS[obstacles[0]]} size={tile} baked />
             ) : (
-              <Ionicons
-                name={icon ?? (PACK_ICONS[packTheme] as keyof typeof Ionicons.glyphMap)}
-                size={Math.round(tile * 0.48)}
-                color={accent}
-              />
+              <Ionicons name={icon ?? (PACK_ICONS[packTheme] as keyof typeof Ionicons.glyphMap)} size={tile} color={accent} />
             )}
           </View>
 
@@ -213,7 +221,7 @@ function PackCard({
               <View style={styles.chips}>
                 {obstacles.map((o) => (
                   <View key={o} style={[styles.chip, { backgroundColor: withAlpha(accent, 0.14) }]}>
-                    <ObstacleGlyph kind={GLYPHS[o]} size={s(16)} flat />
+                    <ObstacleGlyph kind={GLYPHS[o]} size={s(16)} baked />
                     <Text style={styles.chipText} numberOfLines={1}>
                       {obstacleName(o)}
                     </Text>
@@ -223,7 +231,7 @@ function PackCard({
             )}
 
             <Text style={styles.meta} numberOfLines={1}>
-              {soon ? 'Coming soon' : `${packGridRange(pack!)} · ${total} ${total === 1 ? 'level' : 'levels'}`}
+              {soon ? note : `${packGridRange(pack!)} · ${total} ${total === 1 ? 'level' : 'levels'}`}
             </Text>
 
             {!soon && (
@@ -269,7 +277,7 @@ const useStyles = makeStyles((t, s) => ({
     overflow: 'hidden',
   },
   main: { flexGrow: 1, flexDirection: 'row', gap: s(14) },
-  tile: { alignSelf: 'center', borderRadius: s(12), borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  tile: { alignSelf: 'center', alignItems: 'center', justifyContent: 'center' },
   body: { flex: 1, gap: s(6) },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: s(8) },
   packNo: { flexShrink: 1, fontFamily: fonts.bodyBold, fontSize: s(11), letterSpacing: 1.5, color: t.text.secondary },

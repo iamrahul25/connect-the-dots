@@ -6,7 +6,7 @@ import { useLayout } from '../ui/layout';
 import { fonts } from '../theme/tokens';
 import type { Palette } from '../theme/config';
 import { makeStyles, useTheme } from '../theme/useTheme';
-import { Dot, InfoSheet, OBSTACLE_KINDS, ObstacleRow, Pipe, Plate, Tiles } from './ObstacleInfo';
+import { BasicsPreview, InfoSheet, OBSTACLE_KINDS, ObstacleRow } from './ObstacleInfo';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 type IconTone = 'hint' | 'star' | 'streak' | 'success' | 'info';
@@ -26,22 +26,11 @@ const SCORING: { icon: IconName; tone: IconTone; text: string }[] = [
 /** The full guide: core rules, scoring, and every obstacle with its mini board preview. */
 export function HowToPlay({ palette, onClose }: { palette: Palette; onClose: () => void }) {
   const styles = useStyles();
-  const color = (i: number) => palette[i % palette.length];
   return (
     <InfoSheet title="How to Play" subtitle="Link the colors · fill every cell" onClose={onClose}>
       <Text style={styles.section}>The basics</Text>
       <View style={styles.basics}>
-        <Plate rows={3} cols={3}>
-          <Tiles rows={3} cols={3} />
-          <Pipe from={[0, 0]} to={[0, 2]} color={color(0)} />
-          <Pipe from={[1, 0]} to={[1, 2]} color={color(1)} />
-          <Pipe from={[1, 2]} to={[2, 2]} color={color(1)} />
-          <Pipe from={[2, 2]} to={[2, 0]} color={color(1)} />
-          <Dot at={[0, 0]} color={color(0)} />
-          <Dot at={[0, 2]} color={color(0)} />
-          <Dot at={[1, 0]} color={color(1)} />
-          <Dot at={[2, 0]} color={color(1)} />
-        </Plate>
+        <BasicsPreview palette={palette} />
         <View style={styles.basicsRules}>
           {BASICS.map((r) => (
             <Rule key={r.icon} {...r} />
