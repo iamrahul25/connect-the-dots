@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { DAILY_TIER_NAMES, DAILY_TIERS, isDailyTier, parseDateKey, WEEKDAY_NAMES, type DailyTier, type Level } from '@ctd/core';
+import { DAILY_TIER_NAMES, DAILY_TIERS, dateKey as toDateKey, isDailyTier, parseDateKey, WEEKDAY_NAMES, type DailyTier, type Level } from '@ctd/core';
 import { GameScreen } from '../../game/GameScreen';
 import { Screen } from '../../ui/Screen';
 import { fonts } from '../../theme/tokens';
@@ -18,9 +18,23 @@ export default function PlayRoute() {
   if (id?.startsWith(DAILY_PREFIX)) {
     const m = DAILY_ID.exec(id);
     if (!m || !isDailyTier(m[2])) return <InvalidDaily />;
-    return <DailyPlay key={id} dateKey={m[1]} tier={m[2]} />;
+    return <DailyGate key={id} dateKey={m[1]} tier={m[2]} />;
   }
   return <PackPlay id={id ?? ''} />;
+}
+
+function DailyGate({ dateKey, tier }: { dateKey: string; tier: DailyTier }) {
+  const styles = useStyles();
+  // Snapshot on open so a puzzle started before midnight can still be finished.
+  const [isToday] = useState(() => dateKey === toDateKey(new Date()));
+  if (!isToday) {
+    return (
+      <Screen title="Daily" back>
+        <Text style={styles.msg}>Only today’s daily puzzles can be played.</Text>
+      </Screen>
+    );
+  }
+  return <DailyPlay dateKey={dateKey} tier={tier} />;
 }
 
 function InvalidDaily() {

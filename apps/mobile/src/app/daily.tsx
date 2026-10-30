@@ -57,6 +57,7 @@ export default function Daily() {
   const selectedDate = parseDateKey(selected);
   const selectedDay = daily.completed[selected];
   const perfect = isPerfectDay(selectedDay);
+  const isTodaySelected = selected === todayKey;
   const cal = theme.calendar;
 
   return (
@@ -69,16 +70,20 @@ export default function Daily() {
 
       <View style={[styles.dayCard, { borderColor: withAlpha(perfect ? theme.icon.star : theme.accent.color, 0.45) }]}>
         <Text style={styles.dayLabel}>
-          {selected === todayKey
+          {isTodaySelected
             ? `TODAY · ${WEEKDAY_NAMES[today.getDay()].toUpperCase()}`
             : selectedDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase()}
         </Text>
         <Text style={[styles.dayHint, perfect && { color: theme.icon.star }]}>
-          {perfect ? '👑 Perfect day: all 3 solved' : 'Solve any one to keep your streak · all 3 for a 👑'}
+          {perfect
+            ? '👑 Perfect day: all 3 solved'
+            : isTodaySelected
+              ? 'Solve any one to keep your streak · all 3 for a 👑'
+              : 'Past puzzles can no longer be played'}
         </Text>
         <View style={styles.tiers}>
           {DAILY_TIERS.map((tier) => (
-            <TierRow key={tier} dateKey={selected} tier={tier} day={selectedDay} />
+            <TierRow key={tier} dateKey={selected} tier={tier} day={selectedDay} playable={isTodaySelected} />
           ))}
         </View>
       </View>
@@ -146,7 +151,7 @@ export default function Daily() {
   );
 }
 
-function TierRow({ dateKey: key, tier, day }: { dateKey: string; tier: DailyTier; day: DailyDay | undefined }) {
+function TierRow({ dateKey: key, tier, day, playable }: { dateKey: string; tier: DailyTier; day: DailyDay | undefined; playable: boolean }) {
   const theme = useTheme();
   const styles = useStyles();
   const { s } = useScale();
@@ -155,9 +160,16 @@ function TierRow({ dateKey: key, tier, day }: { dateKey: string; tier: DailyTier
   const { size, obstacles } = useMemo(() => dailyPreview(key, tier), [key, tier]);
   return (
     <Pressable
+      disabled={!playable}
       onPress={() => router.push(`/play/daily-${key}-${tier}`)}
-      accessibilityLabel={`${DAILY_TIER_NAMES[tier]}, ${size} by ${size}${result ? ', solved' : ''}`}
-      style={({ pressed }) => [styles.tier, { borderColor: withAlpha(color, 0.5) }, pressed && { transform: [{ scale: 0.97 }] }]}
+      accessibilityLabel={`${DAILY_TIER_NAMES[tier]}, ${size} by ${size}${result ? ', solved' : playable ? '' : ', missed'}`}
+      accessibilityState={{ disabled: !playable }}
+      style={({ pressed }) => [
+        styles.tier,
+        { borderColor: withAlpha(color, 0.5) },
+        !playable && !result && { opacity: 0.5 },
+        pressed && { transform: [{ scale: 0.97 }] },
+      ]}
     >
       <View style={[styles.tierIcon, { backgroundColor: withAlpha(color, 0.18) }]}>
         <Ionicons name={TIER_ICON[tier]} size={s(20)} color={color} />
@@ -168,7 +180,13 @@ function TierRow({ dateKey: key, tier, day }: { dateKey: string; tier: DailyTier
           {size}×{size} · {obstacles} obstacle{obstacles === 1 ? '' : 's'}
         </Text>
       </View>
-      {result ? <Stars count={result.stars} size={s(16)} /> : <Ionicons name="play-circle" size={s(30)} color={color} />}
+      {result ? (
+        <Stars count={result.stars} size={s(16)} />
+      ) : playable ? (
+        <Ionicons name="play-circle" size={s(30)} color={color} />
+      ) : (
+        <Ionicons name="lock-closed" size={s(22)} color={theme.text.muted} />
+      )}
     </Pressable>
   );
 }
