@@ -1308,6 +1308,13 @@ import l_all_050 from './multi/all/level-050.json';
 import l_handcrafted_001 from './handcrafted/handcrafted/level-001.json';
 import l_handcrafted_002 from './handcrafted/handcrafted/level-002.json';
 import l_handcrafted_003 from './handcrafted/handcrafted/level-003.json';
+import l_handcrafted_004 from './handcrafted/handcrafted/level-004.json';
+import l_handcrafted_005 from './handcrafted/handcrafted/level-005.json';
+import l_handcrafted_006 from './handcrafted/handcrafted/level-006.json';
+import l_handcrafted_007 from './handcrafted/handcrafted/level-007.json';
+import l_handcrafted_008 from './handcrafted/handcrafted/level-008.json';
+import l_handcrafted_009 from './handcrafted/handcrafted/level-009.json';
+import l_handcrafted_010 from './handcrafted/handcrafted/level-010.json';
 import daily_2026_09 from './daily/2026-09.json';
 import daily_2026_10 from './daily/2026-10.json';
 import daily_2026_11 from './daily/2026-11.json';
@@ -2622,6 +2629,13 @@ export const levels: Record<string, Level> = {
   'handcrafted-001': l_handcrafted_001 as unknown as Level,
   'handcrafted-002': l_handcrafted_002 as unknown as Level,
   'handcrafted-003': l_handcrafted_003 as unknown as Level,
+  'handcrafted-004': l_handcrafted_004 as unknown as Level,
+  'handcrafted-005': l_handcrafted_005 as unknown as Level,
+  'handcrafted-006': l_handcrafted_006 as unknown as Level,
+  'handcrafted-007': l_handcrafted_007 as unknown as Level,
+  'handcrafted-008': l_handcrafted_008 as unknown as Level,
+  'handcrafted-009': l_handcrafted_009 as unknown as Level,
+  'handcrafted-010': l_handcrafted_010 as unknown as Level,
 };
 
 export const dailyBanks: Record<string, DailyBank> = {
