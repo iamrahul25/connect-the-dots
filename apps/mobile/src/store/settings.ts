@@ -17,6 +17,8 @@ export interface SettingsState {
   colorblind: boolean;
   reduceMotion: boolean;
   idleHints: boolean;
+  /** Sends anonymous usage events to PostHog (Android/iOS). The player can turn it off in Settings. */
+  analytics: boolean;
   /** Shows the Handcrafted level editor on the home screen. */
   handcrafted: boolean;
   unlockAll: boolean;
@@ -38,6 +40,7 @@ export const useSettings = create<SettingsState>()(
       colorblind: true,
       reduceMotion: false,
       idleHints: true,
+      analytics: true,
       handcrafted: false,
       unlockAll: false,
       unlimitedHints: false,

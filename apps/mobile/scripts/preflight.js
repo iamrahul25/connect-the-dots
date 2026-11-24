@@ -227,6 +227,38 @@ function checkDependencies(ctx, report) {
   report.pass(`expo ${expoVersion}, react-native ${rnVersion}`);
 }
 
+/** Reads `KEY=value` lines from Expo's env files (later files win, like Expo's own loading). */
+function readExpoEnv(rootDir) {
+  const values = {};
+  for (const name of ['.env', '.env.local', '.env.production', '.env.production.local']) {
+    const file = path.join(rootDir, name);
+    if (!fs.existsSync(file)) continue;
+    for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
+      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/);
+      if (m) values[m[1]] = m[2].replace(/^(['"])(.*)\1$/, '$2');
+    }
+  }
+  return { ...values, ...Object.fromEntries(Object.entries(process.env).filter(([k]) => k.startsWith('EXPO_PUBLIC_'))) };
+}
+
+function checkAnalytics(ctx, report) {
+  report.section('📊 Analytics (PostHog)');
+  const env = readExpoEnv(ctx.rootDir);
+  const key = env.EXPO_PUBLIC_POSTHOG_API_KEY || '';
+  const host = env.EXPO_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com';
+  const hint = 'Set EXPO_PUBLIC_POSTHOG_API_KEY (starts with phc_) in apps/mobile/.env';
+  if (!key) {
+    if (ctx.target === 'release') report.fail('No PostHog API key: this build would ship without analytics', hint);
+    else report.warn('No PostHog API key: analytics is off in this build', hint);
+    return;
+  }
+  if (!key.startsWith('phc_')) {
+    report.fail('EXPO_PUBLIC_POSTHOG_API_KEY should be the public project key (phc_...), not a personal key (phx_...)', hint);
+    return;
+  }
+  report.pass(`Project key ${key.slice(0, 8)}… → ${host}`);
+}
+
 function gradlePropertySources(androidDir) {
   const gradleUserHome = process.env.GRADLE_USER_HOME || path.join(os.homedir(), '.gradle');
   const envValues = {};
@@ -363,6 +395,7 @@ function runPreflight({ rootDir, target }) {
   checkProject(ctx, report);
   checkToolchain(ctx, report);
   checkDependencies(ctx, report);
+  checkAnalytics(ctx, report);
   if (target === 'release' && fs.existsSync(androidDir)) {
     checkSigning(ctx, report);
   }

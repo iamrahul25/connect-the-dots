@@ -19,6 +19,7 @@ import { useScale } from '../theme/scale';
 import { useSettings, type SettingsState } from '../store/settings';
 import { useProgress } from '../store/progress';
 import { haptics } from '../services/haptics';
+import { analyticsAvailable } from '../services/analytics';
 import { applySaveData, exportSaveData } from '../services/saveData';
 
 const SWATCH = 30;
@@ -48,6 +49,14 @@ const ROWS: Row[] = [
   { key: 'idleHints', icon: 'sparkles', label: 'Idle nudges', sub: 'Gentle shimmer when you pause' },
   { key: 'handcrafted', icon: 'construct', label: 'Handcrafted levels', sub: 'Create & share your own levels from the home screen' },
 ];
+
+const PRIVACY_ROW: Row = {
+  key: 'analytics',
+  icon: 'stats-chart',
+  label: 'Share usage data',
+  sub: 'Anonymous gameplay stats (levels played, hints used) that help improve the game',
+  native: true,
+};
 
 const DEV_ROWS: Row[] = [
   { key: 'unlockAll', icon: 'lock-open', label: 'Unlock all levels', sub: 'Play any level without earning it' },
@@ -253,6 +262,15 @@ export default function Settings() {
             <ToggleRow key={r.key} row={r} divider={i > 0} />
           ))}
         </View>
+
+        {analyticsAvailable && (
+          <>
+            <Text style={styles.section}>Privacy</Text>
+            <View style={styles.group}>
+              <ToggleRow row={PRIVACY_ROW} divider={false} />
+            </View>
+          </>
+        )}
 
         {__DEV__ && (
           <>

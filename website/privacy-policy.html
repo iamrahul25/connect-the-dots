@@ -33,13 +33,15 @@
   <main id="main" class="doc">
     <div class="container">
       <h1>Privacy Policy</h1>
-      <p class="meta">Effective date: October 8, 2026 &middot; Last updated: October 8, 2026</p>
+      <p class="meta">Effective date: October 8, 2026 &middot; Last updated: November 24, 2026</p>
 
       <div class="callout">
         <p>
-          <strong>The short version:</strong> Connect the Dots does not collect, store on a server, share or sell
-          any personal information. There is no account or sign-in, no ads, no analytics and no tracking.
-          Your game progress and settings are saved only on your own device.
+          <strong>The short version:</strong> Connect the Dots does not collect, share or sell any personal
+          information. There is no account or sign-in and no ads. Your game progress and settings are saved on your
+          own device. The Android and iOS apps send <strong>anonymous</strong> gameplay statistics (for example, which
+          levels are played and how often hints are used) to help us improve the game, and you can turn this off at
+          any time in <span class="path">Settings &rsaquo; Privacy &rsaquo; Share usage data</span>.
         </p>
       </div>
 
@@ -57,6 +59,7 @@
           <li><a href="#export">Exporting and importing save data</a></li>
           <li><a href="#backup">Device backups</a></li>
           <li><a href="#permissions">Device permissions</a></li>
+          <li><a href="#analytics">Anonymous usage statistics</a></li>
           <li><a href="#third-parties">Third parties, ads and analytics</a></li>
           <li><a href="#children">Children's privacy</a></li>
           <li><a href="#delete">Deleting your data</a></li>
@@ -74,14 +77,16 @@
         account to create and no sign-in of any kind.
       </p>
       <p>
-        The App does not send your gameplay data, device identifiers or usage information to us or to anyone
-        else. We have no server that receives data from the App.
+        The Android and iOS apps send anonymous usage statistics so we can see how the game is played and make
+        it better. These statistics cannot be used to identify you. They are described in full in
+        <a href="#analytics">Anonymous usage statistics</a> below, and you can switch them off at any time. The web
+        version of the game sends no usage statistics.
       </p>
 
       <h2 id="local">2. Data stored on your device</h2>
       <p>
         To remember your progress between sessions, the App saves a small amount of game data in its private
-        storage on your device (on the web, in your browser's local storage). This data never leaves your
+        storage on your device (on the web, in your browser's local storage). This saved data never leaves your
         device unless you choose to export it.
       </p>
       <div class="table-wrap">
@@ -110,7 +115,7 @@
               <td>So you can continue a level where you left off</td>
             </tr>
             <tr>
-              <td>Settings: theme, music, sound effects, vibration, colorblind mode, reduce motion and hint reminders</td>
+              <td>Settings: theme, music, sound effects, vibration, colorblind mode, reduce motion, hint reminders and whether usage statistics are shared</td>
               <td>To keep the App set up the way you like it</td>
             </tr>
           </tbody>
@@ -149,8 +154,9 @@
         <li><strong>Vibration:</strong> for gentle haptic feedback while you play. You can turn it off in Settings.</li>
         <li><strong>Audio playback:</strong> to play music and sound effects. You can turn these off in Settings.</li>
         <li>
-          <strong>Internet:</strong> this permission is part of the app framework the game is built with. The App does
-          not use it to send or receive any of your data, and the game works fully offline.
+          <strong>Internet:</strong> used only to send the anonymous usage statistics described below (if you leave
+          them switched on). The game itself works fully offline; statistics recorded offline are sent the next time
+          you are connected.
         </li>
       </ul>
       <p>
@@ -160,41 +166,96 @@
         anything.
       </p>
 
-      <h2 id="third-parties">6. Third parties, ads and analytics</h2>
+      <h2 id="analytics">6. Anonymous usage statistics</h2>
+      <p>
+        The Android and iOS apps use <a href="https://posthog.com/privacy" rel="noopener">PostHog</a>, a product
+        analytics service, to record anonymous statistics about how the game is used. PostHog processes this data
+        on our behalf as a service provider and does not use it for its own purposes or for advertising.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">What is sent</th>
+              <th scope="col">Why</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Gameplay events: a level was started, solved or restarted, a hint was used, the intro tour was finished or closed, with details such as the level, stars, number of moves and Daily Puzzle tier</td>
+              <td>To learn which levels are too hard or too easy and which features are used</td>
+            </tr>
+            <tr>
+              <td>Screens opened (for example Home, Settings, a level pack) and when the app is installed, updated, opened or closed</td>
+              <td>To understand how players move through the game</td>
+            </tr>
+            <tr>
+              <td>Technical details: app version, device model and manufacturer, operating system and version, screen size, language and time zone</td>
+              <td>To make sure the game works well on the devices people use</td>
+            </tr>
+            <tr>
+              <td>A random identifier created when the app is first installed</td>
+              <td>To count unique players and sessions without knowing who they are</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>What we do <strong>not</strong> do:</p>
+      <ul>
+        <li>We never collect your name, email, phone number, contacts, photos, advertising ID or precise location.</li>
+        <li>We have turned off IP-based location, so PostHog does not store your country or city.</li>
+        <li>We do not record your screen, your taps or what you type, and we do not link statistics to any account.</li>
+        <li>Levels you create yourself with the level editor are never identified in the statistics.</li>
+      </ul>
+      <p>
+        The data is sent encrypted (HTTPS) and stored on PostHog's servers in the United States. It is kept for
+        up to 12 months and then deleted. Only the developer can see it.
+      </p>
+      <p>
+        <strong>Turning it off:</strong> open <span class="path">Settings &rsaquo; Privacy</span> and switch off
+        <strong>Share usage data</strong>. The App stops sending statistics straight away. Uninstalling the App, or
+        clearing its storage, also removes the random identifier, so any new statistics cannot be connected to
+        earlier ones.
+      </p>
+
+      <h2 id="third-parties">7. Third parties, ads and analytics</h2>
       <ul>
         <li>The App shows <strong>no advertising</strong>.</li>
-        <li>The App contains <strong>no analytics, tracking or crash-reporting</strong> tools.</li>
+        <li>The App uses <strong>PostHog</strong> for the anonymous usage statistics described above, and no other analytics, tracking or crash-reporting tools.</li>
         <li>The App has <strong>no in-app purchases</strong>.</li>
-        <li>We do <strong>not sell, rent or share</strong> any data with anyone, because we don't collect any.</li>
+        <li>We do <strong>not sell, rent or share</strong> data with anyone for advertising or any other purpose.</li>
       </ul>
       <p>
         The App is distributed through app stores and GitHub. Those platforms may collect information when you
         download the App, under their own privacy policies. This policy does not cover them.
       </p>
 
-      <h2 id="children">7. Children's privacy</h2>
+      <h2 id="children">8. Children's privacy</h2>
       <p>
-        Connect the Dots is suitable for players of all ages. Because the App does not collect any personal
-        information from anyone, it does not knowingly collect personal information from children under 13 (or the
-        equivalent minimum age in your country). If you believe a child has somehow sent us personal information,
+        Connect the Dots is suitable for players of all ages. The App does not collect personal information from
+        anyone, and it does not knowingly collect personal information from children under 13 (or the equivalent
+        minimum age in your country). The anonymous usage statistics described above contain no personal details,
+        and a parent can switch them off in <span class="path">Settings &rsaquo; Privacy</span>. If you believe a child has somehow sent us personal information,
         please <a href="#contact">contact us</a> and we will delete it.
       </p>
 
-      <h2 id="delete">8. Deleting your data</h2>
+      <h2 id="delete">9. Deleting your data</h2>
       <p>
-        Since there are no accounts and nothing is stored on our side, there is nothing for us to delete. You can
+        There are no accounts, and your game progress is not stored on our side. The anonymous usage statistics
+        cannot be linked to you and are deleted automatically after 12 months; you can stop them at any time as
+        described in <a href="#analytics">Anonymous usage statistics</a>. You can
         erase all game data on your device at any time by using <strong>Reset progress</strong> in Settings,
         clearing the App's storage, or uninstalling the App. Step-by-step instructions are on the
         <a href="delete-account.html">Delete Account &amp; Data</a> page.
       </p>
 
-      <h2 id="security">9. Security</h2>
+      <h2 id="security">10. Security</h2>
       <p>
-        Your game data stays in the App's private storage on your device, which other apps cannot read. Because no
-        data is transmitted to us, there is no risk of it being exposed from our servers.
+        Your game data stays in the App's private storage on your device, which other apps cannot read. Anonymous
+        usage statistics are sent over an encrypted connection (HTTPS) and contain no personal information.
       </p>
 
-      <h2 id="website">10. This website</h2>
+      <h2 id="website">11. This website</h2>
       <p>
         This website is hosted on <a href="https://pages.github.com/" rel="noopener">GitHub Pages</a>. It does not
         use cookies, analytics or tracking. Like most web hosts, GitHub may log basic technical information such as
@@ -204,14 +265,14 @@
         <a href="https://policies.google.com/privacy" rel="noopener">Google's Privacy Policy</a>.
       </p>
 
-      <h2 id="changes">11. Changes to this policy</h2>
+      <h2 id="changes">12. Changes to this policy</h2>
       <p>
         If the App changes in a way that affects your privacy (for example, if we add an optional sign-in or online
         leaderboards in the future), we will update this policy before that change is released and update the
         "Last updated" date above. Significant changes will also be noted in the App's release notes.
       </p>
 
-      <h2 id="contact">12. Contact us</h2>
+      <h2 id="contact">13. Contact us</h2>
       <p>If you have any questions about this Privacy Policy or the App, please get in touch:</p>
       <ul>
         <li>Developer: <strong>Rahul Kumar</strong></li>

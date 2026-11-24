@@ -9,6 +9,7 @@ import { useFonts, Fredoka_600SemiBold, Fredoka_700Bold } from '@expo-google-fon
 import { Nunito_600SemiBold, Nunito_800ExtraBold } from '@expo-google-fonts/nunito';
 import { Background } from '../ui/Background';
 import { audio } from '../services/audio';
+import { useAnalytics } from '../services/analytics';
 import { useTheme } from '../theme/useTheme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -21,6 +22,7 @@ const navTheme = {
 export default function RootLayout() {
   const [loaded, error] = useFonts({ Fredoka_600SemiBold, Fredoka_700Bold, Nunito_600SemiBold, Nunito_800ExtraBold });
   const theme = useTheme();
+  useAnalytics();
   const rootBg = { backgroundColor: theme.background.color };
 
   useEffect(() => {

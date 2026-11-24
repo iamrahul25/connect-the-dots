@@ -27,6 +27,7 @@ import { useCustomLevels } from '../store/customLevels';
 import { extendPalette } from '../theme/extraColors';
 import { audio } from '../services/audio';
 import { haptics } from '../services/haptics';
+import { track as trackEvent } from '../services/analytics';
 
 export interface GameScreenProps {
   level: Level;
@@ -58,6 +59,17 @@ const CONTROLS_INSET = 0.08;
 const CONTROL_MAX_W = 220;
 
 const sameCellPair = (a: Cell, b: Cell) => a[0] === b[0] && a[1] === b[1];
+
+/** Shared analytics properties for a level. Player-made (custom) levels are not identified. */
+function levelProps(level: Level, mode: GameScreenProps['mode'], pack: string, daily: GameScreenProps['daily']) {
+  return {
+    mode,
+    pack: mode === 'pack' ? pack : null,
+    level_id: mode === 'custom' ? null : level.id,
+    daily_tier: daily?.tier ?? null,
+    board_size: `${level.size.width}x${level.size.height}`,
+  };
+}
 
 export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNext, onLevels, daily }: GameScreenProps) {
   const theme = useTheme();
@@ -120,6 +132,8 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
   useEffect(() => {
     audio.playMusic(musicFor(pack));
     if (!custom) useProgress.getState().setLastPlayed(level.id);
+    trackEvent('level_started', { ...levelProps(level, mode, pack, daily), resumed: game.moves > 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pack, level.id, custom]);
 
   useEffect(() => {
@@ -165,6 +179,10 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
     const usedHint = gm.hinted.size > 0;
     const stars = starsFor(gm.moves, lv.stars.perfectMoves, lv.stars.twoStarMoves, usedHint);
     const progress = useProgress.getState();
+    const firstSolve =
+      mode === 'custom' ? !useCustomLevels.getState().results[lv.id]
+      : mode === 'daily' && daily ? !progress.daily.completed[daily.key]?.[daily.tier]
+      : !progress.levels[lv.id];
     let info: ResultInfo;
     if (mode === 'custom') {
       const prev = useCustomLevels.getState().results[lv.id];
@@ -194,8 +212,14 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
       };
       if (r.packCompleted || rankUp) setTimeout(() => audio.play('pack_unlock'), 1400);
     }
+    trackEvent('level_completed', {
+      ...levelProps(lv, mode, pack, daily),
+      stars, moves: gm.moves, perfect_moves: lv.stars.perfectMoves, used_hint: usedHint,
+      first_solve: firstSolve,
+      pack_completed: info.packCompleted, rank_up: info.rankUp?.name ?? null, perfect_day: info.perfectDay ?? null,
+    });
     setTimeout(() => setResult(info), ref.current.reduceMotion ? 300 : 1150);
-  }, [emit, mode, daily]);
+  }, [emit, mode, daily, pack]);
 
   const process = useCallback(
     (events: GameEvent[]) => {
@@ -393,10 +417,11 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
     if (wonRef.current) return;
     game.restart();
     if (!custom) useProgress.getState().saveBoard(level.id, null);
+    trackEvent('level_restarted', levelProps(level, mode, pack, daily));
     intro.value = 0.4;
     intro.value = withTiming(1, { duration: 500 });
     bump();
-  }, [game, level.id, bump, intro, custom]);
+  }, [game, level, bump, intro, custom, mode, pack, daily]);
 
   const onHint = useCallback(() => {
     if (wonRef.current) return;
@@ -406,6 +431,7 @@ export function GameScreen({ level, mode, title, subtitle, pack, nextLabel, onNe
       toast.show('No hints left');
       return;
     }
+    trackEvent('hint_used', { ...levelProps(level, mode, pack, daily), hints_left: useProgress.getState().hints });
     const cells = level.solution[String(pair)];
     const ev = game.applySolutionPath(pair, cells);
     audio.play('hint');

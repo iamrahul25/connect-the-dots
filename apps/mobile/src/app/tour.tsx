@@ -4,6 +4,7 @@ import { Tour } from '../tour/Tour';
 import type { TourMode } from '../tour/types';
 import { useSettings } from '../store/settings';
 import { nextToPlay, useProgress } from '../store/progress';
+import { track } from '../services/analytics';
 
 /**
  * `/tour?mode=onboarding|help|record`. Onboarding opens on first launch and ends in the first level;
@@ -18,9 +19,16 @@ export default function TourRoute() {
     if (mode === 'onboarding' && !useSettings.getState().tourSeen) useSettings.getState().set({ tourSeen: true });
   }, [mode]);
 
-  const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
+  const close = () => {
+    if (mode !== 'record') track('tour_closed', { mode });
+    if (router.canGoBack()) router.back();
+    else router.replace('/');
+  };
   // Play always starts the player's next level, whether the tour opened on first launch or from help.
-  const play = () => router.replace(`/play/${nextToPlay(useProgress.getState().levels)}`);
+  const play = () => {
+    if (mode !== 'record') track('tour_finished', { mode });
+    router.replace(`/play/${nextToPlay(useProgress.getState().levels)}`);
+  };
 
   return <Tour mode={mode} theme={theme} onPlay={play} onClose={close} />;
 }
