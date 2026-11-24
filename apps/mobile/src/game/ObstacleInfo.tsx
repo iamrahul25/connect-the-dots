@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Animated, { useAnimatedStyle, useDerivedValue, useSharedValue, withSpring, withTiming, type SharedValue } from 'react-native-reanimated';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { useAnimatedScrollHandler, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring, withTiming, type SharedValue } from 'react-native-reanimated';
 import { Canvas, Skia, useClock } from '@shopify/react-native-skia';
 import { Ionicons } from '@expo/vector-icons';
 import type { Puzzle } from '@ctd/core';
 import { bakedPixels, useBakedImage } from '../ui/bakedImage';
+import { withAlpha } from '../board/color';
 import { GlassButton } from '../ui/GlassButton';
 import { symbolPath } from '../board/symbols';
 import { HatchedTile } from '../ui/HatchedTile';
@@ -98,6 +99,7 @@ export function InfoSheet({
   subtitle,
   onClose,
   footer,
+  scrollBar,
   children,
 }: {
   title: string;
@@ -105,9 +107,18 @@ export function InfoSheet({
   onClose: () => void;
   /** Extra button placed beside "Got it". */
   footer?: React.ReactNode;
+  /** Shows an always-visible scrollbar at the side when the content overflows, so players see there is more below. */
+  scrollBar?: boolean;
   children: React.ReactNode;
 }) {
   const styles = useStyles();
+  const theme = useTheme();
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler((e) => {
+    scrollY.value = e.contentOffset.y;
+  });
+  const [viewH, setViewH] = useState(0);
+  const [contentH, setContentH] = useState(0);
   const backdrop = useSharedValue(0);
   const card = useSharedValue(0);
   useEffect(() => {
@@ -129,15 +140,53 @@ export function InfoSheet({
         <Animated.View style={[styles.card, cardStyle]}>
           <Text style={styles.title}>{title}</Text>
           {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-          <ScrollView style={{ alignSelf: 'stretch' }} contentContainerStyle={{ gap: 12 }} showsVerticalScrollIndicator={false}>
-            {children}
-          </ScrollView>
+          <View style={styles.scrollArea}>
+            <Animated.ScrollView
+              style={{ alignSelf: 'stretch' }}
+              contentContainerStyle={{ gap: 12 }}
+              showsVerticalScrollIndicator={false}
+              onScroll={onScroll}
+              scrollEventThrottle={16}
+              onLayout={(e) => setViewH(e.nativeEvent.layout.height)}
+              onContentSizeChange={(_w, h) => setContentH(h)}
+            >
+              {children}
+            </Animated.ScrollView>
+            {scrollBar && (
+              <ScrollBar
+                y={scrollY}
+                viewH={viewH}
+                contentH={contentH}
+                track={withAlpha(theme.text.primary, 0.08)}
+                thumb={withAlpha(theme.accent.color, 0.85)}
+              />
+            )}
+          </View>
           <View style={styles.footer}>
             {footer}
             <GlassButton label="Got it" onPress={onClose} style={styles.footerButton} />
           </View>
         </Animated.View>
       </View>
+    </View>
+  );
+}
+
+/**
+ * A slim, always-visible scrollbar along the right edge of a scroll area (the native indicator only
+ * appears while scrolling). The thumb's size shows how much is hidden; it follows the scroll position.
+ */
+function ScrollBar({ y, viewH, contentH, track, thumb }: { y: SharedValue<number>; viewH: number; contentH: number; track: string; thumb: string }) {
+  const styles = useStyles();
+  const overflow = contentH - viewH;
+  const thumbH = viewH > 0 && contentH > 0 ? Math.max(36, (viewH * viewH) / contentH) : 0;
+  const thumbStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: overflow > 0 ? (Math.min(Math.max(y.value, 0), overflow) / overflow) * (viewH - thumbH) : 0 }],
+  }));
+  if (overflow <= 4 || viewH <= 0) return null;
+  return (
+    <View pointerEvents="none" style={[styles.scrollTrack, { backgroundColor: track }]}>
+      <Animated.View style={[styles.scrollThumb, { height: thumbH, backgroundColor: thumb }, thumbStyle]} />
     </View>
   );
 }
@@ -602,6 +651,9 @@ function LockPreview({ keyColor, doorColor }: { keyColor: Ink; doorColor: Ink })
 const useStyles = makeStyles((t, s) => ({
   backdrop: { backgroundColor: t.box.overlay },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
+  scrollArea: { alignSelf: 'stretch', flexShrink: 1 },
+  scrollTrack: { position: 'absolute', top: 0, bottom: 0, right: -s(13), width: s(5), borderRadius: s(3) },
+  scrollThumb: { width: '100%', borderRadius: s(3) },
   card: {
     width: '100%',
     maxWidth: s(440),

@@ -35,7 +35,7 @@ const THEME_META: Record<ThemeId, { icon: keyof typeof Ionicons.glyphMap; taglin
   night: { icon: 'moon', tagline: 'Dark & calm' },
 };
 
-type Key = Exclude<keyof SettingsState, 'set' | 'theme'>;
+type Key = Exclude<keyof SettingsState, 'set' | 'theme' | 'tourSeen' | 'tourSpeed'>;
 
 type Row = { key: Key; icon: keyof typeof Ionicons.glyphMap; label: string; sub: string; native?: boolean };
 
@@ -261,9 +261,15 @@ export default function Settings() {
               {DEV_ROWS.map((r, i) => (
                 <ToggleRow key={r.key} row={r} divider={i > 0} />
               ))}
+              <ActionRow icon="videocam" label="Promo recording mode" sub="Full-screen tour without controls, for screen recording" divider onPress={() => router.push('/tour?mode=record')} />
             </View>
           </>
         )}
+
+        <Text style={styles.section}>Help</Text>
+        <View style={styles.group}>
+          <ActionRow icon="play-circle" label="Watch the game tour" sub="Replay the animated intro: rules, obstacles, packs and daily puzzles" divider={false} onPress={() => router.push('/tour?mode=help')} />
+        </View>
 
         <Text style={styles.section}>Palette preview</Text>
         <View style={[styles.group, styles.palette]}>

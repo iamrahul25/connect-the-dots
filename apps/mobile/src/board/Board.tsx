@@ -33,6 +33,7 @@ import {
   type Puzzle,
 } from '@ctd/core';
 import { BORDER_INSET, cellCenter, cellGapPx, type BoardGeom } from './geometry';
+
 import { drawEffects, type Effect } from './effects';
 import { withBrush, type Brush } from './brush';
 import { drawClosedDoor, drawKeyBadge, drawKeyMark, drawOpenDoor, keyPath, padlockPaths, type Padlock } from './LockMarks';
@@ -43,6 +44,20 @@ import { emptyPicture, makePicture, recordPicture, skipPicture, usePictureSlot, 
 import { tokens } from '../theme/tokens';
 import { lockColor, teleporterColor, type DotStyle, type Palette } from '../theme/config';
 import { useTheme } from '../theme/useTheme';
+
+/**
+ * A flow segment growing from one cell center to the next (scripted playback, e.g. the tour).
+ * Drawn from `(x0,y0)` toward `(x1,y1)` by `leadT` (0..1), so lines glide instead of jumping a cell.
+ */
+export interface LeadSegment {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+  color: string;
+  /** Draw the drag head at the segment's tip. */
+  head?: boolean;
+}
 
 /** What the board draws. `Game` is one; the level editor passes a preview of the draft. */
 export interface BoardSource {
@@ -71,10 +86,14 @@ interface Props {
   onUp: () => void;
   /** Squares outlined on top of everything (editor selections and problem squares). */
   marks?: { cell: Cell; color: string }[];
+  /** Growing segments ahead of the committed paths; when given, the head follows them instead. */
+  lead?: SharedValue<LeadSegment[]>;
+  leadT?: SharedValue<number>;
 }
 
 const DIR_VEC = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] } as const;
 const CLIP_INTERSECT = ClipOp.Intersect;
+const CLIP_DIFFERENCE = ClipOp.Difference;
 const STROKE = PaintStyle.Stroke;
 const ROUND = { cap: StrokeCap.Round, join: StrokeJoin.Round };
 
@@ -470,6 +489,55 @@ export function Board(props: Props) {
   }, [dynamic.head, headX, headY, headOn]);
   const headColor = dynamic.dragging >= 0 ? styleOf(dynamic.dragging).line : theme.text.primary;
 
+  // Scripted lead segments. Each is clipped so it never overlaps the committed line's round end
+  // (both are translucent, so an overlap would show as a darker blob at every cell).
+  const { lead, leadT } = props;
+  const scripted = !!lead;
+  const lineOpacity = B.lineOpacity;
+  const leadSlot = usePictureSlot();
+  const leadBlank = emptyPicture();
+  const leadPicture = useDerivedValue(() => {
+    const list = lead?.value;
+    if (!list || !list.length) return skipPicture(leadSlot, leadBlank);
+    const t = Math.max(0, Math.min(1, leadT?.value ?? 1));
+    return recordPicture(leadSlot, (canvas) => {
+      const paint = Skia.Paint();
+      paint.setAntiAlias(true);
+      paint.setStyle(STROKE);
+      paint.setStrokeWidth(pathW);
+      paint.setStrokeCap(StrokeCap.Round);
+      const fill = Skia.Paint();
+      fill.setAntiAlias(true);
+      for (const s of list) {
+        const tx = s.x0 + (s.x1 - s.x0) * t;
+        const ty = s.y0 + (s.y1 - s.y0) * t;
+        const horizontal = Math.abs(s.x1 - s.x0) >= Math.abs(s.y1 - s.y0);
+        const fwd = horizontal ? s.x1 >= s.x0 : s.y1 >= s.y0;
+        const reach = pathW * 2;
+        // Half-plane ahead of the start center, minus the committed line's round end.
+        const clip = horizontal
+          ? Skia.XYWHRect(fwd ? s.x0 : s.x1 - reach, s.y0 - reach, Math.abs(s.x1 - s.x0) + reach, reach * 2)
+          : Skia.XYWHRect(s.x0 - reach, fwd ? s.y0 : s.y1 - reach, reach * 2, Math.abs(s.y1 - s.y0) + reach);
+        canvas.save();
+        canvas.clipRect(clip, CLIP_INTERSECT, true);
+        canvas.clipRRect(Skia.RRectXY(Skia.XYWHRect(s.x0 - pathW / 2, s.y0 - pathW / 2, pathW, pathW), pathW / 2, pathW / 2), CLIP_DIFFERENCE, true);
+        paint.setColor(Skia.Color(s.color));
+        paint.setAlphaf(lineOpacity);
+        canvas.drawLine(s.x0, s.y0, tx, ty, paint);
+        canvas.restore();
+        if (s.head) {
+          fill.setColor(Skia.Color(s.color));
+          fill.setAlphaf(0.3);
+          canvas.drawCircle(tx, ty, pathW * 1.05, fill);
+          fill.setAlphaf(1);
+          canvas.drawCircle(tx, ty, pathW * 0.42, fill);
+        }
+      }
+      paint.dispose();
+      fill.dispose();
+    });
+  }, [lead, leadT, pathW, lineOpacity, leadBlank]);
+
   const boardTransform = useDerivedValue(() => {
     const s = 0.92 + 0.08 * Math.min(1, intro.value);
     return [
@@ -568,6 +636,7 @@ export function Board(props: Props) {
             ))}
 
             <Picture picture={over} />
+            {scripted && <Picture picture={leadPicture} />}
 
             <Group layer={fading ? <Paint opacity={dotsOpacity} /> : undefined}>
               <Picture picture={breathPicture} />
@@ -576,7 +645,7 @@ export function Board(props: Props) {
             <Picture picture={marksLayer} />
 
             {/* Head of the path being drawn */}
-            <Group opacity={headOn}>
+            <Group opacity={scripted ? 0 : headOn}>
               <Circle cx={headX} cy={headY} r={pathW * 1.05} color={headColor} opacity={0.3} />
               <Circle cx={headX} cy={headY} r={pathW * 0.42} color={headColor} />
             </Group>

@@ -1,11 +1,17 @@
+import { createContext, useContext } from 'react';
 import { StyleSheet } from 'react-native';
 import { useSettings } from '../store/settings';
 import { resolveTheme, type Palette, type UiTheme } from './config';
 import { makeScaler, useScale, type Scaler } from './scale';
 
-/** The player's selected theme. */
+/** Forces a theme for a subtree without touching the player's setting (the promo recording uses Autumn). */
+export const ThemeOverride = createContext<string | null>(null);
+
+/** The player's selected theme, unless a `ThemeOverride` is in effect. */
 export function useTheme(): UiTheme {
-  return resolveTheme(useSettings((s) => s.theme));
+  const selected = useSettings((s) => s.theme);
+  const override = useContext(ThemeOverride);
+  return resolveTheme(override ?? selected);
 }
 
 /** Dot palette for the active theme, switching to the colorblind set when enabled. */

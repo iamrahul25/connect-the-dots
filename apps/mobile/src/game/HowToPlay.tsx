@@ -1,5 +1,6 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { withAlpha } from '../board/color';
 import { useLayout } from '../ui/layout';
@@ -27,7 +28,13 @@ const SCORING: { icon: IconName; tone: IconTone; text: string }[] = [
 export function HowToPlay({ palette, onClose }: { palette: Palette; onClose: () => void }) {
   const styles = useStyles();
   return (
-    <InfoSheet title="How to Play" subtitle="Link the colors · fill every cell" onClose={onClose}>
+    <InfoSheet title="How to Play" subtitle="Link the colors · fill every cell" onClose={onClose} scrollBar>
+      <TourBanner
+        onPress={() => {
+          onClose();
+          router.push('/tour?mode=help');
+        }}
+      />
       <Text style={styles.section}>The basics</Text>
       <Text style={styles.sectionNote}>Connect the matching dots and fill every box on the board.</Text>
       <View style={styles.basics}>
@@ -53,6 +60,30 @@ export function HowToPlay({ palette, onClose }: { palette: Palette; onClose: () 
       ))}
       <ComingSoon />
     </InfoSheet>
+  );
+}
+
+/** Opens the animated game tour. */
+function TourBanner({ onPress }: { onPress: () => void }) {
+  const styles = useStyles();
+  const theme = useTheme();
+  const { s } = useLayout();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel="Watch the game tour"
+      style={({ pressed }) => [styles.banner, { backgroundColor: theme.accent.color }, pressed && { transform: [{ scale: 0.98 }] }]}
+    >
+      <View style={[styles.bannerIcon, { backgroundColor: withAlpha(theme.accent.onColor, 0.2) }]}>
+        <Ionicons name="play" size={s(20)} color={theme.accent.onColor} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.bannerTitle, { color: theme.accent.onColor }]}>Watch the game tour</Text>
+        <Text style={[styles.bannerSub, { color: withAlpha(theme.accent.onColor, 0.8) }]}>A 35-second animated intro to everything</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={s(18)} color={theme.accent.onColor} />
+    </Pressable>
   );
 }
 
@@ -84,6 +115,10 @@ function ComingSoon() {
 }
 
 const useStyles = makeStyles((t, s) => ({
+  banner: { flexDirection: 'row', alignItems: 'center', gap: s(12), padding: s(12), borderRadius: s(18) },
+  bannerIcon: { width: s(40), height: s(40), borderRadius: s(20), alignItems: 'center', justifyContent: 'center' },
+  bannerTitle: { fontFamily: fonts.title, fontSize: s(17) },
+  bannerSub: { fontFamily: fonts.body, fontSize: s(12) },
   soon: {
     flexDirection: 'row',
     alignItems: 'center',

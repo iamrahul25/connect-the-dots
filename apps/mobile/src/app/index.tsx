@@ -26,8 +26,11 @@ import { HowToPlay } from '../game/HowToPlay';
 import { withAlpha } from '../board/color';
 import { levelNumber, maxStars, packOfLevel } from '../data/levels';
 import { daySolvedCount, nextToPlay, streaksOf, totalStars, useProgress } from '../store/progress';
-import { useSettings } from '../store/settings';
+import { useSettings, useSettingsHydrated } from '../store/settings';
 import { audio } from '../services/audio';
+
+/** The intro tour opens at most once per app run, even if Home remounts. */
+let tourOpened = false;
 
 function useCountdown() {
   const [now, setNow] = useState(Date.now());
@@ -127,6 +130,15 @@ export default function Home() {
       audio.playMusic('dawn');
     }, []),
   );
+
+  // First launch after install: play the animated intro.
+  const hydrated = useSettingsHydrated();
+  const tourSeen = useSettings((s) => s.tourSeen);
+  useEffect(() => {
+    if (!hydrated || tourSeen || tourOpened) return;
+    tourOpened = true;
+    router.push('/tour?mode=onboarding');
+  }, [hydrated, tourSeen]);
 
   return (
     <>
